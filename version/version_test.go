@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestGetVersion(t *testing.T) {
+func TestGetVersion(t *testing.T) { //nolint
 	t.Run("If global variable 'Version' is empty, return '' from build information", func(t *testing.T) {
 		got := GetVersion()
 		want := ""

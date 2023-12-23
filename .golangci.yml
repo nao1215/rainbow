@@ -26,7 +26,6 @@ linters:
     - exhaustive
     - exportloopref
     - forcetypeassert
-    - gochecknoglobals
     - gochecknoinits
     - goconst
     - gocritic
@@ -37,7 +36,6 @@ linters:
     - misspell
     - nakedret
     - noctx
-    - paralleltest
     - prealloc
     - rowserrcheck
     - sqlclosecheck

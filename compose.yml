@@ -11,8 +11,6 @@ services:
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./localstack}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "localstack:/etc/localstack/init/ready.d"
       - "data:/home/localstack/data"
 volumes:
-  localstack:
   data:
