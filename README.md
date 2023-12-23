@@ -13,7 +13,7 @@
 > [!IMPORTANT]  
 > This project is under development. Do not use it in production environments.
 
-The rainbow project is a toolset for managing AWS resources. This project consists of multiple CLI and CloudFormation templates.
+The rainbow project is a toolset for managing AWS resources. This project consists of multiple CLI and CloudFormation templates. This project adopts README-Driven Development. Therefore, while there may be a README, there might not be any code yet. If you have any feedback regarding the README, please write down in the Issues.
 
 ## Supported OS & Go version
 - Linux
@@ -23,6 +23,10 @@ The rainbow project is a toolset for managing AWS resources. This project consis
 
 ## CLI List
 [WIP]
+|Name|README|implementation|Description|
+|:--|:--|:--|:--|
+|[s3hub](./doc/s3hub/README.md)|✅||user-friendly s3 management tool|
+
 
 ## Template List
 [WIP]
@@ -31,7 +35,7 @@ The rainbow project is a toolset for managing AWS resources. This project consis
 This project is licensed under the terms of the MIT license. See the [LICENSE](./LICENSE) file.
 
 ## Contributing
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md), [Code of Conduct](./CODE_OF_CONDUCT.md) for more information. This project incurs costs on AWS, and financial support from you would make it easier to maintain the project. If you wish to provide financial support, please do so through [GitHub Sponsors](https://github.com/sponsors/nao1215)
+Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md), [Code of Conduct](./CODE_OF_CONDUCT.md), [Principle](./doc/common/principle.md) for more information. This project incurs costs on AWS, and financial support from you would make it easier to maintain the project. If you wish to provide financial support, please do so through [GitHub Sponsors](https://github.com/sponsors/nao1215)
 
 ## GitHub Star History
 Stars from you motivate me to keep going.
