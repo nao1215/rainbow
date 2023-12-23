@@ -1,11 +1,28 @@
-# rainbow
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-rainbow - toolset for AWS
+## rainbow 
+> [!IMPORTANT]  
+> This project is under development. Do not use it in production environments.
+
+The rainbow project is a toolset for managing AWS resources. This project consists of multiple CLI and CloudFormation templates.
+
+## CLI List
+[WIP]
+
+## Template List
+[WIP]
+
+## LICENSE
+This project is licensed under the terms of the MIT license. See the [LICENSE](./LICENSE) file.
+
+## Contributing
+Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md), [Code of Conduct](./CODE_OF_CONDUCT.md) for more information. This project incurs costs on AWS, and financial support from you would make it easier to maintain the project. If you wish to provide financial support, please do so through [GitHub Sponsors](https://github.com/sponsors/nao1215)
+
+## GitHub Star History
+[WIP]
 
 ## Contributors ✨
-
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
