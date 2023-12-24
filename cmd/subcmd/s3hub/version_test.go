@@ -24,7 +24,7 @@ func Test_version(t *testing.T) {
 		want := "s3hub v0.0.0 (under MIT LICENSE)\n"
 		got := stdout.String()
 		if got != want {
-			t.Errorf("got %q, want %q", got, want)
+			t.Errorf("got %s, want %s", got, want)
 		}
 	})
 }
