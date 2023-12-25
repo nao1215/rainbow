@@ -6,19 +6,11 @@ import (
 	"github.com/muesli/termenv"
 )
 
-const (
-	progressBarWidth  = 71
-	progressFullChar  = "█"
-	progressEmptyChar = "░"
-)
-
 // General stuff for styling the view
 var (
-	term          = termenv.EnvColorProfile()
-	keyword       = makeFgStyle("211")
-	subtle        = makeFgStyle("241")
-	progressEmpty = subtle(progressEmptyChar)
-	dot           = colorFg(" • ", "236")
+	term   = termenv.EnvColorProfile()
+	subtle = makeFgStyle("241")
+	dot    = colorFg(" • ", "236")
 )
 
 // makeFgStyle returns a function that will colorize the foreground of a given.
