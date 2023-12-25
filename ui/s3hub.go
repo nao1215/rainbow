@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/indent"
 )
@@ -26,12 +27,12 @@ const (
 
 // s3hubRootModel is the top-level model for the application.
 type s3hubRootModel struct {
-	// Choice is the currently selected menu item.
-	Choice int
-	// Chosen is true when the user has chosen a menu item.
-	Chosen bool
-	// Quitting is true when the user has quit the application.
-	Quitting bool
+	// choice is the currently selected menu item.
+	choice int
+	// chosen is true when the user has chosen a menu item.
+	chosen bool
+	// quitting is true when the user has quit the application.
+	quitting bool
 }
 
 // RunS3hubUI start s3hub command interactive UI.
@@ -51,24 +52,21 @@ func (m *s3hubRootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.Quitting = true
+			m.quitting = true
 			return m, tea.Quit
 		}
 	}
-	if !m.Chosen {
-		return m.updateChoices(msg)
-	}
-	return m.updateChosen(msg)
+	return m.updateChoices(msg)
 }
 
 // View renders the application's UI.
 func (m *s3hubRootModel) View() string {
-	if m.Quitting {
+	if m.quitting {
 		return "\n  See you later!\n\n" // TODO: print log.
 	}
 
 	var s string
-	if !m.Chosen {
+	if !m.chosen {
 		s = m.choicesView()
 	}
 	return indent.String("\n"+s+"\n\n", 2)
@@ -80,20 +78,20 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "j", "down":
-			m.Choice++
-			if m.Choice > s3hubTopMaxChoice {
-				m.Choice = s3hubTopMinChoice
+			m.choice++
+			if m.choice > s3hubTopMaxChoice {
+				m.choice = s3hubTopMinChoice
 			}
 		case "k", "up":
-			m.Choice--
-			if m.Choice < s3hubTopMinChoice {
-				m.Choice = s3hubTopMaxChoice
+			m.choice--
+			if m.choice < s3hubTopMinChoice {
+				m.choice = s3hubTopMaxChoice
 			}
 		case "enter":
-			m.Chosen = true
-			switch m.Choice {
+			m.chosen = true
+			switch m.choice {
 			case s3hubTopCreateChoice:
-				return &s3hubCreateBucketModel{}, nil
+				return newS3hubCreateBucketModel(), nil
 			case s3hubTopListChoice:
 				return &s3hubListBucketModel{}, nil
 			case s3hubTopCopyChoice:
@@ -108,18 +106,11 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// updateChosen updates the model when the user has chosen a menu item.
-func (m *s3hubRootModel) updateChosen(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg.(type) {
-	}
-	return m, nil
-}
-
 // choicesView returns a string containing the choices menu.
 func (m *s3hubRootModel) choicesView() string {
-	c := m.Choice
+	c := m.choice
 	template := "%s\n\n"
-	template += subtle("j/k, up/down: select") + dot + subtle("enter: choose") + dot + subtle("q, esc: quit")
+	template += subtle("j/k, up/down: select") + dot + subtle("enter: choose") + dot + subtle("q, <esc>: quit")
 
 	choices := fmt.Sprintf(
 		"%s\n%s\n%s\n%s\n%s\n",
@@ -133,36 +124,109 @@ func (m *s3hubRootModel) choicesView() string {
 }
 
 type s3hubCreateBucketModel struct {
-	// Quitting is true when the user has quit the application.
-	Quitting bool
+	// textInput is the text input widget.
+	textInput textinput.Model
+	// err is the error that occurred during the operation.
+	err error
+	// bucketName is the name of the S3 bucket that the user wants to create.
+	bucketName string
+	// state is the state of the create bucket operation.
+	state s3hubCreateBucketState
+}
+
+// createMsg is the message that is sent when the user wants to create the S3 bucket.
+type createMsg struct{}
+
+type s3hubCreateBucketState int
+
+const (
+	s3hubCreateBucketStateNone     s3hubCreateBucketState = 0
+	s3hubCreateBucketStateCreating s3hubCreateBucketState = 1
+	s3hubCreateBucketStateCreated  s3hubCreateBucketState = 2
+)
+
+func newS3hubCreateBucketModel() *s3hubCreateBucketModel {
+	ti := textinput.New()
+	ti.Placeholder = "Write the S3 bucket name here"
+	ti.Focus()
+	ti.CharLimit = 63
+	ti.Width = 63
+
+	return &s3hubCreateBucketModel{
+		textInput: ti,
+	}
 }
 
 func (m *s3hubCreateBucketModel) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
 
 func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Make sure these keys always quit
-	if msg, ok := msg.(tea.KeyMsg); ok {
-		k := msg.String()
-		m.Quitting = true
-		if k == "q" || k == "esc" || k == "ctrl+c" {
+	if m.err != nil {
+		return m, tea.Quit
+	}
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEnter:
+			if m.textInput.Value() == "" {
+				return m, nil
+			}
+			m.bucketName = m.textInput.Value()
+			m.state = s3hubCreateBucketStateCreating
+			return m, createS3BucketCmd()
+		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 		}
+	case errMsg:
+		m.err = msg
+		return m, nil
+	case createMsg:
+		// TODO: Wait for the result of the create bucket operation.
+		m.state = s3hubCreateBucketStateCreated
+		return m, tea.Quit
 	}
-	return m, nil
+
+	var cmd tea.Cmd
+	m.textInput, cmd = m.textInput.Update(msg)
+	return m, cmd
 }
 
 func (m *s3hubCreateBucketModel) View() string {
+	if m.err != nil {
+		return fmt.Sprintf("%s", m.err.Error())
+	}
+
+	if m.state == s3hubCreateBucketStateCreated {
+		return fmt.Sprintf("Created S3 bucket: %s\n", m.bucketName)
+	}
+
+	if m.bucketName != "" {
+		return fmt.Sprintf("Creating S3 bucket: %s (TODO: not implemented)\n", m.bucketName)
+	}
+
+	lengthStr := fmt.Sprintf("Length: %d", len(m.textInput.Value()))
+	if len(m.textInput.Value()) == 63 { // TODO: remove magic number.
+		lengthStr += " (max)"
+	}
+
 	return fmt.Sprintf(
-		"%s\n%s",
-		"s3hubCreateBucketModel",
-		subtle("j/k, up/down: select")+dot+subtle("enter: choose")+dot+subtle("q, esc: quit"))
+		"[Input S3 name] %s\n\n%s\n\n%s",
+		m.textInput.View(), lengthStr, subtle("<esc>, <Ctrl-C>: quit"),
+	)
+}
+
+func createS3BucketCmd() tea.Cmd {
+	return tea.Cmd(func() tea.Msg {
+		// TODO: implement create s3 bucket operation.
+		return createMsg{}
+	})
 }
 
 type s3hubListBucketModel struct {
-	// Quitting is true when the user has quit the application.
-	Quitting bool
+	// quitting is true when the user has quit the application.
+	quitting bool
 }
 
 func (m *s3hubListBucketModel) Init() tea.Cmd {
@@ -173,7 +237,7 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.Quitting = true
+			m.quitting = true
 			return m, tea.Quit
 		}
 	}
@@ -188,8 +252,8 @@ func (m *s3hubListBucketModel) View() string {
 }
 
 type s3hubCopyModel struct {
-	// Quitting is true when the user has quit the application.
-	Quitting bool
+	// quitting is true when the user has quit the application.
+	quitting bool
 }
 
 func (m *s3hubCopyModel) Init() tea.Cmd {
@@ -200,7 +264,7 @@ func (m *s3hubCopyModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.Quitting = true
+			m.quitting = true
 			return m, tea.Quit
 		}
 	}
@@ -215,8 +279,8 @@ func (m *s3hubCopyModel) View() string {
 }
 
 type s3hubDeleteContentsModel struct {
-	// Quitting is true when the user has quit the application.
-	Quitting bool
+	// quitting is true when the user has quit the application.
+	quitting bool
 }
 
 func (m *s3hubDeleteContentsModel) Init() tea.Cmd {
@@ -227,7 +291,7 @@ func (m *s3hubDeleteContentsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.Quitting = true
+			m.quitting = true
 			return m, tea.Quit
 		}
 	}
@@ -242,8 +306,8 @@ func (m *s3hubDeleteContentsModel) View() string {
 }
 
 type s3hubDeleteBucketModel struct {
-	// Quitting is true when the user has quit the application.
-	Quitting bool
+	// quitting is true when the user has quit the application.
+	quitting bool
 }
 
 func (m *s3hubDeleteBucketModel) Init() tea.Cmd {
@@ -254,7 +318,7 @@ func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.Quitting = true
+			m.quitting = true
 			return m, tea.Quit
 		}
 	}
