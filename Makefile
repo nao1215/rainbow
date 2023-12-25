@@ -5,7 +5,7 @@ VERSION     = $(shell git describe --tags --abbrev=0)
 GO          = go
 GO_BUILD    = $(GO) build
 GO_INSTALL  = $(GO) install
-GO_TEST     = $(GO) test -v
+GO_TEST     = hottest -v
 GO_TOOL     = $(GO) tool
 GO_DEP      = $(GO) mod
 GOOS        = ""
@@ -29,6 +29,8 @@ changelog: ## Generate changelog
 
 tools: ## Install dependency tools 
 	$(GO_INSTALL) github.com/Songmu/ghch/cmd/ghch@latest
+	$(GO_INSTALL) github.com/nao1215/hottest@latest
+	$(GO_INSTALL) github.com/google/wire/cmd/wire@latest
 
 .DEFAULT_GOAL := help
 help:  

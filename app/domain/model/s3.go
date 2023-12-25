@@ -1,6 +1,14 @@
 // Package model contains the definitions of domain models and business logic.
 package model
 
+import (
+	"fmt"
+	"strings"
+
+	"github.com/nao1215/rainbow/utils/errfmt"
+	"github.com/nao1215/rainbow/utils/xregex"
+)
+
 // Region is the name of the AWS region.
 type Region string
 
@@ -57,8 +65,8 @@ const (
 	RegionUSGovWest1 Region = "us-gov-west-1"
 )
 
-// Valid returns true if the Region exists.
-func (r Region) Valid() bool {
+// Validate returns true if the Region exists.
+func (r Region) Validate() error {
 	switch r {
 	case
 		RegionUSEast1, RegionUSEast2, RegionUSWest1, RegionUSWest2, RegionAFSouth1,
@@ -67,9 +75,11 @@ func (r Region) Valid() bool {
 		RegionCNNorth1, RegionCNNorthwest1, RegionEUCentral1, RegionEUNorth1,
 		RegionEUSouth1, RegionEUWest1, RegionEUWest2, RegionEUWest3, RegionMESouth1,
 		RegionSASouth1, RegionUSGovEast1, RegionUSGovWest1:
-		return true
+		return nil
+	case Region(""):
+		return ErrEmptyRegion
 	default:
-		return false
+		return ErrInvalidRegion
 	}
 }
 
@@ -81,13 +91,93 @@ func (r Region) String() string {
 // Bucket is the name of the S3 bucket.
 type Bucket string
 
-// Valid returns true if the Bucket is valid (it's not empty).
-func (b Bucket) Valid() bool {
-	// TODO: check strictly
-	return b != ""
-}
-
 // String returns the string representation of the Bucket.
 func (b Bucket) String() string {
 	return string(b)
+}
+
+// Empty is whether bucket name is empty
+func (b Bucket) Empty() bool {
+	return b == ""
+}
+
+// Domain returns the domain name of the Bucket.
+func (b Bucket) Domain() string {
+	return fmt.Sprintf("%s.s3.amazonaws.com", b.String())
+}
+
+// Validate returns true if the Bucket is valid.
+// Bucket naming rules: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+func (b Bucket) Validate() error {
+	if b.Empty() {
+		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name is empty")
+	}
+
+	validators := []func() error{
+		b.validateLength,
+		b.validatePattern,
+		b.validatePrefix,
+		b.validateSuffix,
+		b.validateCharSequence,
+	}
+	for _, v := range validators {
+		if err := v(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+const (
+	// BucketMinLength is the minimum length of the bucket name.
+	BucketMinLength = 3
+	// BucketMaxLength is the maximum length of the bucket name.
+	BucketMaxLength = 63
+)
+
+// validateLength validates the length of the bucket name.
+func (b Bucket) validateLength() error {
+	if len(b) < 3 || len(b) > 63 {
+		return fmt.Errorf("s3 bucket name must be between 3 and 63 characters long")
+	}
+	return nil
+}
+
+var s3RegexPattern xregex.Regex //nolint:gochecknoglobals
+
+// validatePattern validates the pattern of the bucket name.
+func (b Bucket) validatePattern() error {
+	s3RegexPattern.InitOnce(`^[a-z0-9][a-z0-9.-]*[a-z0-9]$`)
+	if err := s3RegexPattern.MatchString(string(b)); err != nil {
+		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must use only lowercase letters, numbers, periods, and hyphens")
+	}
+	return nil
+}
+
+// validatePrefix validates the prefix of the bucket name.
+func (b Bucket) validatePrefix() error {
+	for _, prefix := range []string{"xn--", "sthree-", "sthree-configurator"} {
+		if strings.HasPrefix(string(b), prefix) {
+			return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not start with \"xn--\", \"sthree-\", or \"sthree-configurator\"")
+		}
+	}
+	return nil
+}
+
+// validateSuffix validates the suffix of the bucket name.
+func (b Bucket) validateSuffix() error {
+	for _, suffix := range []string{"-s3alias", "--ol-s3"} {
+		if strings.HasSuffix(string(b), suffix) {
+			return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not end with \"-s3alias\" or \"--ol-s3\"")
+		}
+	}
+	return nil
+}
+
+// validateCharSequence validates the character sequence of the bucket name.
+func (b Bucket) validateCharSequence() error {
+	if strings.Contains(string(b), "..") || strings.Contains(string(b), "--") {
+		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not contain consecutive periods or hyphens")
+	}
+	return nil
 }

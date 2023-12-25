@@ -1,18 +1,11 @@
-// Package service
-package service
+package usecase
 
-import (
-	"context"
-
-	"github.com/nao1215/rainbow/app/domain/model"
-)
+import "context"
 
 // S3BucketCreatorInput is the input of the CreateBucket method.
 type S3BucketCreatorInput struct {
-	// Bucket is the name of the bucket to create.
-	Bucket model.Bucket
-	// Region is the name of the AWS region.
-	Region model.Region
+	Bucket string
+	Region string
 }
 
 // S3BucketCreatorOutput is the output of the CreateBucket method.

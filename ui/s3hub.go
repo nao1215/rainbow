@@ -1,11 +1,13 @@
 package ui
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/reflow/indent"
+	"github.com/nao1215/rainbow/app/domain/model"
 )
 
 const (
@@ -33,6 +35,8 @@ type s3hubRootModel struct {
 	chosen bool
 	// quitting is true when the user has quit the application.
 	quitting bool
+	// err is the error that occurred during the operation.
+	err error
 }
 
 // RunS3hubUI start s3hub command interactive UI.
@@ -61,8 +65,12 @@ func (m *s3hubRootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the application's UI.
 func (m *s3hubRootModel) View() string {
+	if m.err != nil {
+		return fmt.Sprintf("%s", m.err.Error())
+	}
+
 	if m.quitting {
-		return "\n  See you later!\n\n" // TODO: print log.
+		return "\n  See you later! (TODO: output log)\n\n" // TODO: print log.
 	}
 
 	var s string
@@ -91,7 +99,12 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.chosen = true
 			switch m.choice {
 			case s3hubTopCreateChoice:
-				return newS3hubCreateBucketModel(), nil
+				model, err := newS3hubCreateBucketModel()
+				if err != nil {
+					m.err = err
+					return m, tea.Quit
+				}
+				return model, nil
 			case s3hubTopListChoice:
 				return &s3hubListBucketModel{}, nil
 			case s3hubTopCopyChoice:
@@ -132,6 +145,10 @@ type s3hubCreateBucketModel struct {
 	bucketName string
 	// state is the state of the create bucket operation.
 	state s3hubCreateBucketState
+	// awsConfig is the AWS configuration.
+	awsConfig *model.AWSConfig
+	// awsProfile is the AWS profile.
+	awsProfile model.AWSProfile
 }
 
 // createMsg is the message that is sent when the user wants to create the S3 bucket.
@@ -145,16 +162,24 @@ const (
 	s3hubCreateBucketStateCreated  s3hubCreateBucketState = 2
 )
 
-func newS3hubCreateBucketModel() *s3hubCreateBucketModel {
+func newS3hubCreateBucketModel() (*s3hubCreateBucketModel, error) {
 	ti := textinput.New()
-	ti.Placeholder = "Write the S3 bucket name here"
+	ti.Placeholder = fmt.Sprintf("Write the S3 bucket name here (min: %d, max: %d)", model.BucketMinLength, model.BucketMaxLength)
 	ti.Focus()
-	ti.CharLimit = 63
-	ti.Width = 63
+	ti.CharLimit = model.BucketMaxLength
+	ti.Width = model.BucketMaxLength
+
+	profile := model.NewAWSProfile("")
+	cfg, err := model.NewAWSConfig(context.Background(), profile, "")
+	if err != nil {
+		return nil, err
+	}
 
 	return &s3hubCreateBucketModel{
-		textInput: ti,
-	}
+		textInput:  ti,
+		awsConfig:  cfg,
+		awsProfile: profile,
+	}, nil
 }
 
 func (m *s3hubCreateBucketModel) Init() tea.Cmd {
@@ -170,7 +195,7 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			if m.textInput.Value() == "" {
+			if m.textInput.Value() == "" || len(m.textInput.Value()) < model.BucketMinLength {
 				return m, nil
 			}
 			m.bucketName = m.textInput.Value()
@@ -207,12 +232,15 @@ func (m *s3hubCreateBucketModel) View() string {
 	}
 
 	lengthStr := fmt.Sprintf("Length: %d", len(m.textInput.Value()))
-	if len(m.textInput.Value()) == 63 { // TODO: remove magic number.
+	if len(m.textInput.Value()) == model.BucketMaxLength {
 		lengthStr += " (max)"
+	} else if len(m.textInput.Value()) < model.BucketMinLength {
+		lengthStr += " (min: 3)"
 	}
 
 	return fmt.Sprintf(
-		"[Input S3 name] %s\n\n%s\n\n%s",
+		"[ AWS Profile ] %s\n[    Region   ] %s\n[Input S3 name] %s\n\n%s\n\n%s",
+		m.awsProfile.String(), m.awsConfig.Region().String(),
 		m.textInput.View(), lengthStr, subtle("<esc>, <Ctrl-C>: quit"),
 	)
 }
