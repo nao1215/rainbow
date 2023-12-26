@@ -1,8 +1,9 @@
-// Packgae external provides external dependencies.
+// Packgae external implements the external service.
 package external
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -40,14 +41,22 @@ func NewS3BucketCreator(client *s3.Client) *S3BucketCreator {
 
 // CreateBucket creates a new S3 bucket.
 func (c *S3BucketCreator) CreateBucket(ctx context.Context, input *service.S3BucketCreatorInput) (*service.S3BucketCreatorOutput, error) {
+	// If region is us-east-1, you must not specify the location constraint.
+	// If you specify the location constraint in this case, the following error will occur.
+	// [api error InvalidLocationConstraint: The specified location-constraint is not valid]
+	locationContstraint := &types.CreateBucketConfiguration{
+		LocationConstraint: types.BucketLocationConstraint(input.Region.String()),
+	}
+	if input.Region == model.RegionUSEast1 {
+		locationContstraint = nil
+	}
+
 	_, err := c.client.CreateBucket(ctx, &s3.CreateBucketInput{
-		Bucket: aws.String(input.Bucket.String()),
-		CreateBucketConfiguration: &types.CreateBucketConfiguration{
-			LocationConstraint: types.BucketLocationConstraint(input.Region.String()),
-		},
+		Bucket:                    aws.String(input.Bucket.String()),
+		CreateBucketConfiguration: locationContstraint,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: region=%s, bucket name=%s", err, input.Region.String(), input.Bucket.String())
 	}
 	return &service.S3BucketCreatorOutput{}, nil
 }

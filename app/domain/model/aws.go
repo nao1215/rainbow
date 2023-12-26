@@ -48,6 +48,22 @@ func NewAWSConfig(ctx context.Context, profile AWSProfile, region Region) (*AWSC
 	if err != nil {
 		return nil, err
 	}
+
+	if cfg.BaseEndpoint != nil {
+		opts = append(opts, config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(func(service, region string, opts ...interface{}) (aws.Endpoint, error) {
+			return aws.Endpoint{
+				PartitionID:       "aws",
+				URL:               *cfg.BaseEndpoint,
+				HostnameImmutable: true,
+			}, nil
+		})))
+
+		cfg, err = config.LoadDefaultConfig(ctx, opts...)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &AWSConfig{
 		Config: &cfg,
 	}, nil
