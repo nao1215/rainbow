@@ -10,7 +10,9 @@ import (
 var (
 	term   = termenv.EnvColorProfile()
 	subtle = makeFgStyle("241")
-	dot    = colorFg(" • ", "236")
+	red    = makeFgStyle("196")
+	green  = makeFgStyle("46")
+	yellow = makeFgStyle("226")
 )
 
 type (
@@ -33,4 +35,18 @@ func checkbox(label string, checked bool) string {
 		return colorFg("[x] "+label, "212")
 	}
 	return fmt.Sprintf("[ ] %s", label)
+}
+
+// split splits a string into multiple lines.
+// Each line has a maximum length of 80 characters.
+func split(s string) []string {
+	var result []string
+	for i := 0; i < len(s); i += 80 {
+		end := i + 80
+		if end > len(s) {
+			end = len(s)
+		}
+		result = append(result, s[i:end])
+	}
+	return result
 }

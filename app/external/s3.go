@@ -1,13 +1,15 @@
+// Packgae external provides external dependencies.
 package external
 
 import (
 	"context"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/wire"
 	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/app/domain/service"
-	"github.com/shogo82148/pointer"
 )
 
 // NewS3Client creates a new S3 service client.
@@ -39,7 +41,10 @@ func NewS3BucketCreator(client *s3.Client) *S3BucketCreator {
 // CreateBucket creates a new S3 bucket.
 func (c *S3BucketCreator) CreateBucket(ctx context.Context, input *service.S3BucketCreatorInput) (*service.S3BucketCreatorOutput, error) {
 	_, err := c.client.CreateBucket(ctx, &s3.CreateBucketInput{
-		Bucket: pointer.String(input.Bucket.String()),
+		Bucket: aws.String(input.Bucket.String()),
+		CreateBucketConfiguration: &types.CreateBucketConfiguration{
+			LocationConstraint: types.BucketLocationConstraint(input.Region.String()),
+		},
 	})
 	if err != nil {
 		return nil, err

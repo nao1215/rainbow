@@ -3,6 +3,7 @@ module github.com/nao1215/rainbow
 go 1.19
 
 require (
+	github.com/aws/aws-sdk-go-v2 v1.24.0
 	github.com/aws/aws-sdk-go-v2/config v1.26.2
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.7
 	github.com/charmbracelet/bubbles v0.17.1
@@ -11,13 +12,11 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.15.2
-	github.com/shogo82148/pointer v1.3.0
 	github.com/spf13/cobra v1.8.0
 )
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.24.0 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.16.13 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.10 // indirect
@@ -47,10 +46,10 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
+	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/term v0.6.0 // indirect
-	golang.org/x/text v0.3.8 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 )

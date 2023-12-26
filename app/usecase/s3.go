@@ -1,11 +1,18 @@
+// Package usecase has interfaces that wrap the basic business logic.
 package usecase
 
-import "context"
+import (
+	"context"
+
+	"github.com/nao1215/rainbow/app/domain/model"
+)
 
 // S3BucketCreatorInput is the input of the CreateBucket method.
 type S3BucketCreatorInput struct {
-	Bucket string
-	Region string
+	// Bucket is the name of the bucket that you want to create.
+	Bucket model.Bucket
+	// Region is the region of the bucket that you want to create.
+	Region model.Region
 }
 
 // S3BucketCreatorOutput is the output of the CreateBucket method.

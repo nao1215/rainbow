@@ -11,7 +11,7 @@ import (
 type S3BucketCreatorInput struct {
 	// Bucket is the name of the bucket to create.
 	Bucket model.Bucket
-	// Region is the name of the AWS region.
+	// Region is the region of the bucket that you want to create.
 	Region model.Region
 }
 

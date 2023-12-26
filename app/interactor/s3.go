@@ -1,3 +1,4 @@
+// Package interactor contains the implementations of usecases.
 package interactor
 
 import (
@@ -32,5 +33,16 @@ func NewS3BucketCreator(c service.S3BucketCreator) *S3BucketCreator {
 
 // CreateBucket creates a new S3 bucket.
 func (s *S3BucketCreator) CreateBucket(ctx context.Context, input *usecase.S3BucketCreatorInput) (*usecase.S3BucketCreatorOutput, error) {
+	if err := input.Bucket.Validate(); err != nil {
+		return nil, err
+	}
+
+	in := service.S3BucketCreatorInput{
+		Bucket: input.Bucket,
+		Region: input.Region,
+	}
+	if _, err := s.S3BucketCreator.CreateBucket(ctx, &in); err != nil {
+		return nil, err
+	}
 	return &usecase.S3BucketCreatorOutput{}, nil
 }

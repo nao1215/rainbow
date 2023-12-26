@@ -41,7 +41,7 @@ func NewAWSConfig(ctx context.Context, profile AWSProfile, region Region) (*AWSC
 		opts = append(opts, config.WithSharedConfigProfile(profile.String()))
 	}
 	if region.String() != "" {
-		opts = append(opts, config.WithRegion(string(region)))
+		opts = append(opts, config.WithRegion(region.String()))
 	}
 
 	cfg, err := config.LoadDefaultConfig(ctx, opts...)

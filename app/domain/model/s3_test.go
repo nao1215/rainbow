@@ -351,3 +351,71 @@ func TestBucketDomain(t *testing.T) {
 		})
 	}
 }
+
+func TestRegion_Next(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		r    Region
+		want Region
+	}{
+		{
+			name: "success",
+			r:    RegionAPNortheast1,
+			want: RegionAPNortheast2,
+		},
+		{
+			name: "success. last region",
+			r:    RegionUSGovWest1,
+			want: RegionUSEast1,
+		},
+		{
+			name: "failure. invalid region",
+			r:    Region("invalid"),
+			want: RegionAPNortheast1,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.r.Next(); got != tt.want {
+				t.Errorf("Region.Next() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestRegion_Prev(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		r    Region
+		want Region
+	}{
+		{
+			name: "success",
+			r:    RegionAPNortheast2,
+			want: RegionAPNortheast1,
+		},
+		{
+			name: "success. first region",
+			r:    RegionUSEast1,
+			want: RegionUSGovWest1,
+		},
+		{
+			name: "failure. invalid region",
+			r:    Region("invalid"),
+			want: RegionAPNortheast1,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.r.Prev(); got != tt.want {
+				t.Errorf("Region.Prev() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

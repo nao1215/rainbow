@@ -65,6 +65,14 @@ const (
 	RegionUSGovWest1 Region = "us-gov-west-1"
 )
 
+var regions = []Region{
+	RegionUSEast1, RegionUSEast2, RegionUSWest1, RegionUSWest2, RegionAFSouth1, RegionAPEast1,
+	RegionAPSouth1, RegionAPNortheast1, RegionAPNortheast2, RegionAPNortheast3, RegionAPSoutheast1,
+	RegionAPSoutheast2, RegionCACentral1, RegionCNNorth1, RegionCNNorthwest1, RegionEUCentral1,
+	RegionEUNorth1, RegionEUSouth1, RegionEUWest1, RegionEUWest2, RegionEUWest3, RegionMESouth1,
+	RegionSASouth1, RegionUSGovEast1, RegionUSGovWest1,
+}
+
 // Validate returns true if the Region exists.
 func (r Region) Validate() error {
 	switch r {
@@ -86,6 +94,36 @@ func (r Region) Validate() error {
 // String returns the string representation of the Region.
 func (r Region) String() string {
 	return string(r)
+}
+
+// Next returns the next region.
+// If the region is the last one, it returns the first region.
+// If the region is invalid, it returns "ap-northeast-1".
+func (r Region) Next() Region {
+	for i, region := range regions {
+		if r == region {
+			if i == len(regions)-1 {
+				return regions[0]
+			}
+			return regions[i+1]
+		}
+	}
+	return RegionAPNortheast1
+}
+
+// Prev returns the previous region.
+// If the region is the first one, it returns the last region.
+// If the region is invalid, it returns "ap-northeast-1".
+func (r Region) Prev() Region {
+	for i, region := range regions {
+		if r == region {
+			if i == 0 {
+				return regions[len(regions)-1]
+			}
+			return regions[i-1]
+		}
+	}
+	return RegionAPNortheast1
 }
 
 // Bucket is the name of the S3 bucket.
