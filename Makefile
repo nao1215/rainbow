@@ -1,4 +1,4 @@
-.PHONY: build test clean changelog tools help
+.PHONY: build test clean changelog tools help docker generate 
 
 S3HUB       = s3hub
 VERSION     = $(shell git describe --tags --abbrev=0)
@@ -20,7 +20,7 @@ build:  ## Build binary
 clean: ## Clean project
 	-rm -rf $(S3HUB) cover.out cover.html
 
-test: ## Start test
+test: ## Start unit test
 	env GOOS=$(GOOS) $(GO_TEST) -cover $(GO_PKGROOT) -coverprofile=cover.out
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
@@ -31,6 +31,12 @@ tools: ## Install dependency tools
 	$(GO_INSTALL) github.com/Songmu/ghch/cmd/ghch@latest
 	$(GO_INSTALL) github.com/nao1215/hottest@latest
 	$(GO_INSTALL) github.com/google/wire/cmd/wire@latest
+
+generate: ## Generate code from templates
+	$(GO) generate ./...
+
+docker:  ## Start docker (localstack)
+	docker compose up -d
 
 .DEFAULT_GOAL := help
 help:  
