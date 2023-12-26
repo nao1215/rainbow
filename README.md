@@ -35,11 +35,23 @@ The rainbow project is a toolset for managing AWS resources. This project consis
 This project is licensed under the terms of the MIT license. See the [LICENSE](./LICENSE) file.
 
 ## Contributing
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md), [Code of Conduct](./CODE_OF_CONDUCT.md), [Principle](./doc/common/principle.md) for more information. This project incurs costs on AWS, and financial support from you would make it easier to maintain the project. If you wish to provide financial support, please do so through [GitHub Sponsors](https://github.com/sponsors/nao1215)
+Contributions are welcome! Please see the following documents for details:
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Principle](./doc/common/principle.md) 
+- [Development Eviorment Setup](./doc/common/developers.md)
+
+This project incurs costs on AWS, and financial support from you would make it easier to maintain the project. If you wish to provide financial support, please do so through [GitHub Sponsors](https://github.com/sponsors/nao1215)
 
 ## GitHub Star History
-Stars from you motivate me to keep going.
+GitHub Star is motivation for me. If you like this project, please star it.
 [![Star History Chart](https://api.star-history.com/svg?repos=nao1215/rainbow&type=Date)](https://star-history.com/#nao1215/rainbow&Date)
+
+## Special Thanks
+![localstack](./doc/img/localstack-readme-banner.svg)
+[LocalStack](https://www.localstack.cloud/) is a service that mocks AWS, covering a wide range of AWS services. It is not easy to set up an AWS infrastructure for personal development, but LocalStack has lowered the barrier for server application development.
+
+It has been incredibly helpful for my technical learning, and among the open-source software (OSS) I encountered in 2023, LocalStack is undoubtedly the best tool. I would like to take this opportunity to express my gratitude.
 
 ## Contributors ✨
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
