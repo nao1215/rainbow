@@ -30,7 +30,6 @@ linters:
     - goconst
     - gocritic
     - goimports
-    - gomnd
     - gosec
     - ifshort
     - misspell
