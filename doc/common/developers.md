@@ -43,7 +43,51 @@ aws_secret_access_key=test
 > Alternatively, you can also set the AWS_PROFILE=localstack environment variable, in which case the --profile localstack parameter can be omitted in the commands above.
 
 ### Run localstack
+Run the following command to start localstack:
 ```shell
 make docker
 ```
 
+Check the status of localstack:
+```shell
+curl -s "http://127.0.0.1:4566/health" | jq .
+{
+  "services": {
+    "acm": "available",
+    "apigateway": "available",
+    "cloudformation": "available",
+    "cloudwatch": "available",
+    "config": "available",
+    "dynamodb": "available",
+    "dynamodbstreams": "available",
+    "ec2": "available",
+    "es": "available",
+    "events": "available",
+    "firehose": "available",
+    "iam": "available",
+    "kinesis": "available",
+    "kms": "available",
+    "lambda": "available",
+    "logs": "available",
+    "opensearch": "available",
+    "redshift": "available",
+    "resource-groups": "available",
+    "resourcegroupstaggingapi": "available",
+    "route53": "available",
+    "route53resolver": "available",
+    "s3": "available",
+    "s3control": "available",
+    "secretsmanager": "available",
+    "ses": "available",
+    "sns": "available",
+    "sqs": "available",
+    "ssm": "available",
+    "stepfunctions": "available",
+    "sts": "available",
+    "support": "available",
+    "swf": "available",
+    "transcribe": "available"
+  },
+  "version": "2.1.1.dev"
+}
+```

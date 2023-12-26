@@ -36,6 +36,9 @@ func (s *S3BucketCreator) CreateBucket(ctx context.Context, input *usecase.S3Buc
 	if err := input.Bucket.Validate(); err != nil {
 		return nil, err
 	}
+	if err := input.Region.Validate(); err != nil {
+		return nil, err
+	}
 
 	in := service.S3BucketCreatorInput{
 		Bucket: input.Bucket,
