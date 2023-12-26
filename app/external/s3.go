@@ -1,4 +1,4 @@
-// Packgae external implements the external service.
+// Package external implements the external service.
 package external
 
 import (
