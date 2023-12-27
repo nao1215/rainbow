@@ -49,3 +49,50 @@ func (s *S3BucketCreator) CreateBucket(ctx context.Context, input *usecase.S3Buc
 	}
 	return &usecase.S3BucketCreatorOutput{}, nil
 }
+
+// S3bucketListerSet is a provider set for S3BucketLister.
+//
+//nolint:gochecknoglobals
+var S3bucketListerSet = wire.NewSet(
+	NewS3BucketLister,
+	wire.Bind(new(usecase.S3BucketLister), new(*S3BucketLister)),
+)
+
+var _ usecase.S3BucketLister = (*S3BucketLister)(nil)
+
+// S3BucketLister implements the S3BucketLister interface.
+type S3BucketLister struct {
+	service.S3BucketLister
+	service.S3BucketLocationGetter
+}
+
+// NewS3BucketLister creates a new S3BucketLister.
+func NewS3BucketLister(l service.S3BucketLister, g service.S3BucketLocationGetter) *S3BucketLister {
+	return &S3BucketLister{
+		S3BucketLister:         l,
+		S3BucketLocationGetter: g,
+	}
+}
+
+// ListBuckets lists the buckets.
+func (s *S3BucketLister) ListBuckets(ctx context.Context, _ *usecase.S3BucketListerInput) (*usecase.S3BucketListerOutput, error) {
+	out, err := s.S3BucketLister.ListBuckets(ctx, &service.S3BucketListerInput{})
+	if err != nil {
+		return nil, err
+	}
+
+	for i, b := range out.Buckets {
+		in := service.S3BucketLocationGetterInput{
+			Bucket: b.Bucket,
+		}
+		o, err := s.S3BucketLocationGetter.GetBucketLocation(ctx, &in)
+		if err != nil {
+			return nil, err
+		}
+		out.Buckets[i].Region = o.Region
+	}
+
+	return &usecase.S3BucketListerOutput{
+		Buckets: out.Buckets,
+	}, nil
+}

@@ -22,3 +22,17 @@ type S3BucketCreatorOutput struct{}
 type S3BucketCreator interface {
 	CreateBucket(ctx context.Context, input *S3BucketCreatorInput) (*S3BucketCreatorOutput, error)
 }
+
+// S3BucketListerInput is the input of the ListBuckets method.
+type S3BucketListerInput struct{}
+
+// S3BucketListerOutput is the output of the ListBuckets method.
+type S3BucketListerOutput struct {
+	// Buckets is the list of the buckets.
+	Buckets model.BucketSets
+}
+
+// S3BucketLister is the interface that wraps the basic ListBuckets method.
+type S3BucketLister interface {
+	ListBuckets(ctx context.Context, input *S3BucketListerInput) (*S3BucketListerOutput, error)
+}
