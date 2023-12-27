@@ -4,6 +4,7 @@ package model
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/nao1215/rainbow/utils/errfmt"
 	"github.com/nao1215/rainbow/utils/xregex"
@@ -218,4 +219,28 @@ func (b Bucket) validateCharSequence() error {
 		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not contain consecutive periods or hyphens")
 	}
 	return nil
+}
+
+// BucketSets is the set of the BucketSet.
+type BucketSets []BucketSet
+
+// BucketSet is the set of the Bucket and the Region.
+type BucketSet struct {
+	// Bucket is the name of the S3 bucket.
+	Bucket Bucket
+	// Region is the name of the AWS region.
+	Region Region
+	// CreationDate is date the bucket was created.
+	// This date can change when making changes to your bucket, such as editing its bucket policy.
+	CreationDate time.Time
+}
+
+// Len returns the length of the BucketSets.
+func (b BucketSets) Len() int {
+	return len(b)
+}
+
+// Empty returns true if the BucketSets is empty.
+func (b BucketSets) Empty() bool {
+	return b.Len() == 0
 }

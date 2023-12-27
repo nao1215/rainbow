@@ -12,7 +12,10 @@ func Execute() error {
 	if len(os.Args) == 1 {
 		return interactive()
 	}
-	return newRootCmd().Execute()
+	if err := newRootCmd().Execute(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // newRootCmd returns a root command for s3hub.
@@ -32,11 +35,5 @@ If you want to use interactive mode, run s3hub without any arguments.`,
 	cmd.AddCommand(newLsCmd())
 	cmd.AddCommand(newRmCmd())
 	cmd.AddCommand(newCpCmd())
-
 	return cmd
-}
-
-// commandName returns the s3hub command name.
-func commandName() string {
-	return "s3hub"
 }

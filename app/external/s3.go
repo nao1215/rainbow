@@ -60,3 +60,79 @@ func (c *S3BucketCreator) CreateBucket(ctx context.Context, input *service.S3Buc
 	}
 	return &service.S3BucketCreatorOutput{}, nil
 }
+
+// S3BucketLister implements the S3BucketLister interface.
+type S3BucketLister struct {
+	client *s3.Client
+}
+
+// S3BucketListerSet is a provider set for S3BucketLister.
+//
+//nolint:gochecknoglobals
+var S3BucketListerSet = wire.NewSet(
+	NewS3BucketLister,
+	wire.Bind(new(service.S3BucketLister), new(*S3BucketLister)),
+)
+
+var _ service.S3BucketLister = (*S3BucketLister)(nil)
+
+// NewS3BucketLister creates a new S3BucketLister.
+func NewS3BucketLister(client *s3.Client) *S3BucketLister {
+	return &S3BucketLister{client: client}
+}
+
+// ListBuckets lists the buckets.
+func (c *S3BucketLister) ListBuckets(ctx context.Context, _ *service.S3BucketListerInput) (*service.S3BucketListerOutput, error) {
+	out, err := c.client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	if err != nil {
+		return nil, err
+	}
+
+	var buckets model.BucketSets
+	for _, b := range out.Buckets {
+		buckets = append(buckets, model.BucketSet{
+			Bucket:       model.Bucket(*b.Name),
+			CreationDate: *b.CreationDate,
+		})
+	}
+	return &service.S3BucketListerOutput{Buckets: buckets}, nil
+}
+
+// S3BucketLocationGetter implements the S3BucketLocationGetter interface.
+type S3BucketLocationGetter struct {
+	client *s3.Client
+}
+
+// S3BucketLocationGetterSet is a provider set for S3BucketLocationGetter.
+//
+//nolint:gochecknoglobals
+var S3BucketLocationGetterSet = wire.NewSet(
+	NewS3BucketLocationGetter,
+	wire.Bind(new(service.S3BucketLocationGetter), new(*S3BucketLocationGetter)),
+)
+
+var _ service.S3BucketLocationGetter = (*S3BucketLocationGetter)(nil)
+
+// NewS3BucketLocationGetter creates a new S3BucketLocationGetter.
+func NewS3BucketLocationGetter(client *s3.Client) *S3BucketLocationGetter {
+	return &S3BucketLocationGetter{client: client}
+}
+
+// GetBucketLocation gets the location of the bucket.
+func (c *S3BucketLocationGetter) GetBucketLocation(ctx context.Context, input *service.S3BucketLocationGetterInput) (*service.S3BucketLocationGetterOutput, error) {
+	out, err := c.client.GetBucketLocation(ctx, &s3.GetBucketLocationInput{
+		Bucket: aws.String(input.Bucket.String()),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	region := model.Region(out.LocationConstraint)
+	if region == "" {
+		region = model.RegionUSEast1
+	}
+
+	return &service.S3BucketLocationGetterOutput{
+		Region: region,
+	}, nil
+}

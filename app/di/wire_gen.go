@@ -28,7 +28,10 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 	}
 	s3BucketCreator := external.NewS3BucketCreator(client)
 	interactorS3BucketCreator := interactor.NewS3BucketCreator(s3BucketCreator)
-	s3App := newS3App(interactorS3BucketCreator)
+	s3BucketLister := external.NewS3BucketLister(client)
+	s3BucketLocationGetter := external.NewS3BucketLocationGetter(client)
+	interactorS3BucketLister := interactor.NewS3BucketLister(s3BucketLister, s3BucketLocationGetter)
+	s3App := newS3App(interactorS3BucketCreator, interactorS3BucketLister)
 	return s3App, nil
 }
 
@@ -38,10 +41,13 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 type S3App struct {
 	// S3BucketCreator is the usecase for creating a new S3 bucket.
 	S3BucketCreator usecase.S3BucketCreator
+	// S3BucketLister is the usecase for listing S3 buckets.
+	S3BucketLister usecase.S3BucketLister
 }
 
-func newS3App(s3bucketCreator usecase.S3BucketCreator) *S3App {
+func newS3App(s3bucketCreator usecase.S3BucketCreator, s3bucketLister usecase.S3BucketLister) *S3App {
 	return &S3App{
 		S3BucketCreator: s3bucketCreator,
+		S3BucketLister:  s3bucketLister,
 	}
 }
