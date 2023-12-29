@@ -10,6 +10,7 @@ import (
 	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/app/usecase"
 	"github.com/nao1215/rainbow/cmd/subcmd"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -159,6 +160,8 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 	sem := semaphore.NewWeighted(model.MaxS3DeleteObjectsParallelsCount)
 	chunks := r.divideIntoChunks(output.Objects, model.S3DeleteObjectChunksSize)
 
+	r.command.Println(color.YellowString("delete %d objects in %s", output.Objects.Len(), bucket))
+	bar := progressbar.Default(int64(output.Objects.Len()))
 	for _, chunk := range chunks {
 		chunk := chunk // Create a new variable to avoid concurrency issues
 		// Acquire semaphore to control the number of concurrent goroutines
@@ -174,6 +177,7 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 			}); err != nil {
 				return err
 			}
+			bar.Add(len(chunk))
 			return nil
 		})
 	}
