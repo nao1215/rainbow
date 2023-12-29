@@ -240,18 +240,27 @@ func NewS3BucketObjectsLister(client *s3.Client) *S3BucketObjectsLister {
 
 // ListS3BucketObjects lists the objects in the bucket.
 func (c *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *service.S3BucketObjectsListerInput) (*service.S3BucketObjectsListerOutput, error) {
-	out, err := c.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
-		Bucket: aws.String(input.Bucket.String()),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	var objects model.S3ObjectSets
-	for _, o := range out.Contents {
-		objects = append(objects, model.S3Object{
-			S3Key: model.S3Key(*o.Key),
-		})
+	in := &s3.ListObjectsV2Input{
+		Bucket:  aws.String(input.Bucket.String()),
+		MaxKeys: aws.Int32(model.MaxS3Keys),
+	}
+	for {
+		output, err := c.client.ListObjectsV2(ctx, in)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, o := range output.Contents {
+			objects = append(objects, model.S3Object{
+				S3Key: model.S3Key(*o.Key),
+			})
+		}
+
+		if !*output.IsTruncated {
+			break
+		}
+		in.ContinuationToken = output.NextContinuationToken
 	}
 	return &service.S3BucketObjectsListerOutput{Objects: objects}, nil
 }

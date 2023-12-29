@@ -16,11 +16,13 @@ const (
 	// S3DeleteObjectChunksSize is the maximum number of objects that can be deleted in a single request.
 	S3DeleteObjectChunksSize = 500
 	// MaxS3DeleteObjectsParallelsCount is the maximum number of parallel executions of DeleteObjects.
-	MaxS3DeleteObjectsParallelsCount = 3
+	MaxS3DeleteObjectsParallelsCount = 5
 	// MaxS3DeleteObjectsRetryCount is the maximum number of retries for DeleteObjects.
 	MaxS3DeleteObjectsRetryCount = 6
 	// S3DeleteObjectsDelayTimeSec is the delay time in seconds.
 	S3DeleteObjectsDelayTimeSec = 5
+	// MaxS3Keys is the maximum number of keys that can be specified in a single request.
+	MaxS3Keys = 1000
 )
 
 // DeleteObjectsRetryCount is the number of retries for DeleteObjects.
