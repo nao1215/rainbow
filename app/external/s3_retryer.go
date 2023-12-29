@@ -2,7 +2,8 @@ package external
 
 import (
 	"context"
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -39,11 +40,11 @@ func (r *Retryer) MaxAttempts() int {
 
 // RetryDelay returns the delay time.
 func (r *Retryer) RetryDelay(int, error) (time.Duration, error) {
-	rand.NewSource(time.Now().UnixNano())
-	waitTime := 1
-	if r.delayTimeSec > 1 {
-		waitTime += rand.Intn(r.delayTimeSec)
+	randomInt, err := rand.Int(rand.Reader, big.NewInt(int64(r.delayTimeSec)))
+	if err != nil {
+		return 0, err
 	}
+	waitTime := 1 + int(randomInt.Int64())
 	return time.Duration(waitTime) * time.Second, nil
 }
 

@@ -310,7 +310,7 @@ func (s S3ObjectSets) Len() int {
 
 // ToS3ObjectIdentifiers converts the S3ObjectSets to the ObjectIdentifiers.
 func (s S3ObjectSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
-	var ids []types.ObjectIdentifier
+	ids := make([]types.ObjectIdentifier, 0, s.Len())
 	for _, o := range s {
 		ids = append(ids, *o.ToS3ObjectIdentifier())
 	}
