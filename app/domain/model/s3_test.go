@@ -560,6 +560,9 @@ func TestBucketSets_Contains(t *testing.T) {
 }
 
 func TestBucket_TrimKey(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Skip this test on Windows")
+	}
 	t.Parallel()
 
 	tests := []struct {

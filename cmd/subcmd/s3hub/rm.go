@@ -37,7 +37,7 @@ func newRmCmd() *cobra.Command {
 	}
 	cmd.Flags().StringP("profile", "p", "", "AWS profile name. if this is empty, use $AWS_PROFILE")
 	// not used. however, this is common flag.
-	cmd.Flags().StringP("region", "r", model.RegionUSEast1.String(), "AWS region name")
+	cmd.Flags().StringP("region", "r", "", "AWS region name, default is us-east-1")
 	cmd.Flags().BoolP("force", "f", false, "Force delete")
 	return cmd
 }
@@ -90,7 +90,7 @@ func (r *rmCmd) remove(bucket model.Bucket, key model.S3Key) error {
 	// delete bucket and all objects
 	if key.Empty() {
 		if !r.force {
-			if !subcmd.Question(r.command.OutOrStdout(), fmt.Sprintf("delete %s with objects?", bucket)) {
+			if !subcmd.Question(r.command.OutOrStdout(), fmt.Sprintf("delete %s with objects?", color.YellowString("%s", bucket))) {
 				return nil
 			}
 		}
@@ -100,31 +100,34 @@ func (r *rmCmd) remove(bucket model.Bucket, key model.S3Key) error {
 		if err := r.removeBucket(bucket); err != nil {
 			return err
 		}
+		r.printf("deleted %s\n", color.YellowString("%s", bucket))
 		return nil
 	}
 
 	// delete all objects in bucket
 	if key.IsAll() {
 		if !r.force {
-			if !subcmd.Question(r.command.OutOrStdout(), fmt.Sprintf("delete all objects in %s? (retains bucket)", bucket)) {
+			if !subcmd.Question(r.command.OutOrStdout(), fmt.Sprintf("delete all objects in %s? (retains bucket)", color.YellowString("%s", bucket))) {
 				return nil
 			}
 		}
 		if err := r.removeObjects(bucket); err != nil {
 			return err
 		}
+		r.printf("deleted %s with objects\n", color.YellowString("%s", bucket))
 		return nil
 	}
 
 	// delete a object in bucket
 	if !r.force {
-		if !subcmd.Question(r.command.OutOrStdout(), fmt.Sprintf("delete %s", filepath.Join(bucket.String(), key.String()))) {
+		if !subcmd.Question(r.command.OutOrStdout(), fmt.Sprintf("delete %s", color.YellowString(filepath.Join(bucket.String(), key.String())))) {
 			return nil
 		}
 	}
 	if err := r.removeObject(bucket, key); err != nil {
 		return err
 	}
+	r.printf("deleted %s\n", color.YellowString(filepath.Join(bucket.String(), key.String())))
 	return nil
 }
 
@@ -160,7 +163,6 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 	sem := semaphore.NewWeighted(model.MaxS3DeleteObjectsParallelsCount)
 	chunks := r.divideIntoChunks(output.Objects, model.S3DeleteObjectChunksSize)
 
-	r.command.Println(color.YellowString("delete %d objects in %s", output.Objects.Len(), bucket))
 	bar := progressbar.Default(int64(output.Objects.Len()))
 	for _, chunk := range chunks {
 		chunk := chunk // Create a new variable to avoid concurrency issues
@@ -177,13 +179,13 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 			}); err != nil {
 				return err
 			}
-			bar.Add(len(chunk))
-			return nil
+			return bar.Add(len(chunk))
 		})
 	}
 	if err := eg.Wait(); err != nil {
 		return err
 	}
+	r.printf("delete %s objects in %s", color.YellowString("%d", output.Objects.Len()), color.YellowString("%s", bucket))
 	return nil
 }
 
@@ -222,14 +224,15 @@ func (r *rmCmd) existBuckets() error {
 	}
 
 	notExistBuckets := make([]string, 0, len(r.buckets))
-	for _, b := range r.buckets {
-		if output.Buckets.Contains(b.TrimKey()) {
+	for _, bucket := range r.buckets {
+		if output.Buckets.Contains(bucket.TrimKey()) {
 			continue
 		}
+		b, _ := bucket.Split()
 		notExistBuckets = append(notExistBuckets, b.String())
 	}
 	if len(notExistBuckets) == 0 {
 		return nil
 	}
-	return fmt.Errorf("bucket does not exist: %s", color.YellowString(strings.Join(notExistBuckets, ", ")))
+	return fmt.Errorf("s3 bucket does not exist: %s", color.YellowString(strings.Join(notExistBuckets, ", ")))
 }

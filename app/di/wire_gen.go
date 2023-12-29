@@ -36,7 +36,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 	s3BucketObjectsLister := external.NewS3BucketObjectsLister(client)
 	interactorS3BucketObjectsLister := interactor.NewS3BucketObjectsLister(s3BucketObjectsLister)
 	s3BucketObjectsDeleter := external.NewS3BucketObjectsDeleter(client)
-	interactorS3BucketObjectsDeleter := interactor.NewS3BucketObjectsDeleter(s3BucketObjectsDeleter)
+	interactorS3BucketObjectsDeleter := interactor.NewS3BucketObjectsDeleter(s3BucketObjectsDeleter, s3BucketLocationGetter)
 	s3App := newS3App(interactorS3BucketCreator, interactorS3BucketLister, interactorS3BucketDeleter, interactorS3BucketObjectsLister, interactorS3BucketObjectsDeleter)
 	return s3App, nil
 }

@@ -139,6 +139,7 @@ func (s *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *
 // S3BucketObjectsDeleter implements the S3BucketObjectsDeleter interface.
 type S3BucketObjectsDeleter struct {
 	service.S3BucketObjectsDeleter
+	service.S3BucketLocationGetter
 }
 
 // S3BucketObjectsDeleterSet is a provider set for S3BucketObjectsDeleter.
@@ -152,9 +153,10 @@ var S3BucketObjectsDeleterSet = wire.NewSet(
 var _ usecase.S3BucketObjectsDeleter = (*S3BucketObjectsDeleter)(nil)
 
 // NewS3BucketObjectsDeleter creates a new S3BucketObjectsDeleter.
-func NewS3BucketObjectsDeleter(d service.S3BucketObjectsDeleter) *S3BucketObjectsDeleter {
+func NewS3BucketObjectsDeleter(d service.S3BucketObjectsDeleter, l service.S3BucketLocationGetter) *S3BucketObjectsDeleter {
 	return &S3BucketObjectsDeleter{
 		S3BucketObjectsDeleter: d,
+		S3BucketLocationGetter: l,
 	}
 }
 
@@ -163,8 +165,17 @@ func (s *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, inpu
 	if err := input.Bucket.Validate(); err != nil {
 		return nil, err
 	}
-	_, err := s.S3BucketObjectsDeleter.DeleteS3BucketObjects(ctx, &service.S3BucketObjectsDeleterInput{
+
+	location, err := s.S3BucketLocationGetter.GetS3BucketLocation(ctx, &service.S3BucketLocationGetterInput{
+		Bucket: input.Bucket,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.S3BucketObjectsDeleter.DeleteS3BucketObjects(ctx, &service.S3BucketObjectsDeleterInput{
 		Bucket:       input.Bucket,
+		Region:       location.Region,
 		S3ObjectSets: input.S3ObjectSets,
 	})
 	if err != nil {

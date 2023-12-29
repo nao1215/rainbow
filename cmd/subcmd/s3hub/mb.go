@@ -22,7 +22,7 @@ func newMbCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("profile", "p", "", "AWS profile name. if this is empty, use $AWS_PROFILE")
-	cmd.Flags().StringP("region", "r", model.RegionUSEast1.String(), "AWS region name")
+	cmd.Flags().StringP("region", "r", "", "AWS region name, default is us-east-1")
 	return cmd
 }
 
@@ -32,8 +32,6 @@ type mbCmd struct {
 	*s3hub
 	// bucket is the name of the bucket to create.
 	bucket model.Bucket
-	// region is the AWS region name.
-	region model.Region
 }
 
 // Parse parses command line arguments.
@@ -44,17 +42,14 @@ func (m *mbCmd) Parse(cmd *cobra.Command, args []string) error {
 	m.bucket = model.Bucket(args[0])
 
 	m.s3hub = newS3hub()
-	if err := m.s3hub.parse(cmd); err != nil {
-		return err
-	}
-	return nil
+	return m.s3hub.parse(cmd)
 }
 
 // Do executes mb command.
 func (m *mbCmd) Do() error {
 	_, err := m.S3BucketCreator.CreateS3Bucket(m.ctx, &usecase.S3BucketCreatorInput{
 		Bucket: m.bucket,
-		Region: m.region,
+		Region: m.s3hub.region,
 	})
 	if err != nil {
 		return errfmt.Wrap(err, "can not create bucket")
@@ -62,7 +57,7 @@ func (m *mbCmd) Do() error {
 
 	m.printf("[Success]\n")
 	m.printf("  profile: %s\n", m.profile.String())
-	m.printf("  region : %s\n", m.region)
+	m.printf("  region : %s\n", m.s3hub.region)
 	m.printf("  bucket : %s\n", color.YellowString("%s", m.bucket))
 	return nil
 }
