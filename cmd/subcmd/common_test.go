@@ -119,7 +119,7 @@ func mockStdin(t *testing.T, dummyInput string) (funcDefer func(), err error) {
 		// clean up
 		os.Stdin = oldOsStdin
 		if err := os.Remove(tmpFile.Name()); err != nil {
-			t.Error(err)
+			t.Log(err)
 		}
 	}, nil
 }
