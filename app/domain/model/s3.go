@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/nao1215/rainbow/utils/errfmt"
 	"github.com/nao1215/rainbow/utils/xregex"
 )
@@ -243,4 +245,56 @@ func (b BucketSets) Len() int {
 // Empty returns true if the BucketSets is empty.
 func (b BucketSets) Empty() bool {
 	return b.Len() == 0
+}
+
+// S3ObjectSets is the set of the S3ObjectSet.
+type S3ObjectSets []S3Object
+
+// Len returns the length of the S3ObjectSets.
+func (s S3ObjectSets) Len() int {
+	return len(s)
+}
+
+// ToS3ObjectIdentifiers converts the S3ObjectSets to the ObjectIdentifiers.
+func (s S3ObjectSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
+	var ids []types.ObjectIdentifier
+	for _, o := range s {
+		ids = append(ids, *o.ToS3ObjectIdentifier())
+	}
+	return ids
+}
+
+// S3Object is the object in the S3 bucket.
+type S3Object struct {
+	// S3Key is the name of the object.
+	S3Key S3Key
+	// VersionID is the version ID for the specific version of the object to delete.
+	VersionID VersionID
+}
+
+// ToS3ObjectIdentifier converts the S3Object to the ObjectIdentifier.
+func (o S3Object) ToS3ObjectIdentifier() *types.ObjectIdentifier {
+	return &types.ObjectIdentifier{
+		Key:       aws.String(o.S3Key.String()),
+		VersionId: aws.String(o.VersionID.String()),
+	}
+}
+
+// S3Key is the name of the object.
+// Replacement must be made for object keys containing special characters (such as carriage returns) when using XML requests.
+// For more information, see XML related object key constraints (https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html#object-key-xml-related-constraints).
+type S3Key string
+
+// String returns the string representation of the S3Key.
+func (k S3Key) String() string {
+	return string(k)
+}
+
+// VersionID is the version ID for the specific version of the object to delete.
+// This functionality is not supported for directory buckets.
+type VersionID string
+
+// String returns the string representation of the VersionID.
+func (v VersionID) String() string {
+	return string(v)
 }

@@ -368,7 +368,7 @@ func (m *s3hubCreateBucketModel) createS3BucketCmd() tea.Cmd {
 		}
 		m.state = s3hubCreateBucketStateCreating
 
-		if _, err := m.app.S3BucketCreator.CreateBucket(m.ctx, input); err != nil {
+		if _, err := m.app.S3BucketCreator.CreateS3Bucket(m.ctx, input); err != nil {
 			return errMsg(err)
 		}
 		return createMsg{}

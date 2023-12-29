@@ -43,7 +43,7 @@ func (l *lsCmd) Parse(cmd *cobra.Command, args []string) error {
 }
 
 func (l *lsCmd) Do() error {
-	out, err := l.s3hub.S3BucketLister.ListBuckets(l.ctx, &usecase.S3BucketListerInput{})
+	out, err := l.s3hub.S3BucketLister.ListS3Buckets(l.ctx, &usecase.S3BucketListerInput{})
 	if err != nil {
 		return err
 	}

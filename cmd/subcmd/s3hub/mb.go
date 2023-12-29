@@ -47,7 +47,7 @@ func (m *mbCmd) Parse(cmd *cobra.Command, args []string) error {
 
 // Do executes mb command.
 func (m *mbCmd) Do() error {
-	_, err := m.S3BucketCreator.CreateBucket(m.ctx, &usecase.S3BucketCreatorInput{
+	_, err := m.S3BucketCreator.CreateS3Bucket(m.ctx, &usecase.S3BucketCreatorInput{
 		Bucket: m.bucket,
 		Region: m.region,
 	})
