@@ -15,7 +15,7 @@ require (
 	github.com/muesli/termenv v0.15.2
 	github.com/schollz/progressbar/v3 v3.14.1
 	github.com/spf13/cobra v1.8.0
-	golang.org/x/sync v0.1.0
+	golang.org/x/sync v0.5.0
 )
 
 require (
