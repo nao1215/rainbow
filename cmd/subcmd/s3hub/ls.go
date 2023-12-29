@@ -19,8 +19,8 @@ func newLsCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("profile", "p", "", "AWS profile name. if this is empty, use $AWS_PROFILE")
-	// not used, however, this is common flag.
-	cmd.Flags().StringP("region", "r", "", "AWS region name. if this is empty, use us-east-1")
+	// not used. however, this is common flag.
+	cmd.Flags().StringP("region", "r", "", "AWS region name, default is us-east-1")
 	return cmd
 }
 
@@ -43,7 +43,7 @@ func (l *lsCmd) Parse(cmd *cobra.Command, args []string) error {
 }
 
 func (l *lsCmd) Do() error {
-	out, err := l.s3hub.S3BucketLister.ListBuckets(l.ctx, &usecase.S3BucketListerInput{})
+	out, err := l.s3hub.S3BucketLister.ListS3Buckets(l.ctx, &usecase.S3BucketListerInput{})
 	if err != nil {
 		return err
 	}

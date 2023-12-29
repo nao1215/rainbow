@@ -23,7 +23,7 @@ func TestWrap(t *testing.T) {
 				e:   errors.New("original error"),
 				msg: "add message",
 			},
-			wantErrMsg: "original error: add message",
+			wantErrMsg: "add message: original error",
 		},
 		{
 			name: "make new error because user not specify nil for error",

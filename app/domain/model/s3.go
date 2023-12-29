@@ -6,9 +6,38 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/nao1215/rainbow/utils/errfmt"
 	"github.com/nao1215/rainbow/utils/xregex"
 )
+
+const (
+	// S3DeleteObjectChunksSize is the maximum number of objects that can be deleted in a single request.
+	S3DeleteObjectChunksSize = 500
+	// MaxS3DeleteObjectsParallelsCount is the maximum number of parallel executions of DeleteObjects.
+	MaxS3DeleteObjectsParallelsCount = 3
+	// MaxS3DeleteObjectsRetryCount is the maximum number of retries for DeleteObjects.
+	MaxS3DeleteObjectsRetryCount = 6
+	// S3DeleteObjectsDelayTimeSec is the delay time in seconds.
+	S3DeleteObjectsDelayTimeSec = 5
+)
+
+// DeleteObjectsRetryCount is the number of retries for DeleteObjects.
+type DeleteObjectsRetryCount int
+
+// NewDeleteRetryCount creates a new DeleteRetryCount.
+// If i is less than 0, it returns 0.
+// If i is greater than MaxS3DeleteObjectsRetryCount, it returns MaxS3DeleteObjectsRetryCount.
+func NewDeleteRetryCount(i int) DeleteObjectsRetryCount {
+	if i < 0 {
+		return 0
+	}
+	if i > MaxS3DeleteObjectsRetryCount {
+		return MaxS3DeleteObjectsRetryCount
+	}
+	return DeleteObjectsRetryCount(i)
+}
 
 // Region is the name of the AWS region.
 type Region string
@@ -145,6 +174,22 @@ func (b Bucket) Domain() string {
 	return fmt.Sprintf("%s.s3.amazonaws.com", b.String())
 }
 
+// TrimKey returns the Bucket without the key.
+// e.g. "bucket/key" -> "bucket"
+func (b Bucket) TrimKey() Bucket {
+	return Bucket(strings.Split(b.String(), "/")[0])
+}
+
+// Split returns the Bucket and the S3Key.
+// If the Bucket does not contain "/", the S3Key is empty.
+func (b Bucket) Split() (Bucket, S3Key) {
+	s := strings.Split(b.String(), "/")
+	if len(s) == 1 {
+		return b, ""
+	}
+	return Bucket(s[0]), S3Key(strings.Join(s[1:], "/"))
+}
+
 // Validate returns true if the Bucket is valid.
 // Bucket naming rules: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
 func (b Bucket) Validate() error {
@@ -224,6 +269,26 @@ func (b Bucket) validateCharSequence() error {
 // BucketSets is the set of the BucketSet.
 type BucketSets []BucketSet
 
+// Len returns the length of the BucketSets.
+func (b BucketSets) Len() int {
+	return len(b)
+}
+
+// Empty returns true if the BucketSets is empty.
+func (b BucketSets) Empty() bool {
+	return b.Len() == 0
+}
+
+// Contains returns true if the BucketSets contains the bucket.
+func (b BucketSets) Contains(bucket Bucket) bool {
+	for _, bs := range b {
+		if bs.Bucket == bucket {
+			return true
+		}
+	}
+	return false
+}
+
 // BucketSet is the set of the Bucket and the Region.
 type BucketSet struct {
 	// Bucket is the name of the S3 bucket.
@@ -235,12 +300,64 @@ type BucketSet struct {
 	CreationDate time.Time
 }
 
-// Len returns the length of the BucketSets.
-func (b BucketSets) Len() int {
-	return len(b)
+// S3ObjectSets is the set of the S3ObjectSet.
+type S3ObjectSets []S3Object
+
+// Len returns the length of the S3ObjectSets.
+func (s S3ObjectSets) Len() int {
+	return len(s)
 }
 
-// Empty returns true if the BucketSets is empty.
-func (b BucketSets) Empty() bool {
-	return b.Len() == 0
+// ToS3ObjectIdentifiers converts the S3ObjectSets to the ObjectIdentifiers.
+func (s S3ObjectSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
+	ids := make([]types.ObjectIdentifier, 0, s.Len())
+	for _, o := range s {
+		ids = append(ids, *o.ToS3ObjectIdentifier())
+	}
+	return ids
+}
+
+// S3Object is the object in the S3 bucket.
+type S3Object struct {
+	// S3Key is the name of the object.
+	S3Key S3Key
+	// VersionID is the version ID for the specific version of the object to delete.
+	VersionID VersionID
+}
+
+// ToS3ObjectIdentifier converts the S3Object to the ObjectIdentifier.
+func (o S3Object) ToS3ObjectIdentifier() *types.ObjectIdentifier {
+	return &types.ObjectIdentifier{
+		Key:       aws.String(o.S3Key.String()),
+		VersionId: aws.String(o.VersionID.String()),
+	}
+}
+
+// S3Key is the name of the object.
+// Replacement must be made for object keys containing special characters (such as carriage returns) when using XML requests.
+// For more information, see XML related object key constraints (https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html#object-key-xml-related-constraints).
+type S3Key string
+
+// String returns the string representation of the S3Key.
+func (k S3Key) String() string {
+	return string(k)
+}
+
+// Empty is whether S3Key is empty
+func (k S3Key) Empty() bool {
+	return k == ""
+}
+
+// IsAll is whether S3Key is "*"
+func (k S3Key) IsAll() bool {
+	return k == "*"
+}
+
+// VersionID is the version ID for the specific version of the object to delete.
+// This functionality is not supported for directory buckets.
+type VersionID string
+
+// String returns the string representation of the VersionID.
+func (v VersionID) String() string {
+	return string(v)
 }

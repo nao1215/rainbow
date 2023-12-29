@@ -22,7 +22,7 @@ func newMbCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("profile", "p", "", "AWS profile name. if this is empty, use $AWS_PROFILE")
-	cmd.Flags().StringP("region", "r", "", "AWS region name. if this is empty, use us-east-1")
+	cmd.Flags().StringP("region", "r", "", "AWS region name, default is us-east-1")
 	return cmd
 }
 
@@ -47,9 +47,9 @@ func (m *mbCmd) Parse(cmd *cobra.Command, args []string) error {
 
 // Do executes mb command.
 func (m *mbCmd) Do() error {
-	_, err := m.S3BucketCreator.CreateBucket(m.ctx, &usecase.S3BucketCreatorInput{
+	_, err := m.S3BucketCreator.CreateS3Bucket(m.ctx, &usecase.S3BucketCreatorInput{
 		Bucket: m.bucket,
-		Region: m.region,
+		Region: m.s3hub.region,
 	})
 	if err != nil {
 		return errfmt.Wrap(err, "can not create bucket")
@@ -57,7 +57,7 @@ func (m *mbCmd) Do() error {
 
 	m.printf("[Success]\n")
 	m.printf("  profile: %s\n", m.profile.String())
-	m.printf("  region : %s\n", m.region)
+	m.printf("  region : %s\n", m.s3hub.region)
 	m.printf("  bucket : %s\n", color.YellowString("%s", m.bucket))
 	return nil
 }
