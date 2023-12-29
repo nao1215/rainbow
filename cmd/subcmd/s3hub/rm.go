@@ -185,7 +185,7 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 	if err := eg.Wait(); err != nil {
 		return err
 	}
-	r.printf("delete %s objects in %s", color.YellowString("%d", output.Objects.Len()), color.YellowString("%s", bucket))
+	r.printf("delete %s objects in %s\n", color.YellowString("%d", output.Objects.Len()), color.YellowString("%s", bucket))
 	return nil
 }
 
