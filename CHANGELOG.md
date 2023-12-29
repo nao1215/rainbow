@@ -1,5 +1,8 @@
-## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2023-12-26)
+## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2023-12-29)
 
+* Add remove subcommand [#10](https://github.com/nao1215/rainbow/pull/10) ([nao1215](https://github.com/nao1215))
+* Add ls subcommand [#9](https://github.com/nao1215/rainbow/pull/9) ([nao1215](https://github.com/nao1215))
+* Add s3hub mb subcommand [#8](https://github.com/nao1215/rainbow/pull/8) ([nao1215](https://github.com/nao1215))
 * Add: document for developers [#7](https://github.com/nao1215/rainbow/pull/7) ([nao1215](https://github.com/nao1215))
 * Introduce s3hub command interactive UI without logic [#6](https://github.com/nao1215/rainbow/pull/6) ([nao1215](https://github.com/nao1215))
 * Add: s3hub subcommand entrypoint. all subcommnads are not implemented yet [#5](https://github.com/nao1215/rainbow/pull/5) ([nao1215](https://github.com/nao1215))
