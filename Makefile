@@ -1,4 +1,4 @@
-.PHONY: build test clean changelog tools help docker generate 
+.PHONY: build test clean changelog tools help docker generate gif
 
 S3HUB       = s3hub
 VERSION     = $(shell git describe --tags --abbrev=0)
@@ -31,9 +31,15 @@ tools: ## Install dependency tools
 	$(GO_INSTALL) github.com/Songmu/ghch/cmd/ghch@latest
 	$(GO_INSTALL) github.com/nao1215/hottest@latest
 	$(GO_INSTALL) github.com/google/wire/cmd/wire@latest
+	$(GO_INSTALL) github.com/charmbracelet/vhs@latest
 
 generate: ## Generate code from templates
 	$(GO) generate ./...
+
+gif: docker ## Generate gif image
+	vhs < doc/img/vhs/s3hub-mb.tape
+	vhs < doc/img/vhs/s3hub-ls.tape
+	vhs < doc/img/vhs/s3hub-rm-all.tape
 
 docker:  ## Start docker (localstack)
 	docker compose up -d

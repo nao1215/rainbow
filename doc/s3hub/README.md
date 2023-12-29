@@ -1,14 +1,12 @@
 ## s3hub - user-friendly s3 management tool
-> [!IMPORTANT]  
-> Not implemented yet.
-
 The s3hub command provides following features:
-- Create a bucket
-- List buckets
-- List contents of a bucket
-- Copy files to a bucket
-- Delete contents from a bucket
-- Delete a bucket
+- [x] Create a bucket
+- [x] List buckets
+- [ ] List contents of a bucket
+- [ ] Copy files to a bucket
+- [x] Delete contents from a bucket
+- [x] Delete a bucket
+- [ ] Interactive mode
   
 ## How to install
 ```shell
@@ -16,7 +14,7 @@ go install github.com/nao1215/rainbow/cmd/s3hub@latest
 ```
 
 ## How to use
-S3hub operates without requiring the 's3://' protocol to be added to the bucket name.
+The s3hub command allows you to specify a profile as an option, but it is more user-friendly to use the `AWS_PROFILE` environment variable. S3hub operates without requiring the 's3://' protocol to be added to the bucket name.
 
 ### Create a bucket(s)
 
@@ -24,15 +22,23 @@ S3hub operates without requiring the 's3://' protocol to be added to the bucket 
 s3hub mb ${YOUR_BUCKET_NAME}
 ```
 
+![create_bucket](../img/s3hub-mb.gif)
+
+
 ### List buckets
 ```shell
 s3hub ls
 ```
 
+![ls_bucket](../img/s3hub-ls.gif)
+
 ### List contents of a bucket
 ```shell
 s3hub ls ${YOUR_BUCKET_NAME}
 ```
+
+> [!IMPORTANT]  
+> Not implemented yet.
 
 ### Copy files to a bucket
 From local to S3:
@@ -45,10 +51,13 @@ From S3 to local:
 s3hub cp ${YOUR_BUCKET_NAME} ${YOUR_FILE_PATH}
 ```
 
-### Delete contents from a bucket
-If you want to delete a specific file(s), use the following command:
+> [!IMPORTANT]  
+> Not implemented yet.
+
+### Delete a object from a bucket
+If you want to delete a specific object, use the following command:
 ```shell
-s3hub rm ${CONTENT_PATH_IN_BUCKET}
+s3hub rm ${CONTENT_PATH_IN_BUCKET}/${S3_KEY}
 ```
 
 If you want to delete all contents in a bucket, use the wildcard:
@@ -56,13 +65,22 @@ If you want to delete all contents in a bucket, use the wildcard:
 s3hub rm ${YOUR_BUCKET_NAME}/*
 ```
 
-### Delete a bucket(s)
+### Delete a bucket with objects
+When the number of S3 objects is large, we parallelize the deletion process to enhance speed.
 ```shell
 s3hub rm --recursive ${YOUR_BUCKET_NAME}
 ```
+
+![delete_bucket](../img/s3hub-rm-all.gif)
+
 
 ### Interactive mode
 You can use the interactive mode by omitting the arguments.
 ```shell
 s3hub
 ```
+
+![interactive_mode](../img/s3hub-interactive.gif)
+
+> [!IMPORTANT]  
+> Not implemented yet.
