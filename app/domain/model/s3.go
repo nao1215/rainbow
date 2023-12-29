@@ -12,6 +12,33 @@ import (
 	"github.com/nao1215/rainbow/utils/xregex"
 )
 
+const (
+	// S3DeleteObjectChunksSize is the maximum number of objects that can be deleted in a single request.
+	S3DeleteObjectChunksSize = 1000
+	// MaxS3DeleteObjectsParallelsCount is the maximum number of parallel executions of DeleteObjects.
+	MaxS3DeleteObjectsParallelsCount = 3
+	// MaxS3DeleteObjectsRetryCount is the maximum number of retries for DeleteObjects.
+	MaxS3DeleteObjectsRetryCount = 6
+	// S3DeleteObjectsDelayTimeSec is the delay time in seconds.
+	S3DeleteObjectsDelayTimeSec = 5
+)
+
+// DeleteObjectsRetryCount is the number of retries for DeleteObjects.
+type DeleteObjectsRetryCount int
+
+// NewDeleteRetryCount creates a new DeleteRetryCount.
+// If i is less than 0, it returns 0.
+// If i is greater than MaxS3DeleteObjectsRetryCount, it returns MaxS3DeleteObjectsRetryCount.
+func NewDeleteRetryCount(i int) DeleteObjectsRetryCount {
+	if i < 0 {
+		return 0
+	}
+	if i > MaxS3DeleteObjectsRetryCount {
+		return MaxS3DeleteObjectsRetryCount
+	}
+	return DeleteObjectsRetryCount(i)
+}
+
 // Region is the name of the AWS region.
 type Region string
 
@@ -147,6 +174,22 @@ func (b Bucket) Domain() string {
 	return fmt.Sprintf("%s.s3.amazonaws.com", b.String())
 }
 
+// TrimKey returns the Bucket without the key.
+// e.g. "bucket/key" -> "bucket"
+func (b Bucket) TrimKey() Bucket {
+	return Bucket(strings.Split(b.String(), "/")[0])
+}
+
+// Split returns the Bucket and the S3Key.
+// If the Bucket does not contain "/", the S3Key is empty.
+func (b Bucket) Split() (Bucket, S3Key) {
+	s := strings.Split(b.String(), "/")
+	if len(s) == 1 {
+		return b, ""
+	}
+	return Bucket(s[0]), S3Key(strings.Join(s[1:], "/"))
+}
+
 // Validate returns true if the Bucket is valid.
 // Bucket naming rules: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
 func (b Bucket) Validate() error {
@@ -226,6 +269,26 @@ func (b Bucket) validateCharSequence() error {
 // BucketSets is the set of the BucketSet.
 type BucketSets []BucketSet
 
+// Len returns the length of the BucketSets.
+func (b BucketSets) Len() int {
+	return len(b)
+}
+
+// Empty returns true if the BucketSets is empty.
+func (b BucketSets) Empty() bool {
+	return b.Len() == 0
+}
+
+// Contains returns true if the BucketSets contains the bucket.
+func (b BucketSets) Contains(bucket Bucket) bool {
+	for _, bs := range b {
+		if bs.Bucket == bucket {
+			return true
+		}
+	}
+	return false
+}
+
 // BucketSet is the set of the Bucket and the Region.
 type BucketSet struct {
 	// Bucket is the name of the S3 bucket.
@@ -235,16 +298,6 @@ type BucketSet struct {
 	// CreationDate is date the bucket was created.
 	// This date can change when making changes to your bucket, such as editing its bucket policy.
 	CreationDate time.Time
-}
-
-// Len returns the length of the BucketSets.
-func (b BucketSets) Len() int {
-	return len(b)
-}
-
-// Empty returns true if the BucketSets is empty.
-func (b BucketSets) Empty() bool {
-	return b.Len() == 0
 }
 
 // S3ObjectSets is the set of the S3ObjectSet.
@@ -288,6 +341,16 @@ type S3Key string
 // String returns the string representation of the S3Key.
 func (k S3Key) String() string {
 	return string(k)
+}
+
+// Empty is whether S3Key is empty
+func (k S3Key) Empty() bool {
+	return k == ""
+}
+
+// IsAll is whether S3Key is "*"
+func (k S3Key) IsAll() bool {
+	return k == "*"
 }
 
 // VersionID is the version ID for the specific version of the object to delete.

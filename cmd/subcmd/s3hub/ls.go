@@ -19,8 +19,8 @@ func newLsCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().StringP("profile", "p", "", "AWS profile name. if this is empty, use $AWS_PROFILE")
-	// not used, however, this is common flag.
-	cmd.Flags().StringP("region", "r", "", "AWS region name. if this is empty, use us-east-1")
+	// not used. however, this is common flag.
+	cmd.Flags().StringP("region", "r", model.RegionUSEast1.String(), "AWS region name")
 	return cmd
 }
 

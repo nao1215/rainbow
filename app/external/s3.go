@@ -4,6 +4,7 @@ package external
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -194,13 +195,24 @@ func NewS3BucketObjectsDeleter(client *s3.Client) *S3BucketObjectsDeleter {
 
 // DeleteS3BucketObjects deletes the objects in the bucket.
 func (c *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, input *service.S3BucketObjectsDeleterInput) (*service.S3BucketObjectsDeleterOutput, error) {
-	_, err := c.client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
-		Bucket: aws.String(input.Bucket.String()),
-		Delete: &types.Delete{
-			Objects: input.S3ObjectSets.ToS3ObjectIdentifiers(),
+	optFn := func(o *s3.Options) {
+		o.Retryer = NewRetryer(func(err error) bool {
+			return strings.Contains(err.Error(), "api error SlowDown")
+		}, model.S3DeleteObjectsDelayTimeSec)
+		o.Region = input.Region.String()
+	}
+
+	if _, err := c.client.DeleteObjects(
+		ctx,
+		&s3.DeleteObjectsInput{
+			Bucket: aws.String(input.Bucket.String()),
+			Delete: &types.Delete{
+				Objects: input.S3ObjectSets.ToS3ObjectIdentifiers(),
+				Quiet:   aws.Bool(true),
+			},
 		},
-	})
-	if err != nil {
+		optFn,
+	); err != nil {
 		return nil, err
 	}
 	return &service.S3BucketObjectsDeleterOutput{}, nil

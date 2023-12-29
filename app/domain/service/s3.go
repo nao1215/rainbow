@@ -73,6 +73,8 @@ type S3BucketDeleter interface {
 type S3BucketObjectsDeleterInput struct {
 	// Bucket is the name of the bucket to delete.
 	Bucket model.Bucket
+	// Region is the region of the bucket that you want to delete.
+	Region model.Region
 	// S3ObjectSets is the list of the objects to delete.
 	S3ObjectSets model.S3ObjectSets
 }
