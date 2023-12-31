@@ -76,7 +76,7 @@ type S3BucketObjectsDeleterInput struct {
 	// Region is the region of the bucket that you want to delete.
 	Region model.Region
 	// S3ObjectSets is the list of the objects to delete.
-	S3ObjectSets model.S3ObjectSets
+	S3ObjectSets model.S3ObjectIdentifierSets
 }
 
 // S3BucketObjectsDeleterOutput is the output of the DeleteBucketObjects method.
@@ -96,10 +96,54 @@ type S3BucketObjectsListerInput struct {
 // S3BucketObjectsListerOutput is the output of the ListBucketObjects method.
 type S3BucketObjectsListerOutput struct {
 	// Objects is the list of the objects.
-	Objects model.S3ObjectSets
+	Objects model.S3ObjectIdentifierSets
 }
 
 // S3BucketObjectsLister is the interface that wraps the basic ListBucketObjects method.
 type S3BucketObjectsLister interface {
 	ListS3BucketObjects(ctx context.Context, input *S3BucketObjectsListerInput) (*S3BucketObjectsListerOutput, error)
+}
+
+// S3BucketObjectDownloaderInput is the input of the GetBucketObject method.
+type S3BucketObjectDownloaderInput struct {
+	// Bucket is the name of the bucket to get.
+	Bucket model.Bucket
+	// S3Key is the key of the object to get.
+	S3Key model.S3Key
+}
+
+// S3BucketObjectDownloaderOutput is the output of the GetBucketObject method.
+type S3BucketObjectDownloaderOutput struct {
+	// S3Object is the object.
+	S3Object *model.S3Object
+}
+
+// S3BucketObjectDownloader is the interface that wraps the basic GetBucketObject method.
+type S3BucketObjectDownloader interface {
+	DownloadS3BucketObject(ctx context.Context, input *S3BucketObjectDownloaderInput) (*S3BucketObjectDownloaderOutput, error)
+}
+
+// S3BucketObjectUploaderInput is the input of the PutBucketObject method.
+type S3BucketObjectUploaderInput struct {
+	// Bucket is the name of the bucket to put.
+	Bucket model.Bucket
+	// Region is the region of the bucket that you want to put.
+	Region model.Region
+	// S3Key is the key of the object to put.
+	S3Key model.S3Key
+	// S3Object is the content of the object to put.
+	S3Object *model.S3Object
+}
+
+// S3BucketObjectUploaderOutput is the output of the PutBucketObject method.
+type S3BucketObjectUploaderOutput struct {
+	// ContentType is the content type of the object.
+	ContentType string
+	// ContentLength is the size of the object.
+	ContentLength int64
+}
+
+// S3BucketObjectUploader is the interface that wraps the basic PutBucketObject method.
+type S3BucketObjectUploader interface {
+	UploadS3BucketObject(ctx context.Context, input *S3BucketObjectUploaderInput) (*S3BucketObjectUploaderOutput, error)
 }

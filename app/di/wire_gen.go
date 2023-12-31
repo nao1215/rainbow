@@ -41,6 +41,42 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 	return s3App, nil
 }
 
+// NewSpareApp creates a new SpareApp.
+func NewSpareApp(ctx context.Context, profile model.AWSProfile, region model.Region) (*SpareApp, error) {
+	awsConfig, err := model.NewAWSConfig(ctx, profile, region)
+	if err != nil {
+		return nil, err
+	}
+	client, err := external.NewCloudFrontClient(awsConfig)
+	if err != nil {
+		return nil, err
+	}
+	cloudFrontCreator := external.NewCloudFrontCreator(client)
+	cloudFrontOAICreator := external.NewCloudFrontOAICreator(client)
+	cloudFrontCreatorOptions := &interactor.CloudFrontCreatorOptions{
+		CloudFrontCreator: cloudFrontCreator,
+		OAICreator:        cloudFrontOAICreator,
+	}
+	interactorCloudFrontCreator := interactor.NewCloudFrontCreator(cloudFrontCreatorOptions)
+	s3Client, err := external.NewS3Client(awsConfig)
+	if err != nil {
+		return nil, err
+	}
+	s3BucketObjectUploader := external.NewS3BucketObjectUploader(s3Client)
+	fileUploaderOptions := &interactor.FileUploaderOptions{
+		S3BucketObjectUploader: s3BucketObjectUploader,
+	}
+	fileUploader := interactor.NewFileUploader(fileUploaderOptions)
+	s3BucketCreator := external.NewS3BucketCreator(s3Client)
+	interactorS3BucketCreator := interactor.NewS3BucketCreator(s3BucketCreator)
+	s3BucketPublicAccessBlocker := external.NewS3BucketPublicAccessBlocker(s3Client)
+	interactorS3BucketPublicAccessBlocker := interactor.NewS3BucketPublicAccessBlocker(s3BucketPublicAccessBlocker)
+	s3BucketPolicySetter := external.NewS3BucketPolicySetter(s3Client)
+	interactorS3BucketPolicySetter := interactor.NewS3BucketPolicySetter(s3BucketPolicySetter)
+	spareApp := newSpareApp(interactorCloudFrontCreator, fileUploader, interactorS3BucketCreator, interactorS3BucketPublicAccessBlocker, interactorS3BucketPolicySetter)
+	return spareApp, nil
+}
+
 // wire.go:
 
 // S3App is the application service for S3.
@@ -75,5 +111,41 @@ func newS3App(
 		S3BucketDeleter:        s3BucketDeleter,
 		S3BucketObjectsLister:  s3BucketObjectsLister,
 		S3BucketObjectsDeleter: s3BucketObjectsDeleter,
+	}
+}
+
+// SpareApp is the application service for spare command.
+type SpareApp struct {
+	usecase.
+		// CloudFrontCreator is the usecase for creating CloudFront.
+		CloudFrontCreator
+	usecase.FileUploader
+	usecase.S3BucketCreator
+
+	// FileUploader is the usecase for uploading a file.
+
+	// S3BucketCreator is the usecase for creating a new S3 bucket.
+	usecase.S3BucketPublicAccessBlocker
+	// S3BucketPublicAccessBlocker is the usecase for blocking public access to a S3 bucket.
+	usecase.S3BucketPolicySetter
+
+	// BucketPolicySetter is the usecase for setting a bucket policy.
+
+}
+
+// newSpareApp creates a new SpareApp.
+func newSpareApp(
+	cloudFrontCreator usecase.CloudFrontCreator,
+	fileUploader usecase.FileUploader,
+	s3BucketCreator usecase.S3BucketCreator,
+	s3BucketPublicAccessBlocker usecase.S3BucketPublicAccessBlocker,
+	s3BucketPolicySetter usecase.S3BucketPolicySetter,
+) *SpareApp {
+	return &SpareApp{
+		CloudFrontCreator:           cloudFrontCreator,
+		FileUploader:                fileUploader,
+		S3BucketCreator:             s3BucketCreator,
+		S3BucketPublicAccessBlocker: s3BucketPublicAccessBlocker,
+		S3BucketPolicySetter:        s3BucketPolicySetter,
 	}
 }

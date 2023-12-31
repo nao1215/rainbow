@@ -2,7 +2,11 @@
 package model
 
 import (
+	"bytes"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -10,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/nao1215/rainbow/utils/errfmt"
 	"github.com/nao1215/rainbow/utils/xregex"
+	"github.com/wailsapp/mimetype"
 )
 
 const (
@@ -158,8 +163,22 @@ func (r Region) Prev() Region {
 	return RegionAPNortheast1
 }
 
+const (
+	// BucketMinLength is the minimum length of the bucket name.
+	BucketMinLength = 3
+	// BucketMaxLength is the maximum length of the bucket name.
+	BucketMaxLength = 63
+	// S3Protocol is the protocol of the S3 bucket.
+	S3Protocol = "s3://"
+)
+
 // Bucket is the name of the S3 bucket.
 type Bucket string
+
+// NewBucketWithoutProtocol creates a new Bucket.
+func NewBucketWithoutProtocol(s string) Bucket {
+	return Bucket(strings.TrimPrefix(s, S3Protocol))
+}
 
 // String returns the string representation of the Bucket.
 func (b Bucket) String() string {
@@ -214,16 +233,9 @@ func (b Bucket) Validate() error {
 	return nil
 }
 
-const (
-	// BucketMinLength is the minimum length of the bucket name.
-	BucketMinLength = 3
-	// BucketMaxLength is the maximum length of the bucket name.
-	BucketMaxLength = 63
-)
-
 // validateLength validates the length of the bucket name.
 func (b Bucket) validateLength() error {
-	if len(b) < 3 || len(b) > 63 {
+	if len(b) < BucketMinLength || len(b) > BucketMaxLength {
 		return fmt.Errorf("s3 bucket name must be between 3 and 63 characters long")
 	}
 	return nil
@@ -302,33 +314,33 @@ type BucketSet struct {
 	CreationDate time.Time
 }
 
-// S3ObjectSets is the set of the S3ObjectSet.
-type S3ObjectSets []S3Object
+// S3ObjectIdentifierSets is the set of the S3ObjectSet.
+type S3ObjectIdentifierSets []S3ObjectIdentifier
 
-// Len returns the length of the S3ObjectSets.
-func (s S3ObjectSets) Len() int {
+// Len returns the length of the S3ObjectIdentifierSets.
+func (s S3ObjectIdentifierSets) Len() int {
 	return len(s)
 }
 
 // ToS3ObjectIdentifiers converts the S3ObjectSets to the ObjectIdentifiers.
-func (s S3ObjectSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
+func (s S3ObjectIdentifierSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
 	ids := make([]types.ObjectIdentifier, 0, s.Len())
 	for _, o := range s {
-		ids = append(ids, *o.ToS3ObjectIdentifier())
+		ids = append(ids, *o.ToAWSS3ObjectIdentifier())
 	}
 	return ids
 }
 
-// S3Object is the object in the S3 bucket.
-type S3Object struct {
+// S3ObjectIdentifier is the object  identifier in the S3 bucket.
+type S3ObjectIdentifier struct {
 	// S3Key is the name of the object.
 	S3Key S3Key
 	// VersionID is the version ID for the specific version of the object to delete.
 	VersionID VersionID
 }
 
-// ToS3ObjectIdentifier converts the S3Object to the ObjectIdentifier.
-func (o S3Object) ToS3ObjectIdentifier() *types.ObjectIdentifier {
+// ToAWSS3ObjectIdentifier converts the S3ObjectIdentifier to the ObjectIdentifier.
+func (o S3ObjectIdentifier) ToAWSS3ObjectIdentifier() *types.ObjectIdentifier {
 	return &types.ObjectIdentifier{
 		Key:       aws.String(o.S3Key.String()),
 		VersionId: aws.String(o.VersionID.String()),
@@ -362,4 +374,34 @@ type VersionID string
 // String returns the string representation of the VersionID.
 func (v VersionID) String() string {
 	return string(v)
+}
+
+// S3Object is the object in the S3 bucket.
+type S3Object struct {
+	*bytes.Buffer
+}
+
+// NewS3Object creates a new S3Object.
+func NewS3Object(b []byte) *S3Object {
+	return &S3Object{Buffer: bytes.NewBuffer(b)}
+}
+
+// ToFile writes the S3Object to the file.
+func (s *S3Object) ToFile(path string, perm fs.FileMode) error {
+	return os.WriteFile(filepath.Clean(path), s.Bytes(), perm)
+}
+
+// ContentType returns the content type of the S3Object.
+// If the content type cannot be detected, it returns "plain/text".
+func (s *S3Object) ContentType() string {
+	mtype, err := mimetype.DetectReader(s.Buffer)
+	if err != nil {
+		return "plain/text"
+	}
+	return mtype.String()
+}
+
+// ContentLength returns the content length of the S3Object.
+func (s *S3Object) ContentLength() int64 {
+	return int64(s.Len())
 }

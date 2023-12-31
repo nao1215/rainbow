@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/google/wire"
+	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/app/domain/service"
 	"github.com/nao1215/rainbow/app/usecase"
 )
@@ -231,4 +232,115 @@ func (s *S3BucketDeleter) DeleteS3Bucket(ctx context.Context, input *usecase.S3B
 		return nil, err
 	}
 	return &usecase.S3BucketDeleterOutput{}, nil
+}
+
+// FileUploaderSet is a provider set for FileUploader.
+//
+//nolint:gochecknoglobals
+var FileUploaderSet = wire.NewSet(
+	NewFileUploader,
+	wire.Struct(new(FileUploaderOptions), "*"),
+	wire.Bind(new(usecase.FileUploader), new(*FileUploader)),
+)
+
+var _ usecase.FileUploader = (*FileUploader)(nil)
+
+// FileUploader is an implementation for FileUploader.
+type FileUploader struct {
+	opts *FileUploaderOptions
+}
+
+// FileUploaderOptions is an option struct for FileUploader.
+type FileUploaderOptions struct {
+	service.S3BucketObjectUploader
+}
+
+// NewFileUploader returns a new FileUploader struct.
+func NewFileUploader(opts *FileUploaderOptions) *FileUploader {
+	return &FileUploader{
+		opts: opts,
+	}
+}
+
+// UploadFile uploads a file to external storage.
+func (u *FileUploader) UploadFile(ctx context.Context, input *usecase.UploadFileInput) (*usecase.UploadFileOutput, error) {
+	output, err := u.opts.S3BucketObjectUploader.UploadS3BucketObject(ctx, &service.S3BucketObjectUploaderInput{
+		Bucket:   input.Bucket,
+		Region:   input.Region,
+		S3Key:    input.Key,
+		S3Object: model.NewS3Object(input.Data),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &usecase.UploadFileOutput{
+		ContentType:   output.ContentType,
+		ContentLength: output.ContentLength,
+	}, nil
+}
+
+// S3BucketPublicAccessBlockerSet is a provider set for BucketPublicAccessBlocker.
+//
+//nolint:gochecknoglobals
+var S3BucketPublicAccessBlockerSet = wire.NewSet(
+	NewS3BucketPublicAccessBlocker,
+	wire.Bind(new(usecase.S3BucketPublicAccessBlocker), new(*S3BucketPublicAccessBlocker)),
+)
+
+// S3BucketPublicAccessBlocker is an implementation for BucketPublicAccessBlocker.
+type S3BucketPublicAccessBlocker struct {
+	service.S3BucketPublicAccessBlocker
+}
+
+var _ usecase.S3BucketPublicAccessBlocker = (*S3BucketPublicAccessBlocker)(nil)
+
+// NewS3BucketPublicAccessBlocker returns a new S3BucketPublicAccessBlocker struct.
+func NewS3BucketPublicAccessBlocker(b service.S3BucketPublicAccessBlocker) *S3BucketPublicAccessBlocker {
+	return &S3BucketPublicAccessBlocker{
+		S3BucketPublicAccessBlocker: b,
+	}
+}
+
+// BlockS3BucketPublicAccess blocks public access to a bucket on S3.
+func (s *S3BucketPublicAccessBlocker) BlockS3BucketPublicAccess(ctx context.Context, input *usecase.S3BucketPublicAccessBlockerInput) (*usecase.S3BucketPublicAccessBlockerOutput, error) {
+	if _, err := s.S3BucketPublicAccessBlocker.BlockS3BucketPublicAccess(ctx, &service.S3BucketPublicAccessBlockerInput{
+		Bucket: input.Bucket,
+		Region: input.Region,
+	}); err != nil {
+		return nil, err
+	}
+	return &usecase.S3BucketPublicAccessBlockerOutput{}, nil
+}
+
+// S3BucketPolicySetterSet is a provider set for BucketPolicySetter.
+//
+//nolint:gochecknoglobals
+var S3BucketPolicySetterSet = wire.NewSet(
+	NewS3BucketPolicySetter,
+	wire.Bind(new(usecase.S3BucketPolicySetter), new(*S3BucketPolicySetter)),
+)
+
+// S3BucketPolicySetter is an implementation for BucketPolicySetter.
+type S3BucketPolicySetter struct {
+	service.S3BucketPolicySetter
+}
+
+var _ usecase.S3BucketPolicySetter = (*S3BucketPolicySetter)(nil)
+
+// NewS3BucketPolicySetter returns a new S3BucketPolicySetter struct.
+func NewS3BucketPolicySetter(s service.S3BucketPolicySetter) *S3BucketPolicySetter {
+	return &S3BucketPolicySetter{
+		S3BucketPolicySetter: s,
+	}
+}
+
+// SetS3BucketPolicy sets a bucket policy on S3.
+func (s *S3BucketPolicySetter) SetS3BucketPolicy(ctx context.Context, input *usecase.S3BucketPolicySetterInput) (*usecase.S3BucketPolicySetterOutput, error) {
+	if _, err := s.S3BucketPolicySetter.SetS3BucketPolicy(ctx, &service.S3BucketPolicySetterInput{
+		Bucket: input.Bucket,
+		Policy: input.Policy,
+	}); err != nil {
+		return nil, err
+	}
+	return &usecase.S3BucketPolicySetterOutput{}, nil
 }
