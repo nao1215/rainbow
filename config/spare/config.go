@@ -28,7 +28,7 @@ type Config struct {
 	// If you do not specify this, the CloudFront default domain name is used.
 	CustomDomain model.Domain `yaml:"customDomain"`
 	// S3Bucket is the name of the S3 bucket.
-	S3Bucket model.Bucket `yaml:"s3BucketName"`
+	S3Bucket model.Bucket `yaml:"s3BucketName"` //nolint
 	// AllowOrigins is the list of domains that are allowed to access the SPA.
 	AllowOrigins            model.AllowOrigins `yaml:"allowOrigins"`
 	DebugLocalstackEndpoint model.Endpoint     `yaml:"debugLocalstackEndpoint"`
