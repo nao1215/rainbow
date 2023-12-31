@@ -3,7 +3,9 @@ package external
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -240,7 +242,7 @@ func NewS3BucketObjectsLister(client *s3.Client) *S3BucketObjectsLister {
 
 // ListS3BucketObjects lists the objects in the bucket.
 func (c *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *service.S3BucketObjectsListerInput) (*service.S3BucketObjectsListerOutput, error) {
-	var objects model.S3ObjectSets
+	var objects model.S3ObjectIdentifierSets
 	in := &s3.ListObjectsV2Input{
 		Bucket:  aws.String(input.Bucket.String()),
 		MaxKeys: aws.Int32(model.MaxS3Keys),
@@ -252,7 +254,7 @@ func (c *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *
 		}
 
 		for _, o := range output.Contents {
-			objects = append(objects, model.S3Object{
+			objects = append(objects, model.S3ObjectIdentifier{
 				S3Key: model.S3Key(*o.Key),
 			})
 		}
@@ -263,4 +265,106 @@ func (c *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *
 		in.ContinuationToken = output.NextContinuationToken
 	}
 	return &service.S3BucketObjectsListerOutput{Objects: objects}, nil
+}
+
+// S3BucketObjectDownloader implements the S3BucketObjectDownloader interface.
+type S3BucketObjectDownloader struct {
+	client *s3.Client
+}
+
+// S3BucketObjectDownloaderSet is a provider set for S3BucketObjectGetter.
+//
+//nolint:gochecknoglobals
+var S3BucketObjectDownloaderSet = wire.NewSet(
+	NewS3BucketObjectDownloader,
+	wire.Bind(new(service.S3BucketObjectDownloader), new(*S3BucketObjectDownloader)),
+)
+
+var _ service.S3BucketObjectDownloader = (*S3BucketObjectDownloader)(nil)
+
+// NewS3BucketObjectDownloader creates a new S3BucketObjectGetter.
+func NewS3BucketObjectDownloader(client *s3.Client) *S3BucketObjectDownloader {
+	return &S3BucketObjectDownloader{client: client}
+}
+
+// DownloadS3BucketObject gets the object in the bucket.
+func (c *S3BucketObjectDownloader) DownloadS3BucketObject(ctx context.Context, input *service.S3BucketObjectDownloaderInput) (*service.S3BucketObjectDownloaderOutput, error) {
+	out, err := c.client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(input.Bucket.String()),
+		Key:    aws.String(input.S3Key.String()),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	body := out.Body
+	defer func() {
+		e := body.Close()
+		if e != nil {
+			err = errors.Join(err, e)
+		}
+	}()
+
+	b, err := io.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &service.S3BucketObjectDownloaderOutput{
+		S3Object: model.NewS3Object(b),
+	}, nil
+}
+
+// S3BucketObjectUploader implements the S3BucketObjectUploader interface.
+type S3BucketObjectUploader struct {
+	client *s3.Client
+}
+
+// S3BucketObjectUploaderSet is a provider set for S3BucketObjectUploader.
+//
+//nolint:gochecknoglobals
+var S3BucketObjectUploaderSet = wire.NewSet(
+	NewS3BucketObjectUploader,
+	wire.Bind(new(service.S3BucketObjectUploader), new(*S3BucketObjectUploader)),
+)
+
+var _ service.S3BucketObjectUploader = (*S3BucketObjectUploader)(nil)
+
+// NewS3BucketObjectUploader creates a new S3BucketObjectUploader.
+func NewS3BucketObjectUploader(client *s3.Client) *S3BucketObjectUploader {
+	return &S3BucketObjectUploader{client: client}
+}
+
+// UploadS3BucketObject puts the object in the bucket.
+func (c *S3BucketObjectUploader) UploadS3BucketObject(ctx context.Context, input *service.S3BucketObjectUploaderInput) (*service.S3BucketObjectUploaderOutput, error) {
+	_, err := c.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:        aws.String(input.Bucket.String()),
+		Key:           aws.String(input.S3Key.String()),
+		Body:          input.S3Object,
+		ContentType:   aws.String(input.S3Object.ContentType()),
+		ContentLength: aws.Int64(input.S3Object.ContentLength()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &service.S3BucketObjectUploaderOutput{
+		ContentType:   input.S3Object.ContentType(),
+		ContentLength: input.S3Object.ContentLength(),
+	}, nil
+}
+
+// BucketPublicAccessBlockerInput is an input struct for BucketAccessBlocker.
+type BucketPublicAccessBlockerInput struct {
+	// Bucket is the name of the  bucket.
+	Bucket model.Bucket
+	// Region is the name of the region.
+	Region model.Region
+}
+
+// BucketPublicAccessBlockerOutput is an output struct for BucketAccessBlocker.
+type BucketPublicAccessBlockerOutput struct{}
+
+// BucketPublicAccessBlocker is an interface for blocking access to a bucket.
+type BucketPublicAccessBlocker interface {
+	BlockBucketPublicAccess(context.Context, *BucketPublicAccessBlockerInput) (*BucketPublicAccessBlockerOutput, error)
 }

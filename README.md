@@ -25,7 +25,8 @@ The rainbow project is a toolset for managing AWS resources. This project consis
 [WIP]
 |Name|README|implementation|Description|
 |:--|:--|:--|:--|
-|[s3hub](./doc/s3hub/README.md)|✅||user-friendly s3 management tool|
+|[s3hub](./doc/s3hub/README.md)|✅||User-friendly s3 management tool|
+|[spare](./doc/spare/README.md)|✅||Single Page Application Release Easily|
 
 ### s3hub example
 #### Create a bucket(s)

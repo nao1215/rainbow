@@ -135,8 +135,8 @@ func (r *rmCmd) remove(bucket model.Bucket, key model.S3Key) error {
 func (r *rmCmd) removeObject(bucket model.Bucket, key model.S3Key) error {
 	if _, err := r.S3App.S3BucketObjectsDeleter.DeleteS3BucketObjects(r.ctx, &usecase.S3BucketObjectsDeleterInput{
 		Bucket: bucket,
-		S3ObjectSets: model.S3ObjectSets{
-			model.S3Object{
+		S3ObjectSets: model.S3ObjectIdentifierSets{
+			model.S3ObjectIdentifier{
 				S3Key: key,
 			},
 		},
@@ -190,8 +190,8 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 }
 
 // divideIntoChunks divides a slice into chunks of the specified size.
-func (r *rmCmd) divideIntoChunks(slice []model.S3Object, chunkSize int) [][]model.S3Object {
-	var chunks [][]model.S3Object
+func (r *rmCmd) divideIntoChunks(slice []model.S3ObjectIdentifier, chunkSize int) [][]model.S3ObjectIdentifier {
+	var chunks [][]model.S3ObjectIdentifier
 
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize

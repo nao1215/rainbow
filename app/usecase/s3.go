@@ -46,7 +46,7 @@ type S3BucketObjectsListerInput struct {
 // S3BucketObjectsListerOutput is the output of the ListObjects method.
 type S3BucketObjectsListerOutput struct {
 	// Objects is the list of the objects.
-	Objects model.S3ObjectSets
+	Objects model.S3ObjectIdentifierSets
 }
 
 // S3BucketObjectsLister is the interface that wraps the basic ListObjects method.
@@ -73,7 +73,7 @@ type S3BucketObjectsDeleterInput struct {
 	// Bucket is the name of the bucket that you want to delete.
 	Bucket model.Bucket
 	// S3ObjectSets is the list of the objects to delete.
-	S3ObjectSets model.S3ObjectSets
+	S3ObjectSets model.S3ObjectIdentifierSets
 }
 
 // S3BucketObjectsDeleterOutput is the output of the DeleteObjects method.
@@ -82,4 +82,30 @@ type S3BucketObjectsDeleterOutput struct{}
 // S3BucketObjectsDeleter is the interface that wraps the basic DeleteObjects method.
 type S3BucketObjectsDeleter interface {
 	DeleteS3BucketObjects(ctx context.Context, input *S3BucketObjectsDeleterInput) (*S3BucketObjectsDeleterOutput, error)
+}
+
+// FileUploader is an interface for uploading files to external storage.
+type FileUploader interface {
+	// UploadFile uploads a file from external storage.
+	UploadFile(ctx context.Context, input *UploadFileInput) (*UploadFileOutput, error)
+}
+
+// UploadFileInput is an input struct for FileUploader.
+type UploadFileInput struct {
+	// Bucket is the name of the bucket.
+	Bucket model.Bucket
+	// Region is the name of the region where the bucket is located.
+	Region model.Region
+	// Key is the S3 key
+	Key model.S3Key
+	// Data is the data to upload.
+	Data []byte
+}
+
+// UploadFileOutput is an output struct for FileUploader.
+type UploadFileOutput struct {
+	// ContentType is the content type of the uploaded file.
+	ContentType string
+	// ContentLength is the content length of the uploaded file.
+	ContentLength int64
 }
