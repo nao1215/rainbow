@@ -72,7 +72,6 @@ func (l *lsCmd) Do() error {
 	default:
 		return errors.New("invalid mode: please report this bug: https://github.com/nao1215/rainbow")
 	}
-
 }
 
 // printBucket prints buckets.
@@ -109,6 +108,9 @@ func (l *lsCmd) printObject() error {
 	listS3Objects, err := l.s3hub.S3BucketObjectsLister.ListS3BucketObjects(l.ctx, &usecase.S3BucketObjectsListerInput{
 		Bucket: l.bucket,
 	})
+	if err != nil {
+		return err
+	}
 
 	l.printf("[S3Objects (profile=%s)]\n", l.profile.String())
 	if len(listS3Objects.Objects) == 0 {
