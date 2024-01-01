@@ -1,11 +1,11 @@
-## s3hub - user-friendly s3 management tool
+## s3hub - user-friendly S3 management tool
 The s3hub command provides following features:
-- [x] Create a bucket
-- [x] List buckets
-- [ ] List contents of a bucket
-- [ ] Copy files to a bucket
-- [x] Delete contents from a bucket
-- [x] Delete a bucket
+- [x] Create a S3 bucket
+- [x] List S3 buckets
+- [x] List S3 objects in the S3 bucket
+- [ ] Copy files to S3 bucket
+- [x] Delete contents from the S3 bucket
+- [x] Delete the S3 bucket
 - [ ] Interactive mode
   
 ## How to install
@@ -37,8 +37,8 @@ s3hub ls
 s3hub ls ${YOUR_BUCKET_NAME}
 ```
 
-> [!IMPORTANT]  
-> Not implemented yet.
+![ls_bucket_objects](../img/s3hub-ls-objects.gif)
+
 
 ### Copy files to a bucket
 From local to S3:
