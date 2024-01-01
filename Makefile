@@ -19,7 +19,6 @@ build:  ## Build binary
 	env GO111MODULE=on GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_BUILD) $(GO_LDFLAGS) -o $(S3HUB) cmd/s3hub/main.go
 	env GO111MODULE=on GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_BUILD) $(GO_LDFLAGS) -o $(SPARE) cmd/spare/main.go
 
-
 clean: ## Clean project
 	-rm -rf $(S3HUB) $(SPARE) cover.out cover.html
 
@@ -41,6 +40,7 @@ generate: ## Generate code from templates
 
 gif: docker ## Generate gif image
 	vhs < doc/img/vhs/s3hub-mb.tape
+	vhs < doc/img/vhs/s3hub-ls.tape
 	vhs < doc/img/vhs/s3hub-ls.tape
 	vhs < doc/img/vhs/s3hub-rm-all.tape
 
