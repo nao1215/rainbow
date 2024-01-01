@@ -1,5 +1,8 @@
-## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2023-12-29)
+## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2024-01-01)
 
+* Introduce spare command [#13](https://github.com/nao1215/rainbow/pull/13) ([nao1215](https://github.com/nao1215))
+* build(deps): bump golang.org/x/sync from 0.1.0 to 0.5.0 [#12](https://github.com/nao1215/rainbow/pull/12) ([dependabot[bot]](https://github.com/apps/dependabot))
+* Update document for s3hub with gif image [#11](https://github.com/nao1215/rainbow/pull/11) ([nao1215](https://github.com/nao1215))
 * Add remove subcommand [#10](https://github.com/nao1215/rainbow/pull/10) ([nao1215](https://github.com/nao1215))
 * Add ls subcommand [#9](https://github.com/nao1215/rainbow/pull/9) ([nao1215](https://github.com/nao1215))
 * Add s3hub mb subcommand [#8](https://github.com/nao1215/rainbow/pull/8) ([nao1215](https://github.com/nao1215))
