@@ -322,6 +322,16 @@ func (s S3ObjectIdentifierSets) Len() int {
 	return len(s)
 }
 
+// Less defines the ordering of S3ObjectIdentifier instances.
+func (s S3ObjectIdentifierSets) Less(i, j int) bool {
+	return s[i].S3Key < s[j].S3Key
+}
+
+// Swap swaps the elements with indexes i and j.
+func (s S3ObjectIdentifierSets) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 // ToS3ObjectIdentifiers converts the S3ObjectSets to the ObjectIdentifiers.
 func (s S3ObjectIdentifierSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
 	ids := make([]types.ObjectIdentifier, 0, s.Len())
