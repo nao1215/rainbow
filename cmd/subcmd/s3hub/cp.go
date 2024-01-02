@@ -119,9 +119,12 @@ func (c *cpCmd) Do() error {
 		return c.s3ToLocal()
 	case copyTypeS3ToS3:
 		return c.s3ToS3()
+	case copyTypeUnknown:
 	default:
-		return fmt.Errorf("unsupported copy type. from=%s, to=%s", color.YellowString(c.pair.From), color.YellowString(c.pair.To))
+		return fmt.Errorf("unsupported copy type. from=%s, to=%s",
+			color.YellowString(c.pair.From), color.YellowString(c.pair.To))
 	}
+	return nil
 }
 
 // localToS3 copies from local to S3.
@@ -134,7 +137,7 @@ func (c *cpCmd) localToS3() error {
 
 	fileNum := len(targets)
 	for i, v := range targets {
-		data, err := os.ReadFile(v)
+		data, err := os.ReadFile(filepath.Clean(v))
 		if err != nil {
 			return err
 		}

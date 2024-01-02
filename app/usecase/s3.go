@@ -84,7 +84,7 @@ type S3ObjectsDeleter interface {
 	DeleteS3Objects(ctx context.Context, input *S3ObjectsDeleterInput) (*S3ObjectsDeleterOutput, error)
 }
 
-// S3ObjectDownLoaderInput is the input of the DownloadObject method.
+// S3ObjectDownloaderInput is the input of the DownloadObject method.
 type S3ObjectDownloaderInput struct {
 	// Bucket is the name of the bucket that you want to download.
 	Bucket model.Bucket
@@ -92,7 +92,7 @@ type S3ObjectDownloaderInput struct {
 	Key model.S3Key
 }
 
-// S3ObjectDownLoaderOutput is the output of the DownloadObject method.
+// S3ObjectDownloaderOutput is the output of the DownloadObject method.
 type S3ObjectDownloaderOutput struct {
 	// Bucket is the name of the bucket that you want to download.
 	Bucket model.Bucket
@@ -156,4 +156,3 @@ type S3ObjectCopierOutput struct{}
 type S3ObjectCopier interface {
 	CopyS3Object(ctx context.Context, input *S3ObjectCopierInput) (*S3ObjectCopierOutput, error)
 }
-
