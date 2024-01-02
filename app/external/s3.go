@@ -357,18 +357,35 @@ func (c *S3ObjectUploader) UploadS3Object(ctx context.Context, input *service.S3
 	}, nil
 }
 
-// BucketPublicAccessBlockerInput is an input struct for BucketAccessBlocker.
-type BucketPublicAccessBlockerInput struct {
-	// Bucket is the name of the  bucket.
-	Bucket model.Bucket
-	// Region is the name of the region.
-	Region model.Region
+// S3ObjectCopier implements the S3ObjectCopier interface.
+type S3ObjectCopier struct {
+	client *s3.Client
 }
 
-// BucketPublicAccessBlockerOutput is an output struct for BucketAccessBlocker.
-type BucketPublicAccessBlockerOutput struct{}
+// S3ObjectCopierSet is a provider set for S3ObjectCopier.
+//
+//nolint:gochecknoglobals
+var S3ObjectCopierSet = wire.NewSet(
+	NewS3ObjectCopier,
+	wire.Bind(new(service.S3ObjectCopier), new(*S3ObjectCopier)),
+)
 
-// BucketPublicAccessBlocker is an interface for blocking access to a bucket.
-type BucketPublicAccessBlocker interface {
-	BlockBucketPublicAccess(context.Context, *BucketPublicAccessBlockerInput) (*BucketPublicAccessBlockerOutput, error)
+var _ service.S3ObjectCopier = (*S3ObjectCopier)(nil)
+
+// NewS3ObjectCopier creates a new S3ObjectCopier.
+func NewS3ObjectCopier(client *s3.Client) *S3ObjectCopier {
+	return &S3ObjectCopier{client: client}
+}
+
+// CopyS3Object copies the object in the bucket.
+func (c *S3ObjectCopier) CopyS3Object(ctx context.Context, input *service.S3ObjectCopierInput) (*service.S3ObjectCopierOutput, error) {
+	_, err := c.client.CopyObject(ctx, &s3.CopyObjectInput{
+		Bucket:     aws.String(input.DestinationBucket.String()),
+		CopySource: aws.String(input.SourceBucket.Join(input.SourceKey).String()),
+		Key:        aws.String(input.DestinationKey.String()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &service.S3ObjectCopierOutput{}, nil
 }

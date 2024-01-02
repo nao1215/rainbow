@@ -21,16 +21,16 @@ func newRmCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rm",
 		Short: "Remove objects in S3 bucket or remove S3 bucket.",
-		Example: `[Delete a object in S3 bucket]
-  s3hub rm BUCKET_NAME/S3_KEY
+		Example: `  [Delete a object in S3 bucket]
+    s3hub rm BUCKET_NAME/S3_KEY
 
-[Delete all objects in S3 bucket (retain S3 bucket)]		
-  s3hub rm BUCKET_NAME/*
+  [Delete all objects in S3 bucket (retain S3 bucket)]		
+    s3hub rm BUCKET_NAME/*
 
-[Delete S3 bucket and all objects]
-  s3hub rm BUCKET_NAME
-   or
-  s3hub rm BUCKET_NAME/`,
+  [Delete S3 bucket and all objects]
+    s3hub rm BUCKET_NAME
+     or
+    s3hub rm BUCKET_NAME/`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return subcmd.Run(cmd, args, &rmCmd{})
 		},

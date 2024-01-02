@@ -30,6 +30,8 @@ type S3App struct {
 	usecase.S3ObjectDownloader
 	// FileUploader is the usecase for uploading a file.
 	usecase.FileUploader
+	// S3ObjectCopier is the usecase for copying a file in S3 bucket.
+	usecase.S3ObjectCopier
 }
 
 // NewS3App creates a new S3App.
@@ -45,6 +47,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 		external.S3ObjectsDeleterSet,
 		external.S3ObjectDownloaderSet,
 		external.S3ObjectUploaderSet,
+		external.S3ObjectCopierSet,
 		interactor.S3BucketCreatorSet,
 		interactor.S3BucketListerSet,
 		interactor.S3BucketDeleterSet,
@@ -52,6 +55,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 		interactor.S3ObjectsDeleterSet,
 		interactor.S3ObjectDownloaderSet,
 		interactor.FileUploaderSet,
+		interactor.S3ObjectCopierSet,
 		newS3App,
 	)
 	return nil, nil
@@ -65,6 +69,7 @@ func newS3App(
 	S3ObjectsDeleter usecase.S3ObjectsDeleter,
 	s3ObjectDownloader usecase.S3ObjectDownloader,
 	fileUploader usecase.FileUploader,
+	s3ObjectCopier usecase.S3ObjectCopier,
 ) *S3App {
 	return &S3App{
 		S3BucketCreator:    s3BucketCreator,
@@ -74,6 +79,7 @@ func newS3App(
 		S3ObjectsDeleter:   S3ObjectsDeleter,
 		S3ObjectDownloader: s3ObjectDownloader,
 		FileUploader:       fileUploader,
+		S3ObjectCopier:     s3ObjectCopier,
 	}
 }
 

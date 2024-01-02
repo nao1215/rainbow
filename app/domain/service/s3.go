@@ -155,3 +155,23 @@ type S3ObjectUploaderOutput struct {
 type S3ObjectUploader interface {
 	UploadS3Object(ctx context.Context, input *S3ObjectUploaderInput) (*S3ObjectUploaderOutput, error)
 }
+
+// S3ObjectCopierInput is the input of the CopyBucketObject method.
+type S3ObjectCopierInput struct {
+	// SourceBucket is the name of the source bucket.
+	SourceBucket model.Bucket
+	// SourceKey is the key of the source object.
+	SourceKey model.S3Key
+	// DestinationBucket is the name of the destination bucket.
+	DestinationBucket model.Bucket
+	// DestinationKey is the key of the destination object.
+	DestinationKey model.S3Key
+}
+
+// S3ObjectCopierOutput is the output of the CopyBucketObject method.
+type S3ObjectCopierOutput struct{}
+
+// S3ObjectCopier is the interface that wraps the basic CopyBucketObject method.
+type S3ObjectCopier interface {
+	CopyS3Object(ctx context.Context, input *S3ObjectCopierInput) (*S3ObjectCopierOutput, error)
+}

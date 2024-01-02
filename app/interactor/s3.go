@@ -388,3 +388,46 @@ func (s *S3ObjectDownloader) DownloadS3Object(ctx context.Context, input *usecas
 		S3Object:      out.S3Object,
 	}, nil
 }
+
+
+// S3ObjectCopierSet is a provider set for S3ObjectCopier.
+//
+//nolint:gochecknoglobals
+var S3ObjectCopierSet = wire.NewSet(
+	NewS3ObjectCopier,
+	wire.Bind(new(usecase.S3ObjectCopier), new(*S3ObjectCopier)),
+)
+
+// S3ObjectCopier is an implementation for S3ObjectCopier.
+type S3ObjectCopier struct {
+	service.S3ObjectCopier
+}
+
+var _ usecase.S3ObjectCopier = (*S3ObjectCopier)(nil)
+
+// NewS3ObjectCopier returns a new S3ObjectCopier struct.
+func NewS3ObjectCopier(c service.S3ObjectCopier) *S3ObjectCopier {
+	return &S3ObjectCopier{
+		S3ObjectCopier: c,
+	}
+}
+
+// CopyS3Object copies an object from S3 to S3.
+func (s *S3ObjectCopier) CopyS3Object(ctx context.Context, input *usecase.S3ObjectCopierInput) (*usecase.S3ObjectCopierOutput, error) {
+	if err := input.SourceBucket.Validate(); err != nil {
+		return nil, err
+	}
+	if err := input.DestinationBucket.Validate(); err != nil {
+		return nil, err
+	}
+
+	if _, err := s.S3ObjectCopier.CopyS3Object(ctx, &service.S3ObjectCopierInput{
+		SourceBucket:      input.SourceBucket,
+		SourceKey:         input.SourceKey,
+		DestinationBucket: input.DestinationBucket,
+		DestinationKey:    input.DestinationKey,
+	}); err != nil {
+		return nil, err
+	}
+	return &usecase.S3ObjectCopierOutput{}, nil
+}

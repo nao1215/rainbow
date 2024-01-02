@@ -44,7 +44,9 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 		S3ObjectUploader: s3ObjectUploader,
 	}
 	fileUploader := interactor.NewFileUploader(fileUploaderOptions)
-	s3App := newS3App(interactorS3BucketCreator, interactorS3BucketLister, interactorS3BucketDeleter, interactorS3ObjectsLister, interactorS3ObjectsDeleter, interactorS3ObjectDownloader, fileUploader)
+	s3ObjectCopier := external.NewS3ObjectCopier(client)
+	interactorS3ObjectCopier := interactor.NewS3ObjectCopier(s3ObjectCopier)
+	s3App := newS3App(interactorS3BucketCreator, interactorS3BucketLister, interactorS3BucketDeleter, interactorS3ObjectsLister, interactorS3ObjectsDeleter, interactorS3ObjectDownloader, fileUploader, interactorS3ObjectCopier)
 	return s3App, nil
 }
 
@@ -107,7 +109,10 @@ type S3App struct {
 
 	// S3ObjectUploader is the usecase for uploading a file to S3 bucket.
 	usecase.FileUploader
+	usecase.S3ObjectCopier
 	// FileUploader is the usecase for uploading a file.
+
+	// S3ObjectCopier is the usecase for copying a file in S3 bucket.
 
 }
 
@@ -119,6 +124,7 @@ func newS3App(
 	S3ObjectsDeleter usecase.S3ObjectsDeleter,
 	s3ObjectDownloader usecase.S3ObjectDownloader,
 	fileUploader usecase.FileUploader,
+	s3ObjectCopier usecase.S3ObjectCopier,
 ) *S3App {
 	return &S3App{
 		S3BucketCreator:    s3BucketCreator,
@@ -128,6 +134,7 @@ func newS3App(
 		S3ObjectsDeleter:   S3ObjectsDeleter,
 		S3ObjectDownloader: s3ObjectDownloader,
 		FileUploader:       fileUploader,
+		S3ObjectCopier:     s3ObjectCopier,
 	}
 }
 

@@ -136,3 +136,24 @@ type UploadFileOutput struct {
 	// ContentLength is the content length of the uploaded file.
 	ContentLength int64
 }
+
+// S3ObjectCopierInput is the input of the CopyObject method.
+type S3ObjectCopierInput struct {
+	// SourceBucket is the name of the source bucket.
+	SourceBucket model.Bucket
+	// SourceKey is the key of the source object.
+	SourceKey model.S3Key
+	// DestinationBucket is the name of the destination bucket.
+	DestinationBucket model.Bucket
+	// DestinationKey is the key of the destination object.
+	DestinationKey model.S3Key
+}
+
+// S3ObjectCopierOutput is the output of the CopyObject method.
+type S3ObjectCopierOutput struct{}
+
+// S3ObjectCopier is the interface that wraps the basic CopyObject method.
+type S3ObjectCopier interface {
+	CopyS3Object(ctx context.Context, input *S3ObjectCopierInput) (*S3ObjectCopierOutput, error)
+}
+
