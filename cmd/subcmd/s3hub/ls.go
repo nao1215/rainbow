@@ -105,7 +105,7 @@ func (l *lsCmd) printObject() error {
 		return fmt.Errorf("bucket not found: %s", color.YellowString("%s", l.bucket))
 	}
 
-	listS3Objects, err := l.s3hub.S3BucketObjectsLister.ListS3BucketObjects(l.ctx, &usecase.S3BucketObjectsListerInput{
+	listS3Objects, err := l.s3hub.S3ObjectsLister.ListS3Objects(l.ctx, &usecase.S3ObjectsListerInput{
 		Bucket: l.bucket,
 	})
 	if err != nil {

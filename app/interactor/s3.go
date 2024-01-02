@@ -98,71 +98,71 @@ func (s *S3BucketLister) ListS3Buckets(ctx context.Context, _ *usecase.S3BucketL
 	}, nil
 }
 
-// S3BucketObjectsLister implements the S3BucketObjectsLister interface.
-type S3BucketObjectsLister struct {
-	service.S3BucketObjectsLister
+// S3ObjectsLister implements the S3ObjectsLister interface.
+type S3ObjectsLister struct {
+	service.S3ObjectsLister
 }
 
-// S3BucketObjectsListerSet is a provider set for S3BucketObjectsLister.
+// S3ObjectsListerSet is a provider set for S3ObjectsLister.
 //
 //nolint:gochecknoglobals
-var S3BucketObjectsListerSet = wire.NewSet(
-	NewS3BucketObjectsLister,
-	wire.Bind(new(usecase.S3BucketObjectsLister), new(*S3BucketObjectsLister)),
+var S3ObjectsListerSet = wire.NewSet(
+	NewS3ObjectsLister,
+	wire.Bind(new(usecase.S3ObjectsLister), new(*S3ObjectsLister)),
 )
 
-var _ usecase.S3BucketObjectsLister = (*S3BucketObjectsLister)(nil)
+var _ usecase.S3ObjectsLister = (*S3ObjectsLister)(nil)
 
-// NewS3BucketObjectsLister creates a new S3BucketObjectsLister.
-func NewS3BucketObjectsLister(l service.S3BucketObjectsLister) *S3BucketObjectsLister {
-	return &S3BucketObjectsLister{
-		S3BucketObjectsLister: l,
+// NewS3ObjectsLister creates a new S3ObjectsLister.
+func NewS3ObjectsLister(l service.S3ObjectsLister) *S3ObjectsLister {
+	return &S3ObjectsLister{
+		S3ObjectsLister: l,
 	}
 }
 
-// ListS3BucketObjects lists the objects in the S3 bucket.
-func (s *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *usecase.S3BucketObjectsListerInput) (*usecase.S3BucketObjectsListerOutput, error) {
+// ListS3Objects lists the objects in the S3 bucket.
+func (s *S3ObjectsLister) ListS3Objects(ctx context.Context, input *usecase.S3ObjectsListerInput) (*usecase.S3ObjectsListerOutput, error) {
 	if err := input.Bucket.Validate(); err != nil {
 		return nil, err
 	}
 
-	out, err := s.S3BucketObjectsLister.ListS3BucketObjects(ctx, &service.S3BucketObjectsListerInput{
+	out, err := s.S3ObjectsLister.ListS3Objects(ctx, &service.S3ObjectsListerInput{
 		Bucket: input.Bucket,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &usecase.S3BucketObjectsListerOutput{
+	return &usecase.S3ObjectsListerOutput{
 		Objects: out.Objects,
 	}, nil
 }
 
-// S3BucketObjectsDeleter implements the S3BucketObjectsDeleter interface.
-type S3BucketObjectsDeleter struct {
-	service.S3BucketObjectsDeleter
+// S3ObjectsDeleter implements the S3ObjectsDeleter interface.
+type S3ObjectsDeleter struct {
+	service.S3ObjectsDeleter
 	service.S3BucketLocationGetter
 }
 
-// S3BucketObjectsDeleterSet is a provider set for S3BucketObjectsDeleter.
+// S3ObjectsDeleterSet is a provider set for S3ObjectsDeleter.
 //
 //nolint:gochecknoglobals
-var S3BucketObjectsDeleterSet = wire.NewSet(
-	NewS3BucketObjectsDeleter,
-	wire.Bind(new(usecase.S3BucketObjectsDeleter), new(*S3BucketObjectsDeleter)),
+var S3ObjectsDeleterSet = wire.NewSet(
+	NewS3ObjectsDeleter,
+	wire.Bind(new(usecase.S3ObjectsDeleter), new(*S3ObjectsDeleter)),
 )
 
-var _ usecase.S3BucketObjectsDeleter = (*S3BucketObjectsDeleter)(nil)
+var _ usecase.S3ObjectsDeleter = (*S3ObjectsDeleter)(nil)
 
-// NewS3BucketObjectsDeleter creates a new S3BucketObjectsDeleter.
-func NewS3BucketObjectsDeleter(d service.S3BucketObjectsDeleter, l service.S3BucketLocationGetter) *S3BucketObjectsDeleter {
-	return &S3BucketObjectsDeleter{
-		S3BucketObjectsDeleter: d,
+// NewS3ObjectsDeleter creates a new S3ObjectsDeleter.
+func NewS3ObjectsDeleter(d service.S3ObjectsDeleter, l service.S3BucketLocationGetter) *S3ObjectsDeleter {
+	return &S3ObjectsDeleter{
+		S3ObjectsDeleter:       d,
 		S3BucketLocationGetter: l,
 	}
 }
 
-// DeleteS3BucketObjects deletes the objects in the bucket.
-func (s *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, input *usecase.S3BucketObjectsDeleterInput) (*usecase.S3BucketObjectsDeleterOutput, error) {
+// DeleteS3Objects deletes the objects in the bucket.
+func (s *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *usecase.S3ObjectsDeleterInput) (*usecase.S3ObjectsDeleterOutput, error) {
 	if err := input.Bucket.Validate(); err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func (s *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, inpu
 		return nil, err
 	}
 
-	_, err = s.S3BucketObjectsDeleter.DeleteS3BucketObjects(ctx, &service.S3BucketObjectsDeleterInput{
+	_, err = s.S3ObjectsDeleter.DeleteS3Objects(ctx, &service.S3ObjectsDeleterInput{
 		Bucket:       input.Bucket,
 		Region:       location.Region,
 		S3ObjectSets: input.S3ObjectSets,
@@ -182,7 +182,7 @@ func (s *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, inpu
 	if err != nil {
 		return nil, err
 	}
-	return &usecase.S3BucketObjectsDeleterOutput{}, nil
+	return &usecase.S3ObjectsDeleterOutput{}, nil
 }
 
 // S3BucketDeleterSet is a provider set for S3BucketDeleter.
@@ -252,7 +252,7 @@ type FileUploader struct {
 
 // FileUploaderOptions is an option struct for FileUploader.
 type FileUploaderOptions struct {
-	service.S3BucketObjectUploader
+	service.S3ObjectUploader
 }
 
 // NewFileUploader returns a new FileUploader struct.
@@ -264,7 +264,7 @@ func NewFileUploader(opts *FileUploaderOptions) *FileUploader {
 
 // UploadFile uploads a file to external storage.
 func (u *FileUploader) UploadFile(ctx context.Context, input *usecase.UploadFileInput) (*usecase.UploadFileOutput, error) {
-	output, err := u.opts.S3BucketObjectUploader.UploadS3BucketObject(ctx, &service.S3BucketObjectUploaderInput{
+	output, err := u.opts.S3ObjectUploader.UploadS3Object(ctx, &service.S3ObjectUploaderInput{
 		Bucket:   input.Bucket,
 		Region:   input.Region,
 		S3Key:    input.Key,
@@ -343,4 +343,48 @@ func (s *S3BucketPolicySetter) SetS3BucketPolicy(ctx context.Context, input *use
 		return nil, err
 	}
 	return &usecase.S3BucketPolicySetterOutput{}, nil
+}
+
+// S3ObjectDownloaderSet is a provider set for S3ObjectDownloader.
+//
+//nolint:gochecknoglobals
+var S3ObjectDownloaderSet = wire.NewSet(
+	NewS3ObjectDownloader,
+	wire.Bind(new(usecase.S3ObjectDownloader), new(*S3ObjectDownloader)),
+)
+
+// S3ObjectDownloader is an implementation for S3ObjectDownloader.
+type S3ObjectDownloader struct {
+	service.S3ObjectDownloader
+}
+
+var _ usecase.S3ObjectDownloader = (*S3ObjectDownloader)(nil)
+
+// NewS3ObjectDownloader returns a new S3ObjectDownloader struct.
+func NewS3ObjectDownloader(d service.S3ObjectDownloader) *S3ObjectDownloader {
+	return &S3ObjectDownloader{
+		S3ObjectDownloader: d,
+	}
+}
+
+// DownloadS3Object downloads an object from S3.
+func (s *S3ObjectDownloader) DownloadS3Object(ctx context.Context, input *usecase.S3ObjectDownloaderInput) (*usecase.S3ObjectDownloaderOutput, error) {
+	if err := input.Bucket.Validate(); err != nil {
+		return nil, err
+	}
+
+	out, err := s.S3ObjectDownloader.DownloadS3Object(ctx, &service.S3ObjectDownloaderInput{
+		Bucket: input.Bucket,
+		Key:    input.Key,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &usecase.S3ObjectDownloaderOutput{
+		Bucket:        out.Bucket,
+		Key:           out.Key,
+		ContentType:   out.ContentType,
+		ContentLength: out.ContentLength,
+		S3Object:      out.S3Object,
+	}, nil
 }

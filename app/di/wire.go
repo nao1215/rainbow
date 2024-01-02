@@ -22,10 +22,14 @@ type S3App struct {
 	usecase.S3BucketLister
 	// S3BucketDeleter is the usecase for deleting a S3 bucket.
 	usecase.S3BucketDeleter
-	// S3BucketObjectsLister is the usecase for listing S3 bucket objects.
-	usecase.S3BucketObjectsLister
-	// S3BucketObjectsDeleter is the usecase for deleting S3 bucket objects.
-	usecase.S3BucketObjectsDeleter
+	// S3ObjectsLister is the usecase for listing S3 bucket objects.
+	usecase.S3ObjectsLister
+	// S3ObjectsDeleter is the usecase for deleting S3 bucket objects.
+	usecase.S3ObjectsDeleter
+	// S3ObjectUploader is the usecase for uploading a file to S3 bucket.
+	usecase.S3ObjectDownloader
+	// FileUploader is the usecase for uploading a file.
+	usecase.FileUploader
 }
 
 // NewS3App creates a new S3App.
@@ -37,13 +41,17 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 		external.S3BucketListerSet,
 		external.S3BucketLocationGetterSet,
 		external.S3BucketDeleterSet,
-		external.S3BucketObjectsListerSet,
-		external.S3BucketObjectsDeleterSet,
+		external.S3ObjectsListerSet,
+		external.S3ObjectsDeleterSet,
+		external.S3ObjectDownloaderSet,
+		external.S3ObjectUploaderSet,
 		interactor.S3BucketCreatorSet,
 		interactor.S3BucketListerSet,
 		interactor.S3BucketDeleterSet,
-		interactor.S3BucketObjectsListerSet,
-		interactor.S3BucketObjectsDeleterSet,
+		interactor.S3ObjectsListerSet,
+		interactor.S3ObjectsDeleterSet,
+		interactor.S3ObjectDownloaderSet,
+		interactor.FileUploaderSet,
 		newS3App,
 	)
 	return nil, nil
@@ -53,15 +61,19 @@ func newS3App(
 	s3BucketCreator usecase.S3BucketCreator,
 	s3BucketLister usecase.S3BucketLister,
 	s3BucketDeleter usecase.S3BucketDeleter,
-	s3BucketObjectsLister usecase.S3BucketObjectsLister,
-	s3BucketObjectsDeleter usecase.S3BucketObjectsDeleter,
+	S3ObjectsLister usecase.S3ObjectsLister,
+	S3ObjectsDeleter usecase.S3ObjectsDeleter,
+	s3ObjectDownloader usecase.S3ObjectDownloader,
+	fileUploader usecase.FileUploader,
 ) *S3App {
 	return &S3App{
-		S3BucketCreator:        s3BucketCreator,
-		S3BucketLister:         s3BucketLister,
-		S3BucketDeleter:        s3BucketDeleter,
-		S3BucketObjectsLister:  s3BucketObjectsLister,
-		S3BucketObjectsDeleter: s3BucketObjectsDeleter,
+		S3BucketCreator:    s3BucketCreator,
+		S3BucketLister:     s3BucketLister,
+		S3BucketDeleter:    s3BucketDeleter,
+		S3ObjectsLister:    S3ObjectsLister,
+		S3ObjectsDeleter:   S3ObjectsDeleter,
+		S3ObjectDownloader: s3ObjectDownloader,
+		FileUploader:       fileUploader,
 	}
 }
 
@@ -88,7 +100,7 @@ func NewSpareApp(ctx context.Context, profile model.AWSProfile, region model.Reg
 		external.OAICreatorSet,
 		external.NewS3Client,
 		external.S3BucketCreatorSet,
-		external.S3BucketObjectUploaderSet,
+		external.S3ObjectUploaderSet,
 		external.S3BucketPublicAccessBlockerSet,
 		external.S3BucketPolicySetterSet,
 		interactor.CloudFrontCreatorSet,

@@ -133,7 +133,7 @@ func (r *rmCmd) remove(bucket model.Bucket, key model.S3Key) error {
 
 // removeObject removes a object in bucket.
 func (r *rmCmd) removeObject(bucket model.Bucket, key model.S3Key) error {
-	if _, err := r.S3App.S3BucketObjectsDeleter.DeleteS3BucketObjects(r.ctx, &usecase.S3BucketObjectsDeleterInput{
+	if _, err := r.S3App.S3ObjectsDeleter.DeleteS3Objects(r.ctx, &usecase.S3ObjectsDeleterInput{
 		Bucket: bucket,
 		S3ObjectSets: model.S3ObjectIdentifierSets{
 			model.S3ObjectIdentifier{
@@ -148,7 +148,7 @@ func (r *rmCmd) removeObject(bucket model.Bucket, key model.S3Key) error {
 
 // removeObjects removes all objects in bucket.
 func (r *rmCmd) removeObjects(bucket model.Bucket) error {
-	output, err := r.S3App.S3BucketObjectsLister.ListS3BucketObjects(r.ctx, &usecase.S3BucketObjectsListerInput{
+	output, err := r.S3App.S3ObjectsLister.ListS3Objects(r.ctx, &usecase.S3ObjectsListerInput{
 		Bucket: bucket,
 	})
 	if err != nil {
@@ -173,7 +173,7 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 
 		eg.Go(func() error {
 			defer sem.Release(1)
-			if _, err := r.S3App.S3BucketObjectsDeleter.DeleteS3BucketObjects(ctx, &usecase.S3BucketObjectsDeleterInput{
+			if _, err := r.S3App.S3ObjectsDeleter.DeleteS3Objects(ctx, &usecase.S3ObjectsDeleterInput{
 				Bucket:       bucket,
 				S3ObjectSets: chunk,
 			}); err != nil {
