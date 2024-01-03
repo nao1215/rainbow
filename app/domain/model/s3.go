@@ -182,6 +182,9 @@ func NewBucketWithoutProtocol(s string) Bucket {
 
 // WithProtocol returns the Bucket with the protocol.
 func (b Bucket) WithProtocol() Bucket {
+	if strings.HasPrefix(b.String(), S3Protocol) {
+		return b
+	}
 	return Bucket(S3Protocol + b.String())
 }
 

@@ -725,3 +725,163 @@ func TestS3Key_IsAll(t *testing.T) {
 		})
 	}
 }
+
+func TestNewDeleteRetryCount(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		i int
+	}
+	tests := []struct {
+		name string
+		args args
+		want DeleteObjectsRetryCount
+	}{
+		{
+			name: "input is 1, NewDeleteRetryCount() returns 1",
+			args: args{
+				i: 1,
+			},
+			want: DeleteObjectsRetryCount(1),
+		},
+		{
+			name: "input is 0, NewDeleteRetryCount() returns 0",
+			args: args{
+				i: 0,
+			},
+			want: DeleteObjectsRetryCount(0),
+		},
+		{
+			name: "input is -1, NewDeleteRetryCount() returns 0",
+			args: args{
+				i: -1,
+			},
+			want: DeleteObjectsRetryCount(0),
+		},
+		{
+			name: "input is over MaxS3DeleteObjectsRetryCount, NewDeleteRetryCount() returns MaxS3DeleteObjectsRetryCount",
+			args: args{
+				i: MaxS3DeleteObjectsRetryCount + 1,
+			},
+			want: DeleteObjectsRetryCount(MaxS3DeleteObjectsRetryCount),
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := NewDeleteRetryCount(tt.args.i); got != tt.want {
+				t.Errorf("NewDeleteRetryCount() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBucket_WithProtocol(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    Bucket
+		want Bucket
+	}{
+		{
+			name: "If Bucket is 'abc', WithProtocol() returns 's3://abc'",
+			b:    Bucket("abc"),
+			want: Bucket("s3://abc"),
+		},
+		{
+			name: "If Bucket is 's3://abc', WithProtocol() returns 's3://abc'",
+			b:    Bucket("s3://abc"),
+			want: Bucket("s3://abc"),
+		},
+		{
+			name: "If Bucket is 's3://abc/def', WithProtocol() returns 's3://abc/def'",
+			b:    Bucket("s3://abc/def"),
+			want: Bucket("s3://abc/def"),
+		},
+		{
+			name: "If Bucket is '', WithProtocol() returns 's3://'",
+			b:    Bucket(""),
+			want: Bucket("s3://"),
+		},
+		{
+			name: "If Bucket is 's3://', WithProtocol() returns 's3://'",
+			b:    Bucket("s3://"),
+			want: Bucket("s3://"),
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.b.WithProtocol(); got != tt.want {
+				t.Errorf("Bucket.WithProtocol() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNewBucketWithoutProtocol(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want Bucket
+	}{
+		{
+			name: "If input is 's3://abc', NewBucketWithoutProtocol() returns 'abc'",
+			args: args{
+				s: "s3://abc",
+			},
+			want: Bucket("abc"),
+		},
+		{
+			name: "If input is 's3://abc/def', NewBucketWithoutProtocol() returns 'abc/def'",
+			args: args{
+				s: "s3://abc/def",
+			},
+			want: Bucket("abc/def"),
+		},
+		{
+			name: "If input is 'abc', NewBucketWithoutProtocol() returns 'abc'",
+			args: args{
+				s: "abc",
+			},
+			want: Bucket("abc"),
+		},
+		{
+			name: "If input is 'abc/def', NewBucketWithoutProtocol() returns 'abc/def'",
+			args: args{
+				s: "abc/def",
+			},
+			want: Bucket("abc/def"),
+		},
+		{
+			name: "If input is '', NewBucketWithoutProtocol() returns ''",
+			args: args{
+				s: "",
+			},
+			want: Bucket(""),
+		},
+		{
+			name: "If input is 's3://', NewBucketWithoutProtocol() returns ''",
+			args: args{
+				s: "s3://",
+			},
+			want: Bucket(""),
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := NewBucketWithoutProtocol(tt.args.s); got != tt.want {
+				t.Errorf("NewBucketWithoutProtocol() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
