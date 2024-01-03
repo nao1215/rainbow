@@ -31,4 +31,9 @@ jobs:
       - uses: nao1215/actions-hottest@v1
         with:
           args: '-cover -coverpkg=./... -coverprofile=coverage.out ./...'
+
+      - uses: nao1215/actions-go-cover-treemap@v0
+        with:
+          coverage-file: coverage.out
+
       - uses: k1LoW/octocov-action@v0
