@@ -69,8 +69,8 @@ type S3BucketDeleter interface {
 	DeleteS3Bucket(ctx context.Context, input *S3BucketDeleterInput) (*S3BucketDeleterOutput, error)
 }
 
-// S3BucketObjectsDeleterInput is the input of the DeleteBucketObjects method.
-type S3BucketObjectsDeleterInput struct {
+// S3ObjectsDeleterInput is the input of the DeleteBucketObjects method.
+type S3ObjectsDeleterInput struct {
 	// Bucket is the name of the bucket to delete.
 	Bucket model.Bucket
 	// Region is the region of the bucket that you want to delete.
@@ -79,52 +79,60 @@ type S3BucketObjectsDeleterInput struct {
 	S3ObjectSets model.S3ObjectIdentifierSets
 }
 
-// S3BucketObjectsDeleterOutput is the output of the DeleteBucketObjects method.
-type S3BucketObjectsDeleterOutput struct{}
+// S3ObjectsDeleterOutput is the output of the DeleteBucketObjects method.
+type S3ObjectsDeleterOutput struct{}
 
-// S3BucketObjectsDeleter is the interface that wraps the basic DeleteBucketObjects method.
-type S3BucketObjectsDeleter interface {
-	DeleteS3BucketObjects(ctx context.Context, input *S3BucketObjectsDeleterInput) (*S3BucketObjectsDeleterOutput, error)
+// S3ObjectsDeleter is the interface that wraps the basic DeleteBucketObjects method.
+type S3ObjectsDeleter interface {
+	DeleteS3Objects(ctx context.Context, input *S3ObjectsDeleterInput) (*S3ObjectsDeleterOutput, error)
 }
 
-// S3BucketObjectsListerInput is the input of the ListBucketObjects method.
-type S3BucketObjectsListerInput struct {
+// S3ObjectsListerInput is the input of the ListBucketObjects method.
+type S3ObjectsListerInput struct {
 	// Bucket is the name of the bucket to list.
 	Bucket model.Bucket
 }
 
-// S3BucketObjectsListerOutput is the output of the ListBucketObjects method.
-type S3BucketObjectsListerOutput struct {
+// S3ObjectsListerOutput is the output of the ListBucketObjects method.
+type S3ObjectsListerOutput struct {
 	// Objects is the list of the objects.
 	Objects model.S3ObjectIdentifierSets
 }
 
-// S3BucketObjectsLister is the interface that wraps the basic ListBucketObjects method.
-type S3BucketObjectsLister interface {
-	ListS3BucketObjects(ctx context.Context, input *S3BucketObjectsListerInput) (*S3BucketObjectsListerOutput, error)
+// S3ObjectsLister is the interface that wraps the basic ListBucketObjects method.
+type S3ObjectsLister interface {
+	ListS3Objects(ctx context.Context, input *S3ObjectsListerInput) (*S3ObjectsListerOutput, error)
 }
 
-// S3BucketObjectDownloaderInput is the input of the GetBucketObject method.
-type S3BucketObjectDownloaderInput struct {
+// S3ObjectDownloaderInput is the input of the GetBucketObject method.
+type S3ObjectDownloaderInput struct {
 	// Bucket is the name of the bucket to get.
 	Bucket model.Bucket
-	// S3Key is the key of the object to get.
-	S3Key model.S3Key
+	// Key is the key of the object to get.
+	Key model.S3Key
 }
 
-// S3BucketObjectDownloaderOutput is the output of the GetBucketObject method.
-type S3BucketObjectDownloaderOutput struct {
-	// S3Object is the object.
+// S3ObjectDownloaderOutput is the output of the GetBucketObject method.
+type S3ObjectDownloaderOutput struct {
+	// Bucket is the name of the bucket that you want to download.
+	Bucket model.Bucket
+	// Key is the S3 key.
+	Key model.S3Key
+	// ContentType is the content type of the downloaded file.
+	ContentType string
+	// ContentLength is the content length of the downloaded file.
+	ContentLength int64
+	// S3Object is the downloaded object.
 	S3Object *model.S3Object
 }
 
-// S3BucketObjectDownloader is the interface that wraps the basic GetBucketObject method.
-type S3BucketObjectDownloader interface {
-	DownloadS3BucketObject(ctx context.Context, input *S3BucketObjectDownloaderInput) (*S3BucketObjectDownloaderOutput, error)
+// S3ObjectDownloader is the interface that wraps the basic GetBucketObject method.
+type S3ObjectDownloader interface {
+	DownloadS3Object(ctx context.Context, input *S3ObjectDownloaderInput) (*S3ObjectDownloaderOutput, error)
 }
 
-// S3BucketObjectUploaderInput is the input of the PutBucketObject method.
-type S3BucketObjectUploaderInput struct {
+// S3ObjectUploaderInput is the input of the PutBucketObject method.
+type S3ObjectUploaderInput struct {
 	// Bucket is the name of the bucket to put.
 	Bucket model.Bucket
 	// Region is the region of the bucket that you want to put.
@@ -135,15 +143,35 @@ type S3BucketObjectUploaderInput struct {
 	S3Object *model.S3Object
 }
 
-// S3BucketObjectUploaderOutput is the output of the PutBucketObject method.
-type S3BucketObjectUploaderOutput struct {
+// S3ObjectUploaderOutput is the output of the PutBucketObject method.
+type S3ObjectUploaderOutput struct {
 	// ContentType is the content type of the object.
 	ContentType string
 	// ContentLength is the size of the object.
 	ContentLength int64
 }
 
-// S3BucketObjectUploader is the interface that wraps the basic PutBucketObject method.
-type S3BucketObjectUploader interface {
-	UploadS3BucketObject(ctx context.Context, input *S3BucketObjectUploaderInput) (*S3BucketObjectUploaderOutput, error)
+// S3ObjectUploader is the interface that wraps the basic PutBucketObject method.
+type S3ObjectUploader interface {
+	UploadS3Object(ctx context.Context, input *S3ObjectUploaderInput) (*S3ObjectUploaderOutput, error)
+}
+
+// S3ObjectCopierInput is the input of the CopyBucketObject method.
+type S3ObjectCopierInput struct {
+	// SourceBucket is the name of the source bucket.
+	SourceBucket model.Bucket
+	// SourceKey is the key of the source object.
+	SourceKey model.S3Key
+	// DestinationBucket is the name of the destination bucket.
+	DestinationBucket model.Bucket
+	// DestinationKey is the key of the destination object.
+	DestinationKey model.S3Key
+}
+
+// S3ObjectCopierOutput is the output of the CopyBucketObject method.
+type S3ObjectCopierOutput struct{}
+
+// S3ObjectCopier is the interface that wraps the basic CopyBucketObject method.
+type S3ObjectCopier interface {
+	CopyS3Object(ctx context.Context, input *S3ObjectCopierInput) (*S3ObjectCopierOutput, error)
 }

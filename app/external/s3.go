@@ -175,28 +175,28 @@ func (c *S3BucketDeleter) DeleteS3Bucket(ctx context.Context, input *service.S3B
 	return &service.S3BucketDeleterOutput{}, nil
 }
 
-// S3BucketObjectsDeleter implements the S3BucketObjectsDeleter interface.
-type S3BucketObjectsDeleter struct {
+// S3ObjectsDeleter implements the S3ObjectsDeleter interface.
+type S3ObjectsDeleter struct {
 	client *s3.Client
 }
 
-// S3BucketObjectsDeleterSet is a provider set for S3BucketObjectsDeleter.
+// S3ObjectsDeleterSet is a provider set for S3ObjectsDeleter.
 //
 //nolint:gochecknoglobals
-var S3BucketObjectsDeleterSet = wire.NewSet(
-	NewS3BucketObjectsDeleter,
-	wire.Bind(new(service.S3BucketObjectsDeleter), new(*S3BucketObjectsDeleter)),
+var S3ObjectsDeleterSet = wire.NewSet(
+	NewS3ObjectsDeleter,
+	wire.Bind(new(service.S3ObjectsDeleter), new(*S3ObjectsDeleter)),
 )
 
-var _ service.S3BucketObjectsDeleter = (*S3BucketObjectsDeleter)(nil)
+var _ service.S3ObjectsDeleter = (*S3ObjectsDeleter)(nil)
 
-// NewS3BucketObjectsDeleter creates a new S3BucketObjectsDeleter.
-func NewS3BucketObjectsDeleter(client *s3.Client) *S3BucketObjectsDeleter {
-	return &S3BucketObjectsDeleter{client: client}
+// NewS3ObjectsDeleter creates a new S3ObjectsDeleter.
+func NewS3ObjectsDeleter(client *s3.Client) *S3ObjectsDeleter {
+	return &S3ObjectsDeleter{client: client}
 }
 
-// DeleteS3BucketObjects deletes the objects in the bucket.
-func (c *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, input *service.S3BucketObjectsDeleterInput) (*service.S3BucketObjectsDeleterOutput, error) {
+// DeleteS3Objects deletes the objects in the bucket.
+func (c *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *service.S3ObjectsDeleterInput) (*service.S3ObjectsDeleterOutput, error) {
 	optFn := func(o *s3.Options) {
 		o.Retryer = NewRetryer(func(err error) bool {
 			return strings.Contains(err.Error(), "api error SlowDown")
@@ -217,31 +217,31 @@ func (c *S3BucketObjectsDeleter) DeleteS3BucketObjects(ctx context.Context, inpu
 	); err != nil {
 		return nil, err
 	}
-	return &service.S3BucketObjectsDeleterOutput{}, nil
+	return &service.S3ObjectsDeleterOutput{}, nil
 }
 
-// S3BucketObjectsLister implements the S3BucketObjectsLister interface.
-type S3BucketObjectsLister struct {
+// S3ObjectsLister implements the S3ObjectsLister interface.
+type S3ObjectsLister struct {
 	client *s3.Client
 }
 
-// S3BucketObjectsListerSet is a provider set for S3BucketObjectsLister.
+// S3ObjectsListerSet is a provider set for S3ObjectsLister.
 //
 //nolint:gochecknoglobals
-var S3BucketObjectsListerSet = wire.NewSet(
-	NewS3BucketObjectsLister,
-	wire.Bind(new(service.S3BucketObjectsLister), new(*S3BucketObjectsLister)),
+var S3ObjectsListerSet = wire.NewSet(
+	NewS3ObjectsLister,
+	wire.Bind(new(service.S3ObjectsLister), new(*S3ObjectsLister)),
 )
 
-var _ service.S3BucketObjectsLister = (*S3BucketObjectsLister)(nil)
+var _ service.S3ObjectsLister = (*S3ObjectsLister)(nil)
 
-// NewS3BucketObjectsLister creates a new S3BucketObjectsLister.
-func NewS3BucketObjectsLister(client *s3.Client) *S3BucketObjectsLister {
-	return &S3BucketObjectsLister{client: client}
+// NewS3ObjectsLister creates a new S3ObjectsLister.
+func NewS3ObjectsLister(client *s3.Client) *S3ObjectsLister {
+	return &S3ObjectsLister{client: client}
 }
 
-// ListS3BucketObjects lists the objects in the bucket.
-func (c *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *service.S3BucketObjectsListerInput) (*service.S3BucketObjectsListerOutput, error) {
+// ListS3Objects lists the objects in the bucket.
+func (c *S3ObjectsLister) ListS3Objects(ctx context.Context, input *service.S3ObjectsListerInput) (*service.S3ObjectsListerOutput, error) {
 	var objects model.S3ObjectIdentifierSets
 	in := &s3.ListObjectsV2Input{
 		Bucket:  aws.String(input.Bucket.String()),
@@ -264,34 +264,34 @@ func (c *S3BucketObjectsLister) ListS3BucketObjects(ctx context.Context, input *
 		}
 		in.ContinuationToken = output.NextContinuationToken
 	}
-	return &service.S3BucketObjectsListerOutput{Objects: objects}, nil
+	return &service.S3ObjectsListerOutput{Objects: objects}, nil
 }
 
-// S3BucketObjectDownloader implements the S3BucketObjectDownloader interface.
-type S3BucketObjectDownloader struct {
+// S3ObjectDownloader implements the S3ObjectDownloader interface.
+type S3ObjectDownloader struct {
 	client *s3.Client
 }
 
-// S3BucketObjectDownloaderSet is a provider set for S3BucketObjectGetter.
+// S3ObjectDownloaderSet is a provider set for S3ObjectGetter.
 //
 //nolint:gochecknoglobals
-var S3BucketObjectDownloaderSet = wire.NewSet(
-	NewS3BucketObjectDownloader,
-	wire.Bind(new(service.S3BucketObjectDownloader), new(*S3BucketObjectDownloader)),
+var S3ObjectDownloaderSet = wire.NewSet(
+	NewS3ObjectDownloader,
+	wire.Bind(new(service.S3ObjectDownloader), new(*S3ObjectDownloader)),
 )
 
-var _ service.S3BucketObjectDownloader = (*S3BucketObjectDownloader)(nil)
+var _ service.S3ObjectDownloader = (*S3ObjectDownloader)(nil)
 
-// NewS3BucketObjectDownloader creates a new S3BucketObjectGetter.
-func NewS3BucketObjectDownloader(client *s3.Client) *S3BucketObjectDownloader {
-	return &S3BucketObjectDownloader{client: client}
+// NewS3ObjectDownloader creates a new S3ObjectGetter.
+func NewS3ObjectDownloader(client *s3.Client) *S3ObjectDownloader {
+	return &S3ObjectDownloader{client: client}
 }
 
-// DownloadS3BucketObject gets the object in the bucket.
-func (c *S3BucketObjectDownloader) DownloadS3BucketObject(ctx context.Context, input *service.S3BucketObjectDownloaderInput) (*service.S3BucketObjectDownloaderOutput, error) {
+// DownloadS3Object gets the object in the bucket.
+func (c *S3ObjectDownloader) DownloadS3Object(ctx context.Context, input *service.S3ObjectDownloaderInput) (*service.S3ObjectDownloaderOutput, error) {
 	out, err := c.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(input.Bucket.String()),
-		Key:    aws.String(input.S3Key.String()),
+		Key:    aws.String(input.Key.String()),
 	})
 	if err != nil {
 		return nil, err
@@ -310,33 +310,37 @@ func (c *S3BucketObjectDownloader) DownloadS3BucketObject(ctx context.Context, i
 		return nil, err
 	}
 
-	return &service.S3BucketObjectDownloaderOutput{
-		S3Object: model.NewS3Object(b),
+	return &service.S3ObjectDownloaderOutput{
+		Bucket:        input.Bucket,
+		Key:           input.Key,
+		ContentType:   aws.ToString(out.ContentType),
+		ContentLength: aws.ToInt64(out.ContentLength),
+		S3Object:      model.NewS3Object(b),
 	}, nil
 }
 
-// S3BucketObjectUploader implements the S3BucketObjectUploader interface.
-type S3BucketObjectUploader struct {
+// S3ObjectUploader implements the S3ObjectUploader interface.
+type S3ObjectUploader struct {
 	client *s3.Client
 }
 
-// S3BucketObjectUploaderSet is a provider set for S3BucketObjectUploader.
+// S3ObjectUploaderSet is a provider set for S3ObjectUploader.
 //
 //nolint:gochecknoglobals
-var S3BucketObjectUploaderSet = wire.NewSet(
-	NewS3BucketObjectUploader,
-	wire.Bind(new(service.S3BucketObjectUploader), new(*S3BucketObjectUploader)),
+var S3ObjectUploaderSet = wire.NewSet(
+	NewS3ObjectUploader,
+	wire.Bind(new(service.S3ObjectUploader), new(*S3ObjectUploader)),
 )
 
-var _ service.S3BucketObjectUploader = (*S3BucketObjectUploader)(nil)
+var _ service.S3ObjectUploader = (*S3ObjectUploader)(nil)
 
-// NewS3BucketObjectUploader creates a new S3BucketObjectUploader.
-func NewS3BucketObjectUploader(client *s3.Client) *S3BucketObjectUploader {
-	return &S3BucketObjectUploader{client: client}
+// NewS3ObjectUploader creates a new S3ObjectUploader.
+func NewS3ObjectUploader(client *s3.Client) *S3ObjectUploader {
+	return &S3ObjectUploader{client: client}
 }
 
-// UploadS3BucketObject puts the object in the bucket.
-func (c *S3BucketObjectUploader) UploadS3BucketObject(ctx context.Context, input *service.S3BucketObjectUploaderInput) (*service.S3BucketObjectUploaderOutput, error) {
+// UploadS3Object puts the object in the bucket.
+func (c *S3ObjectUploader) UploadS3Object(ctx context.Context, input *service.S3ObjectUploaderInput) (*service.S3ObjectUploaderOutput, error) {
 	_, err := c.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(input.Bucket.String()),
 		Key:           aws.String(input.S3Key.String()),
@@ -347,24 +351,41 @@ func (c *S3BucketObjectUploader) UploadS3BucketObject(ctx context.Context, input
 	if err != nil {
 		return nil, err
 	}
-	return &service.S3BucketObjectUploaderOutput{
+	return &service.S3ObjectUploaderOutput{
 		ContentType:   input.S3Object.ContentType(),
 		ContentLength: input.S3Object.ContentLength(),
 	}, nil
 }
 
-// BucketPublicAccessBlockerInput is an input struct for BucketAccessBlocker.
-type BucketPublicAccessBlockerInput struct {
-	// Bucket is the name of the  bucket.
-	Bucket model.Bucket
-	// Region is the name of the region.
-	Region model.Region
+// S3ObjectCopier implements the S3ObjectCopier interface.
+type S3ObjectCopier struct {
+	client *s3.Client
 }
 
-// BucketPublicAccessBlockerOutput is an output struct for BucketAccessBlocker.
-type BucketPublicAccessBlockerOutput struct{}
+// S3ObjectCopierSet is a provider set for S3ObjectCopier.
+//
+//nolint:gochecknoglobals
+var S3ObjectCopierSet = wire.NewSet(
+	NewS3ObjectCopier,
+	wire.Bind(new(service.S3ObjectCopier), new(*S3ObjectCopier)),
+)
 
-// BucketPublicAccessBlocker is an interface for blocking access to a bucket.
-type BucketPublicAccessBlocker interface {
-	BlockBucketPublicAccess(context.Context, *BucketPublicAccessBlockerInput) (*BucketPublicAccessBlockerOutput, error)
+var _ service.S3ObjectCopier = (*S3ObjectCopier)(nil)
+
+// NewS3ObjectCopier creates a new S3ObjectCopier.
+func NewS3ObjectCopier(client *s3.Client) *S3ObjectCopier {
+	return &S3ObjectCopier{client: client}
+}
+
+// CopyS3Object copies the object in the bucket.
+func (c *S3ObjectCopier) CopyS3Object(ctx context.Context, input *service.S3ObjectCopierInput) (*service.S3ObjectCopierOutput, error) {
+	_, err := c.client.CopyObject(ctx, &s3.CopyObjectInput{
+		Bucket:     aws.String(input.DestinationBucket.String()),
+		CopySource: aws.String(input.SourceBucket.Join(input.SourceKey).String()),
+		Key:        aws.String(input.DestinationKey.String()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &service.S3ObjectCopierOutput{}, nil
 }

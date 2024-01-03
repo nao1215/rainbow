@@ -180,6 +180,17 @@ func NewBucketWithoutProtocol(s string) Bucket {
 	return Bucket(strings.TrimPrefix(s, S3Protocol))
 }
 
+// WithProtocol returns the Bucket with the protocol.
+func (b Bucket) WithProtocol() Bucket {
+	return Bucket(S3Protocol + b.String())
+}
+
+// Join returns the Bucket with the S3Key.
+// e.g. "bucket" + "key" -> "bucket/key"
+func (b Bucket) Join(key S3Key) Bucket {
+	return Bucket(fmt.Sprintf("%s/%s", b.String(), key.String()))
+}
+
 // String returns the string representation of the Bucket.
 func (b Bucket) String() string {
 	return string(b)
@@ -375,6 +386,10 @@ func (k S3Key) Empty() bool {
 // IsAll is whether S3Key is "*"
 func (k S3Key) IsAll() bool {
 	return k == "*"
+}
+
+func (k S3Key) Join(key S3Key) S3Key {
+	return S3Key(fmt.Sprintf("%s/%s", k.String(), key))
 }
 
 // VersionID is the version ID for the specific version of the object to delete.
