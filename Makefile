@@ -1,4 +1,4 @@
-.PHONY: build test clean changelog tools help docker generate gif
+.PHONY: build test clean changelog tools help docker generate gif coverage-tree
 
 S3HUB       = s3hub
 SPARE       = spare
@@ -26,6 +26,9 @@ test: ## Start unit test
 	env GOOS=$(GOOS) $(GO_TEST) -cover $(GO_PKGROOT) -coverprofile=cover.out
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
+coverage-tree: test ## Generate coverage tree
+	go-cover-treemap -coverprofile cover.out > doc/common/cover.svg
+
 changelog: ## Generate changelog
 	ghch --format markdown > CHANGELOG.md
 
@@ -34,6 +37,7 @@ tools: ## Install dependency tools
 	$(GO_INSTALL) github.com/nao1215/hottest@latest
 	$(GO_INSTALL) github.com/google/wire/cmd/wire@latest
 	$(GO_INSTALL) github.com/charmbracelet/vhs@latest
+	$(GO_INSTALL) github.com/nikolaydubina/go-cover-treemap@latest
 
 generate: ## Generate code from templates
 	$(GO) generate ./...

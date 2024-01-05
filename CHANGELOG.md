@@ -1,5 +1,8 @@
-## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2024-01-01)
+## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2024-01-03)
 
+* Add s3hub cp sub command [#16](https://github.com/nao1215/rainbow/pull/16) ([nao1215](https://github.com/nao1215))
+* Add feature that list up S3 Objects [#15](https://github.com/nao1215/rainbow/pull/15) ([nao1215](https://github.com/nao1215))
+* Add specification document for cfn command [#14](https://github.com/nao1215/rainbow/pull/14) ([nao1215](https://github.com/nao1215))
 * Introduce spare command [#13](https://github.com/nao1215/rainbow/pull/13) ([nao1215](https://github.com/nao1215))
 * build(deps): bump golang.org/x/sync from 0.1.0 to 0.5.0 [#12](https://github.com/nao1215/rainbow/pull/12) ([dependabot[bot]](https://github.com/apps/dependabot))
 * Update document for s3hub with gif image [#11](https://github.com/nao1215/rainbow/pull/11) ([nao1215](https://github.com/nao1215))
