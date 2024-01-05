@@ -63,6 +63,9 @@ This project incurs costs on AWS, and financial support from you would make it e
 GitHub Star is motivation for me. If you like this project, please star it.
 [![Star History Chart](https://api.star-history.com/svg?repos=nao1215/rainbow&type=Date)](https://star-history.com/#nao1215/rainbow&Date)
 
+## Unit Test Coverage Treemap
+![Coverage Treemap](./doc/img/cover.svg)
+
 ## Special Thanks
 ![localstack](./doc/img/localstack-readme-banner.svg)
 [LocalStack](https://www.localstack.cloud/) is a service that mocks AWS, covering a wide range of AWS services. It is not easy to set up an AWS infrastructure for personal development, but LocalStack has lowered the barrier for server application development.
