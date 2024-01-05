@@ -102,4 +102,4 @@ make changelog
 make coverage-tree
 ```
 
-![coverage-image](cover.svg)
+![coverage-image](../img/cover.svg)

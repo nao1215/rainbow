@@ -27,7 +27,7 @@ test: ## Start unit test
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
 coverage-tree: test ## Generate coverage tree
-	go-cover-treemap -coverprofile cover.out > doc/common/cover.svg
+	go-cover-treemap -coverprofile cover.out > doc/img/cover.svg
 
 changelog: ## Generate changelog
 	ghch --format markdown > CHANGELOG.md
