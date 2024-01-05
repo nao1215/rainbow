@@ -2,11 +2,19 @@
 package model
 
 import (
+	"bytes"
 	"errors"
+	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestRegionString(t *testing.T) {
@@ -315,6 +323,11 @@ func TestBucketValidate(t *testing.T) {
 		{
 			name:    "failure. bucket name is empty",
 			b:       Bucket(""),
+			wantErr: true,
+		},
+		{
+			name:    "failure. bucket name is too short",
+			b:       Bucket("ab"),
 			wantErr: true,
 		},
 	}
@@ -881,6 +894,399 @@ func TestNewBucketWithoutProtocol(t *testing.T) {
 			t.Parallel()
 			if got := NewBucketWithoutProtocol(tt.args.s); got != tt.want {
 				t.Errorf("NewBucketWithoutProtocol() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestBucket_Join(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		key S3Key
+	}
+	tests := []struct {
+		name string
+		b    Bucket
+		args args
+		want Bucket
+	}{
+		{
+			name: "If Bucket is 'abc' and key is 'def', Join() returns 'abc/def'",
+			b:    Bucket("abc"),
+			args: args{
+				S3Key("def"),
+			},
+			want: Bucket("abc/def"),
+		},
+		{
+			name: "If Bucket is 'abc' and key is 'def/ghi', Join() returns 'abc/def/ghi'",
+			b:    Bucket("abc"),
+			args: args{
+				S3Key("def/ghi"),
+			},
+			want: Bucket("abc/def/ghi"),
+		},
+		{
+			name: "If Bucket is 'abc' and key is '', Join() returns 'abc'",
+			b:    Bucket("abc"),
+			args: args{
+				S3Key(""),
+			},
+			want: Bucket("abc"),
+		},
+		{
+			name: "If Bucket is 'abc' and key is 'def/', Join() returns 'abc/def'",
+			b:    Bucket("abc"),
+			args: args{
+				S3Key("def/"),
+			},
+			want: Bucket("abc/def"),
+		},
+		{
+			name: "If Bucket is '' and key is 'def', Join() returns ''",
+			b:    Bucket(""),
+			args: args{
+				S3Key("def"),
+			},
+			want: Bucket(""),
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.b.Join(tt.args.key); got != tt.want {
+				t.Errorf("Bucket.Join() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestS3ObjectIdentifiers_Len(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		s    S3ObjectIdentifiers
+		want int
+	}{
+		{
+			name: "If S3ObjectIdentifiers has two S3ObjectIdentifierSet, Len() returns 2",
+			s:    S3ObjectIdentifiers{S3ObjectIdentifier{}, S3ObjectIdentifier{}},
+			want: 2,
+		},
+		{
+			name: "If S3ObjectIdentifiers is empty, Len() returns 0",
+			s:    S3ObjectIdentifiers{},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.s.Len(); got != tt.want {
+				t.Errorf("S3ObjectIdentifiers.Len() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSortS3ObjectIdentifiers(t *testing.T) {
+	t.Parallel()
+	t.Run("If S3ObjectIdentifiers has three S3ObjectIdentifierSet, sort.Sort returns sorted S3ObjectIdentifiers", func(t *testing.T) {
+		t.Parallel()
+		s := S3ObjectIdentifiers{
+			S3ObjectIdentifier{
+				S3Key: S3Key("ghi"),
+			},
+			S3ObjectIdentifier{
+				S3Key: S3Key("abc"),
+			},
+			S3ObjectIdentifier{
+				S3Key: S3Key("def"),
+			},
+		}
+		want := S3ObjectIdentifiers{
+			S3ObjectIdentifier{
+				S3Key: S3Key("abc"),
+			},
+			S3ObjectIdentifier{
+				S3Key: S3Key("def"),
+			},
+			S3ObjectIdentifier{
+				S3Key: S3Key("ghi"),
+			},
+		}
+		sort.Sort(s)
+		if diff := cmp.Diff(s, want); diff != "" {
+			t.Errorf("sort.Sort() mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func TestS3ObjectIdentifiers_ToS3ObjectIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		s    S3ObjectIdentifiers
+		want []types.ObjectIdentifier
+	}{
+		{
+			name: "If S3ObjectIdentifiers has two S3ObjectIdentifierSet, ToS3ObjectIdentifiers() returns []types.ObjectIdentifier",
+			s: S3ObjectIdentifiers{
+				{
+					S3Key:     S3Key("abc"),
+					VersionID: VersionID("def"),
+				},
+				{
+					S3Key:     S3Key("ghi"),
+					VersionID: VersionID("jkl"),
+				},
+				{
+					S3Key:     S3Key("mno"),
+					VersionID: VersionID("pqr"),
+				},
+			},
+			want: []types.ObjectIdentifier{
+				{
+					Key:       aws.String("abc"),
+					VersionId: aws.String("def"),
+				},
+				{
+					Key:       aws.String("ghi"),
+					VersionId: aws.String("jkl"),
+				},
+				{
+					Key:       aws.String("mno"),
+					VersionId: aws.String("pqr"),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := tt.s.ToS3ObjectIdentifiers()
+
+			opt := cmpopts.IgnoreUnexported(types.ObjectIdentifier{})
+			if diff := cmp.Diff(got, tt.want, opt); diff != "" {
+				t.Errorf("S3ObjectIdentifiers.ToS3ObjectIdentifiers() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestS3Key_Join(t *testing.T) {
+	t.Parallel()
+
+	type args struct {
+		key S3Key
+	}
+	tests := []struct {
+		name string
+		k    S3Key
+		args args
+		want S3Key
+	}{
+		{
+			name: "If S3Key is 'abc' and key is 'def', Join() returns 'abc/def'",
+			k:    S3Key("abc"),
+			args: args{
+				key: S3Key("def"),
+			},
+			want: S3Key("abc/def"),
+		},
+		{
+			name: "If S3Key is 'abc' and key is 'def/ghi', Join() returns 'abc/def/ghi'",
+			k:    S3Key("abc"),
+			args: args{
+				key: S3Key("def/ghi"),
+			},
+			want: S3Key("abc/def/ghi"),
+		},
+		{
+			name: "If S3Key is 'abc' and key is '', Join() returns 'abc'",
+			k:    S3Key("abc"),
+			args: args{
+				key: S3Key(""),
+			},
+			want: S3Key("abc"),
+		},
+		{
+			name: "If S3Key is 'abc' and key is 'def/', Join() returns 'abc/def'",
+			k:    S3Key("abc"),
+			args: args{
+				key: S3Key("def/"),
+			},
+			want: S3Key("abc/def"),
+		},
+		{
+			name: "If S3Key is '' and key is '/def', Join() returns 'def'",
+			k:    S3Key(""),
+			args: args{
+				key: S3Key("/def"),
+			},
+			want: S3Key("def"),
+		},
+		{
+			name: "If S3Key is '' and key is 'def', Join() returns 'def'",
+			args: args{
+				key: S3Key("def"),
+			},
+			want: S3Key("def"),
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.k.Join(tt.args.key); got != tt.want {
+				t.Errorf("S3Key.Join() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestS3Object_ToFile(t *testing.T) {
+	t.Parallel()
+
+	t.Run("If S3Object is 'abc', ToFile() writes 'abc' to the file", func(t *testing.T) {
+		t.Parallel()
+
+		want := []byte("abc")
+		obj := NewS3Object(want)
+		tmpDir := os.TempDir()
+		tmpFilePath := filepath.Join(tmpDir, "s3object.txt")
+
+		if err := obj.ToFile(tmpFilePath, 0600); err != nil {
+			t.Fatalf("S3Object.ToFile() error = %v", err)
+		}
+
+		got, err := os.ReadFile(tmpFilePath)
+		if err != nil {
+			t.Fatalf("os.ReadFile() error = %v", err)
+		}
+
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("S3Object.ToFile() mismatch (-want +got):\n%s", diff)
+		}
+
+		if err := os.RemoveAll(tmpFilePath); err != nil {
+			t.Fatalf("os.RemoveAll() error = %v", err)
+		}
+	})
+}
+
+func TestS3Object_ContentType(t *testing.T) {
+	t.Parallel()
+
+	t.Run("If S3Object is png file, ContentType() returns 'image/png'", func(t *testing.T) {
+		t.Parallel()
+
+		b, err := os.ReadFile(filepath.Join("testdata", "lena.png"))
+		if err != nil {
+			t.Fatalf("os.ReadFile() error = %v", err)
+		}
+
+		got := NewS3Object(b).ContentType()
+		want := "image/png"
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("S3Object.ContentType() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("If S3Object is json file, ContentType() returns 'application/json'", func(t *testing.T) {
+		t.Parallel()
+
+		b, err := os.ReadFile(filepath.Join("testdata", "s3policy.json"))
+		if err != nil {
+			t.Fatalf("os.ReadFile() error = %v", err)
+		}
+
+		got := NewS3Object(b).ContentType()
+		want := "application/json"
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("S3Object.ContentType() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("If S3Object is markdown file, ContentType() returns 'text/plain; charset=utf-8'", func(t *testing.T) {
+		t.Parallel()
+
+		b, err := os.ReadFile(filepath.Join("testdata", "sample.md"))
+		if err != nil {
+			t.Fatalf("os.ReadFile() error = %v", err)
+		}
+
+		got := NewS3Object(b).ContentType()
+		want := "text/plain; charset=utf-8"
+
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("S3Object.ContentType() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("If S3Object is empty, ContentType() returns 'text/plain'", func(t *testing.T) {
+		t.Parallel()
+
+		got := NewS3Object([]byte{}).ContentType()
+		want := "text/plain"
+
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("S3Object.ContentType() mismatch (-want +got):\n%s", diff)
+		}
+	})
+
+	t.Run("If S3Object is nil, ContentType() returns 'text/plain'", func(t *testing.T) {
+		t.Parallel()
+
+		got := NewS3Object(nil).ContentType()
+		want := "text/plain"
+
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Errorf("S3Object.ContentType() mismatch (-want +got):\n%s", diff)
+		}
+	})
+}
+
+func TestS3Object_ContentLength(t *testing.T) {
+	t.Parallel()
+
+	type fields struct {
+		Buffer *bytes.Buffer
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   int64
+	}{
+		{
+			name: "If S3Object is 'abc', ContentLength() returns 3",
+			fields: fields{
+				Buffer: bytes.NewBuffer([]byte("abc")),
+			},
+			want: 3,
+		},
+		{
+			name: "If S3Object is empty, ContentLength() returns 0",
+			fields: fields{
+				Buffer: bytes.NewBuffer([]byte{}),
+			},
+			want: 0,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			s := &S3Object{
+				Buffer: tt.fields.Buffer,
+			}
+			if got := s.ContentLength(); got != tt.want {
+				t.Errorf("S3Object.ContentLength() = %v, want %v", got, tt.want)
 			}
 		})
 	}

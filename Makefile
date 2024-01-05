@@ -23,7 +23,7 @@ clean: ## Clean project
 	-rm -rf $(S3HUB) $(SPARE) cover.out cover.html
 
 test: ## Start unit test
-	env GOOS=$(GOOS) $(GO_TEST) -cover $(GO_PKGROOT) -coverprofile=cover.out
+	env GOOS=$(GOOS) $(GO_TEST) -coverpkg=./... -coverprofile=cover.out -cover ./...
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
 coverage-tree: test ## Generate coverage tree
