@@ -91,3 +91,15 @@ curl -s "http://127.0.0.1:4566/health" | jq .
   "version": "2.1.1.dev"
 }
 ```
+
+### Generate CHANGELOG
+```shell
+make changelog
+```
+
+### Generate coverage map
+```shell
+make coverage-tree
+```
+
+![coverage-image](../img/cover.svg)
