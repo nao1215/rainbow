@@ -76,7 +76,7 @@ type S3ObjectsDeleterInput struct {
 	// Region is the region of the bucket that you want to delete.
 	Region model.Region
 	// S3ObjectSets is the list of the objects to delete.
-	S3ObjectSets model.S3ObjectIdentifierSets
+	S3ObjectSets model.S3ObjectIdentifiers
 }
 
 // S3ObjectsDeleterOutput is the output of the DeleteBucketObjects method.
@@ -96,7 +96,7 @@ type S3ObjectsListerInput struct {
 // S3ObjectsListerOutput is the output of the ListBucketObjects method.
 type S3ObjectsListerOutput struct {
 	// Objects is the list of the objects.
-	Objects model.S3ObjectIdentifierSets
+	Objects model.S3ObjectIdentifiers
 }
 
 // S3ObjectsLister is the interface that wraps the basic ListBucketObjects method.

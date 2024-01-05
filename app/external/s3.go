@@ -242,7 +242,7 @@ func NewS3ObjectsLister(client *s3.Client) *S3ObjectsLister {
 
 // ListS3Objects lists the objects in the bucket.
 func (c *S3ObjectsLister) ListS3Objects(ctx context.Context, input *service.S3ObjectsListerInput) (*service.S3ObjectsListerOutput, error) {
-	var objects model.S3ObjectIdentifierSets
+	var objects model.S3ObjectIdentifiers
 	in := &s3.ListObjectsV2Input{
 		Bucket:  aws.String(input.Bucket.String()),
 		MaxKeys: aws.Int32(model.MaxS3Keys),

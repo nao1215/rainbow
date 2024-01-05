@@ -182,12 +182,21 @@ func NewBucketWithoutProtocol(s string) Bucket {
 
 // WithProtocol returns the Bucket with the protocol.
 func (b Bucket) WithProtocol() Bucket {
+	if strings.HasPrefix(b.String(), S3Protocol) {
+		return b
+	}
 	return Bucket(S3Protocol + b.String())
 }
 
 // Join returns the Bucket with the S3Key.
 // e.g. "bucket" + "key" -> "bucket/key"
 func (b Bucket) Join(key S3Key) Bucket {
+	if b.Empty() || key.Empty() {
+		return b
+	}
+	if strings.HasSuffix(key.String(), "/") {
+		key = S3Key(strings.TrimSuffix(key.String(), "/"))
+	}
 	return Bucket(fmt.Sprintf("%s/%s", b.String(), key.String()))
 }
 
@@ -325,26 +334,26 @@ type BucketSet struct {
 	CreationDate time.Time
 }
 
-// S3ObjectIdentifierSets is the set of the S3ObjectSet.
-type S3ObjectIdentifierSets []S3ObjectIdentifier
+// S3ObjectIdentifiers is the set of the S3ObjectSet.
+type S3ObjectIdentifiers []S3ObjectIdentifier
 
-// Len returns the length of the S3ObjectIdentifierSets.
-func (s S3ObjectIdentifierSets) Len() int {
+// Len returns the length of the S3ObjectIdentifiers.
+func (s S3ObjectIdentifiers) Len() int {
 	return len(s)
 }
 
 // Less defines the ordering of S3ObjectIdentifier instances.
-func (s S3ObjectIdentifierSets) Less(i, j int) bool {
+func (s S3ObjectIdentifiers) Less(i, j int) bool {
 	return s[i].S3Key < s[j].S3Key
 }
 
 // Swap swaps the elements with indexes i and j.
-func (s S3ObjectIdentifierSets) Swap(i, j int) {
+func (s S3ObjectIdentifiers) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
 // ToS3ObjectIdentifiers converts the S3ObjectSets to the ObjectIdentifiers.
-func (s S3ObjectIdentifierSets) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
+func (s S3ObjectIdentifiers) ToS3ObjectIdentifiers() []types.ObjectIdentifier {
 	ids := make([]types.ObjectIdentifier, 0, s.Len())
 	for _, o := range s {
 		ids = append(ids, *o.ToAWSS3ObjectIdentifier())
@@ -389,6 +398,18 @@ func (k S3Key) IsAll() bool {
 }
 
 func (k S3Key) Join(key S3Key) S3Key {
+	if key.Empty() {
+		return k
+	}
+	if strings.HasPrefix(key.String(), "/") {
+		key = S3Key(strings.TrimPrefix(key.String(), "/"))
+	}
+	if strings.HasSuffix(key.String(), "/") {
+		key = S3Key(strings.TrimSuffix(key.String(), "/"))
+	}
+	if k.Empty() {
+		return key
+	}
 	return S3Key(fmt.Sprintf("%s/%s", k.String(), key))
 }
 
