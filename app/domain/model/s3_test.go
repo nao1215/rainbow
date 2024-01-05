@@ -1165,7 +1165,7 @@ func TestS3Object_ToFile(t *testing.T) {
 			t.Fatalf("S3Object.ToFile() error = %v", err)
 		}
 
-		got, err := os.ReadFile(tmpFilePath)
+		got, err := os.ReadFile(filepath.Clean(tmpFilePath))
 		if err != nil {
 			t.Fatalf("os.ReadFile() error = %v", err)
 		}
