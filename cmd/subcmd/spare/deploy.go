@@ -104,7 +104,7 @@ func (d *deployCmd) uploadFile(ctx context.Context, file string) error {
 	}
 
 	key := strings.Replace(file, d.config.DeployTarget.String()+string(filepath.Separator), "", 1)
-	output, err := d.spare.FileUploader.UploadFile(ctx, &usecase.UploadFileInput{
+	output, err := d.spare.FileUploader.UploadFile(ctx, &usecase.FileUploaderInput{
 		Bucket: d.config.S3Bucket,
 		Region: d.config.Region,
 		// e.g. src/index.html -> index.html

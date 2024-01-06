@@ -141,7 +141,7 @@ func (c *cpCmd) localToS3() error {
 		if err != nil {
 			return err
 		}
-		if _, err := c.s3hub.FileUploader.UploadFile(c.ctx, &usecase.UploadFileInput{
+		if _, err := c.s3hub.FileUploader.UploadFile(c.ctx, &usecase.FileUploaderInput{
 			Bucket: toBucket,
 			Region: c.s3hub.region,
 			Key:    toKey,
