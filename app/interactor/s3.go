@@ -239,7 +239,6 @@ func (s *S3BucketDeleter) DeleteS3Bucket(ctx context.Context, input *usecase.S3B
 //nolint:gochecknoglobals
 var FileUploaderSet = wire.NewSet(
 	NewFileUploader,
-	wire.Struct(new(FileUploaderOptions), "*"),
 	wire.Bind(new(usecase.FileUploader), new(*FileUploader)),
 )
 
@@ -247,24 +246,26 @@ var _ usecase.FileUploader = (*FileUploader)(nil)
 
 // FileUploader is an implementation for FileUploader.
 type FileUploader struct {
-	opts *FileUploaderOptions
-}
-
-// FileUploaderOptions is an option struct for FileUploader.
-type FileUploaderOptions struct {
 	service.S3ObjectUploader
 }
 
 // NewFileUploader returns a new FileUploader struct.
-func NewFileUploader(opts *FileUploaderOptions) *FileUploader {
+func NewFileUploader(uploader service.S3ObjectUploader) *FileUploader {
 	return &FileUploader{
-		opts: opts,
+		S3ObjectUploader: uploader,
 	}
 }
 
 // UploadFile uploads a file to external storage.
-func (u *FileUploader) UploadFile(ctx context.Context, input *usecase.UploadFileInput) (*usecase.UploadFileOutput, error) {
-	output, err := u.opts.S3ObjectUploader.UploadS3Object(ctx, &service.S3ObjectUploaderInput{
+func (u *FileUploader) UploadFile(ctx context.Context, input *usecase.FileUploaderInput) (*usecase.FileUploaderOutput, error) {
+	if err := input.Bucket.Validate(); err != nil {
+		return nil, err
+	}
+	if err := input.Region.Validate(); err != nil {
+		return nil, err
+	}
+
+	output, err := u.S3ObjectUploader.UploadS3Object(ctx, &service.S3ObjectUploaderInput{
 		Bucket:   input.Bucket,
 		Region:   input.Region,
 		S3Key:    input.Key,
@@ -273,7 +274,7 @@ func (u *FileUploader) UploadFile(ctx context.Context, input *usecase.UploadFile
 	if err != nil {
 		return nil, err
 	}
-	return &usecase.UploadFileOutput{
+	return &usecase.FileUploaderOutput{
 		ContentType:   output.ContentType,
 		ContentLength: output.ContentLength,
 	}, nil
@@ -303,6 +304,13 @@ func NewS3BucketPublicAccessBlocker(b service.S3BucketPublicAccessBlocker) *S3Bu
 
 // BlockS3BucketPublicAccess blocks public access to a bucket on S3.
 func (s *S3BucketPublicAccessBlocker) BlockS3BucketPublicAccess(ctx context.Context, input *usecase.S3BucketPublicAccessBlockerInput) (*usecase.S3BucketPublicAccessBlockerOutput, error) {
+	if err := input.Bucket.Validate(); err != nil {
+		return nil, err
+	}
+	if err := input.Region.Validate(); err != nil {
+		return nil, err
+	}
+
 	if _, err := s.S3BucketPublicAccessBlocker.BlockS3BucketPublicAccess(ctx, &service.S3BucketPublicAccessBlockerInput{
 		Bucket: input.Bucket,
 		Region: input.Region,
@@ -336,6 +344,10 @@ func NewS3BucketPolicySetter(s service.S3BucketPolicySetter) *S3BucketPolicySett
 
 // SetS3BucketPolicy sets a bucket policy on S3.
 func (s *S3BucketPolicySetter) SetS3BucketPolicy(ctx context.Context, input *usecase.S3BucketPolicySetterInput) (*usecase.S3BucketPolicySetterOutput, error) {
+	if err := input.Bucket.Validate(); err != nil {
+		return nil, err
+	}
+
 	if _, err := s.S3BucketPolicySetter.SetS3BucketPolicy(ctx, &service.S3BucketPolicySetterInput{
 		Bucket: input.Bucket,
 		Policy: input.Policy,
@@ -388,7 +400,6 @@ func (s *S3ObjectDownloader) DownloadS3Object(ctx context.Context, input *usecas
 		S3Object:      out.S3Object,
 	}, nil
 }
-
 
 // S3ObjectCopierSet is a provider set for S3ObjectCopier.
 //

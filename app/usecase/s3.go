@@ -49,7 +49,7 @@ type S3ObjectsListerOutput struct {
 	Objects model.S3ObjectIdentifiers
 }
 
-// S3ObjectsLister is the interface that wraps the basic ListObjects method.
+// S3ObjectLister is the interface that wraps the basic ListObjects method.
 type S3ObjectsLister interface {
 	ListS3Objects(ctx context.Context, input *S3ObjectsListerInput) (*S3ObjectsListerOutput, error)
 }
@@ -111,14 +111,8 @@ type S3ObjectDownloader interface {
 	DownloadS3Object(ctx context.Context, input *S3ObjectDownloaderInput) (*S3ObjectDownloaderOutput, error)
 }
 
-// FileUploader is an interface for uploading files to external storage.
-type FileUploader interface {
-	// UploadFile uploads a file from external storage.
-	UploadFile(ctx context.Context, input *UploadFileInput) (*UploadFileOutput, error)
-}
-
-// UploadFileInput is an input struct for FileUploader.
-type UploadFileInput struct {
+// FileUploaderInput is an input struct for FileUploader.
+type FileUploaderInput struct {
 	// Bucket is the name of the bucket.
 	Bucket model.Bucket
 	// Region is the name of the region where the bucket is located.
@@ -129,12 +123,18 @@ type UploadFileInput struct {
 	Data []byte
 }
 
-// UploadFileOutput is an output struct for FileUploader.
-type UploadFileOutput struct {
+// FileUploaderOutput is an output struct for FileUploader.
+type FileUploaderOutput struct {
 	// ContentType is the content type of the uploaded file.
 	ContentType string
 	// ContentLength is the content length of the uploaded file.
 	ContentLength int64
+}
+
+// FileUploader is an interface for uploading files to external storage.
+type FileUploader interface {
+	// UploadFile uploads a file from external storage.
+	UploadFile(ctx context.Context, input *FileUploaderInput) (*FileUploaderOutput, error)
 }
 
 // S3ObjectCopierInput is the input of the CopyObject method.

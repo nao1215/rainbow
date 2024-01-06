@@ -40,10 +40,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 	s3ObjectDownloader := external.NewS3ObjectDownloader(client)
 	interactorS3ObjectDownloader := interactor.NewS3ObjectDownloader(s3ObjectDownloader)
 	s3ObjectUploader := external.NewS3ObjectUploader(client)
-	fileUploaderOptions := &interactor.FileUploaderOptions{
-		S3ObjectUploader: s3ObjectUploader,
-	}
-	fileUploader := interactor.NewFileUploader(fileUploaderOptions)
+	fileUploader := interactor.NewFileUploader(s3ObjectUploader)
 	s3ObjectCopier := external.NewS3ObjectCopier(client)
 	interactorS3ObjectCopier := interactor.NewS3ObjectCopier(s3ObjectCopier)
 	s3App := newS3App(interactorS3BucketCreator, interactorS3BucketLister, interactorS3BucketDeleter, interactorS3ObjectsLister, interactorS3ObjectsDeleter, interactorS3ObjectDownloader, fileUploader, interactorS3ObjectCopier)
@@ -72,10 +69,7 @@ func NewSpareApp(ctx context.Context, profile model.AWSProfile, region model.Reg
 		return nil, err
 	}
 	s3ObjectUploader := external.NewS3ObjectUploader(s3Client)
-	fileUploaderOptions := &interactor.FileUploaderOptions{
-		S3ObjectUploader: s3ObjectUploader,
-	}
-	fileUploader := interactor.NewFileUploader(fileUploaderOptions)
+	fileUploader := interactor.NewFileUploader(s3ObjectUploader)
 	s3BucketCreator := external.NewS3BucketCreator(s3Client)
 	interactorS3BucketCreator := interactor.NewS3BucketCreator(s3BucketCreator)
 	s3BucketPublicAccessBlocker := external.NewS3BucketPublicAccessBlocker(s3Client)

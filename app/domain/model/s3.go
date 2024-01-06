@@ -164,10 +164,10 @@ func (r Region) Prev() Region {
 }
 
 const (
-	// BucketMinLength is the minimum length of the bucket name.
-	BucketMinLength = 3
-	// BucketMaxLength is the maximum length of the bucket name.
-	BucketMaxLength = 63
+	// MinBucketNameLength is the minimum length of the bucket name.
+	MinBucketNameLength = 3
+	// MaxBucketNameLength is the maximum length of the bucket name.
+	MaxBucketNameLength = 63
 	// S3Protocol is the protocol of the S3 bucket.
 	S3Protocol = "s3://"
 )
@@ -255,7 +255,7 @@ func (b Bucket) Validate() error {
 
 // validateLength validates the length of the bucket name.
 func (b Bucket) validateLength() error {
-	if len(b) < BucketMinLength || len(b) > BucketMaxLength {
+	if len(b) < MinBucketNameLength || len(b) > MaxBucketNameLength {
 		return fmt.Errorf("s3 bucket name must be between 3 and 63 characters long")
 	}
 	return nil

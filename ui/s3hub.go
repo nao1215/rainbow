@@ -180,10 +180,10 @@ const (
 
 func newS3hubCreateBucketModel() (*s3hubCreateBucketModel, error) {
 	ti := textinput.New()
-	ti.Placeholder = fmt.Sprintf("Write the S3 bucket name here (min: %d, max: %d)", model.BucketMinLength, model.BucketMaxLength)
+	ti.Placeholder = fmt.Sprintf("Write the S3 bucket name here (min: %d, max: %d)", model.MinBucketNameLength, model.MaxBucketNameLength)
 	ti.Focus()
-	ti.CharLimit = model.BucketMaxLength
-	ti.Width = model.BucketMaxLength
+	ti.CharLimit = model.MaxBucketNameLength
+	ti.Width = model.MaxBucketNameLength
 
 	ctx := context.Background()
 	profile := model.NewAWSProfile("")
@@ -233,7 +233,7 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.region = m.region.Next()
 			}
 		case "enter":
-			if m.bucketNameInput.Value() == "" || len(m.bucketNameInput.Value()) < model.BucketMinLength {
+			if m.bucketNameInput.Value() == "" || len(m.bucketNameInput.Value()) < model.MinBucketNameLength {
 				return m, nil
 			}
 
@@ -337,7 +337,7 @@ func (m *s3hubCreateBucketModel) bucketNameWithColor() string {
 		return m.bucketNameInput.View()
 	}
 
-	if len(m.bucketNameInput.Value()) < model.BucketMinLength && m.choice == s3hubCreateBucketBucketNameChoice {
+	if len(m.bucketNameInput.Value()) < model.MinBucketNameLength && m.choice == s3hubCreateBucketBucketNameChoice {
 		return red(m.bucketNameInput.View())
 	}
 	if m.choice == s3hubCreateBucketRegionChoice {
@@ -349,9 +349,9 @@ func (m *s3hubCreateBucketModel) bucketNameWithColor() string {
 // bucketNameLengthString returns the bucket name length string.
 func (m *s3hubCreateBucketModel) bucketNameLengthString() string {
 	lengthStr := fmt.Sprintf("Length: %d", len(m.bucketNameInput.Value()))
-	if len(m.bucketNameInput.Value()) == model.BucketMaxLength {
+	if len(m.bucketNameInput.Value()) == model.MaxBucketNameLength {
 		lengthStr += " (max)"
-	} else if len(m.bucketNameInput.Value()) < model.BucketMinLength {
+	} else if len(m.bucketNameInput.Value()) < model.MinBucketNameLength {
 		lengthStr += " (min: 3)"
 	}
 	return lengthStr
