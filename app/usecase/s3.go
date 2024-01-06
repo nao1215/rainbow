@@ -49,7 +49,7 @@ type S3ObjectsListerOutput struct {
 	Objects model.S3ObjectIdentifiers
 }
 
-// S3ObjectLister is the interface that wraps the basic ListObjects method.
+// S3ObjectsLister is the interface that wraps the basic ListObjects method.
 type S3ObjectsLister interface {
 	ListS3Objects(ctx context.Context, input *S3ObjectsListerInput) (*S3ObjectsListerOutput, error)
 }
