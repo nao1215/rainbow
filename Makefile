@@ -23,11 +23,12 @@ clean: ## Clean project
 	-rm -rf $(S3HUB) $(SPARE) cover.out cover.html
 
 test: ## Start unit test
-	env GOOS=$(GOOS) $(GO_TEST) -coverpkg=./... -coverprofile=cover.out -cover ./...
+	env GOOS=$(GOOS) $(GO_TEST) -coverpkg=./... -coverprofile=cover.out.tmp -cover ./...
+	cat cover.out.tmp | grep -v "_gen.go" | grep -v "main.go" > cover.out
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
 coverage-tree: test ## Generate coverage tree
-	go-cover-treemap -coverprofile cover.out > doc/img/cover.svg
+	go-cover-treemap -statements -coverprofile cover.out > doc/img/cover.svg
 
 changelog: ## Generate changelog
 	ghch --format markdown > CHANGELOG.md
