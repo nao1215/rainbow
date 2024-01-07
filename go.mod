@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.24.1
 	github.com/aws/aws-sdk-go-v2/config v1.26.3
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.32.6
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.47.8
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.0
 	github.com/charmbracelet/bubbles v0.17.1
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/log v0.3.1
