@@ -1,12 +1,3 @@
----
-name: Pull Request
-about: Create a pull request to help us improve
-title: "[Pull Request] XXX"
-labels: ""
-assignees: ''
-
----
-
 ## Summary
 
 [Provide a brief overview and purpose of the PR]
