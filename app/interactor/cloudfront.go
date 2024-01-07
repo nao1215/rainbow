@@ -40,6 +40,10 @@ func NewCloudFrontCreator(opts *CloudFrontCreatorOptions) *CloudFrontCreator {
 
 // CreateCloudFront creates a CDN.
 func (c *CloudFrontCreator) CreateCloudFront(ctx context.Context, input *usecase.CreateCloudFrontInput) (*usecase.CreateCloudFrontOutput, error) {
+	if err := input.Bucket.Validate(); err != nil {
+		return nil, err
+	}
+
 	oaiOutput, err := c.opts.OAICreator.CreateOAI(ctx, &service.OAICreatorInput{})
 	if err != nil {
 		return nil, err
