@@ -12,6 +12,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/nao1215/rainbow/app/domain"
 	"github.com/nao1215/rainbow/utils/errfmt"
 	"github.com/nao1215/rainbow/utils/xregex"
 	"github.com/wailsapp/mimetype"
@@ -122,9 +123,9 @@ func (r Region) Validate() error {
 		RegionSASouth1, RegionUSGovEast1, RegionUSGovWest1:
 		return nil
 	case Region(""):
-		return ErrEmptyRegion
+		return domain.ErrEmptyRegion
 	default:
-		return ErrInvalidRegion
+		return domain.ErrInvalidRegion
 	}
 }
 
@@ -235,7 +236,7 @@ func (b Bucket) Split() (Bucket, S3Key) {
 // Bucket naming rules: https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
 func (b Bucket) Validate() error {
 	if b.Empty() {
-		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name is empty")
+		return errfmt.Wrap(domain.ErrInvalidBucketName, "s3 bucket name is empty")
 	}
 
 	validators := []func() error{
@@ -267,7 +268,7 @@ var s3RegexPattern xregex.Regex //nolint:gochecknoglobals
 func (b Bucket) validatePattern() error {
 	s3RegexPattern.InitOnce(`^[a-z0-9][a-z0-9.-]*[a-z0-9]$`)
 	if err := s3RegexPattern.MatchString(string(b)); err != nil {
-		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must use only lowercase letters, numbers, periods, and hyphens")
+		return errfmt.Wrap(domain.ErrInvalidBucketName, "s3 bucket name must use only lowercase letters, numbers, periods, and hyphens")
 	}
 	return nil
 }
@@ -276,7 +277,7 @@ func (b Bucket) validatePattern() error {
 func (b Bucket) validatePrefix() error {
 	for _, prefix := range []string{"xn--", "sthree-", "sthree-configurator"} {
 		if strings.HasPrefix(string(b), prefix) {
-			return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not start with \"xn--\", \"sthree-\", or \"sthree-configurator\"")
+			return errfmt.Wrap(domain.ErrInvalidBucketName, "s3 bucket name must not start with \"xn--\", \"sthree-\", or \"sthree-configurator\"")
 		}
 	}
 	return nil
@@ -286,7 +287,7 @@ func (b Bucket) validatePrefix() error {
 func (b Bucket) validateSuffix() error {
 	for _, suffix := range []string{"-s3alias", "--ol-s3"} {
 		if strings.HasSuffix(string(b), suffix) {
-			return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not end with \"-s3alias\" or \"--ol-s3\"")
+			return errfmt.Wrap(domain.ErrInvalidBucketName, "s3 bucket name must not end with \"-s3alias\" or \"--ol-s3\"")
 		}
 	}
 	return nil
@@ -295,7 +296,7 @@ func (b Bucket) validateSuffix() error {
 // validateCharSequence validates the character sequence of the bucket name.
 func (b Bucket) validateCharSequence() error {
 	if strings.Contains(string(b), "..") || strings.Contains(string(b), "--") {
-		return errfmt.Wrap(ErrInvalidBucketName, "s3 bucket name must not contain consecutive periods or hyphens")
+		return errfmt.Wrap(domain.ErrInvalidBucketName, "s3 bucket name must not contain consecutive periods or hyphens")
 	}
 	return nil
 }

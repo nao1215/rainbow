@@ -39,7 +39,14 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Set up AWS config and AWS credentials
+        run: |
+          mkdir -p "$HOME/.aws"
+          echo -e "[default]\naws_access_key_id=test\naws_secret_access_key=test" > "$HOME/.aws/credentials"
+          echo -e  "[default]\nregion=us-east-1\noutput=json\nendpoint_url=http://localhost:4566" > "$HOME/.aws/config"
+
       - uses: nao1215/actions-hottest@v1
         with:
           args: '-cover -coverpkg=./... -coverprofile=coverage.out ./...'
+
       - uses: k1LoW/octocov-action@v0

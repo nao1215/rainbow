@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/wire"
+	"github.com/nao1215/rainbow/app/domain"
 	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/app/domain/service"
 )
@@ -59,6 +60,14 @@ func (c *S3BucketCreator) CreateS3Bucket(ctx context.Context, input *service.S3B
 		CreateBucketConfiguration: locationContstraint,
 	})
 	if err != nil {
+		var alreadyExistsErr *types.BucketAlreadyExists
+		var alreadyOwnedByYouErr *types.BucketAlreadyOwnedByYou
+		if errors.As(err, &alreadyExistsErr) {
+			return nil, fmt.Errorf("%w: region=%s, bucket name=%s", domain.ErrBucketAlreadyExistsOwnedByOther, input.Region.String(), input.Bucket.String())
+		}
+		if errors.As(err, &alreadyOwnedByYouErr) {
+			return nil, fmt.Errorf("%w: region=%s, bucket name=%s", domain.ErrBucketAlreadyOwnedByYou, input.Region.String(), input.Bucket.String())
+		}
 		return nil, fmt.Errorf("%w: region=%s, bucket name=%s", err, input.Region.String(), input.Bucket.String())
 	}
 	return &service.S3BucketCreatorOutput{}, nil
@@ -91,7 +100,7 @@ func (c *S3BucketLister) ListS3Buckets(ctx context.Context, _ *service.S3BucketL
 		return nil, err
 	}
 
-	var buckets model.BucketSets
+	buckets := make(model.BucketSets, 0, len(out.Buckets))
 	for _, b := range out.Buckets {
 		buckets = append(buckets, model.BucketSet{
 			Bucket:       model.Bucket(*b.Name),
@@ -127,6 +136,10 @@ func (c *S3BucketLocationGetter) GetS3BucketLocation(ctx context.Context, input 
 		Bucket: aws.String(input.Bucket.String()),
 	})
 	if err != nil {
+		var noSuchBucket *types.NoSuchBucket
+		if errors.As(err, &noSuchBucket) {
+			return nil, fmt.Errorf("%w: bucket name=%s", domain.ErrNoSuchBucket, input.Bucket.String())
+		}
 		return nil, err
 	}
 
@@ -170,6 +183,10 @@ func (c *S3BucketDeleter) DeleteS3Bucket(ctx context.Context, input *service.S3B
 			o.Region = input.Region.String()
 		})
 	if err != nil {
+		var noSuchBucket *types.NoSuchBucket
+		if errors.As(err, &noSuchBucket) {
+			return nil, fmt.Errorf("%w: bucket name=%s", domain.ErrNoSuchBucket, input.Bucket.String())
+		}
 		return nil, err
 	}
 	return &service.S3BucketDeleterOutput{}, nil

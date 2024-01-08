@@ -1,4 +1,4 @@
-// Package service
+// Package service implements the service layer. This package is used only for application domain.
 package service
 
 import (
