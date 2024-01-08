@@ -15,6 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/nao1215/rainbow/app/domain"
 )
 
 func TestRegionString(t *testing.T) {
@@ -61,13 +62,13 @@ func TestRegionValidate(t *testing.T) {
 			name:    "failure. region is empty",
 			r:       Region(""),
 			wantErr: true,
-			e:       ErrEmptyRegion,
+			e:       domain.ErrEmptyRegion,
 		},
 		{
 			name:    "failure. region is invalid",
 			r:       Region("invalid"),
 			wantErr: true,
-			e:       ErrInvalidRegion,
+			e:       domain.ErrInvalidRegion,
 		},
 	}
 

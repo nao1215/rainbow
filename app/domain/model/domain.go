@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/nao1215/rainbow/app/domain"
 	"github.com/nao1215/rainbow/utils/errfmt"
 )
 
@@ -22,7 +23,7 @@ func (d Domain) String() string {
 func (d Domain) Validate() error {
 	for _, part := range strings.Split(d.String(), ".") {
 		if !isAlphaNumeric(part) {
-			return errfmt.Wrap(ErrInvalidDomain, fmt.Sprintf("domain %s is invalid", d))
+			return errfmt.Wrap(domain.ErrInvalidDomain, fmt.Sprintf("domain %s is invalid", d))
 		}
 	}
 	return nil
@@ -80,16 +81,16 @@ func (e Endpoint) String() string {
 // Validate validates Endpoint. If Endpoint is invalid, it returns an error.
 func (e Endpoint) Validate() error {
 	if e == "" {
-		return errfmt.Wrap(ErrInvalidEndpoint, "endpoint is empty")
+		return errfmt.Wrap(domain.ErrInvalidEndpoint, "endpoint is empty")
 	}
 
 	parsedURL, err := url.Parse(e.String())
 	if err != nil {
-		return errfmt.Wrap(ErrInvalidDomain, err.Error())
+		return errfmt.Wrap(domain.ErrInvalidDomain, err.Error())
 	}
 	host := parsedURL.Host
 	if host == "" || parsedURL.Scheme == "" {
-		return errfmt.Wrap(ErrInvalidDomain, host)
+		return errfmt.Wrap(domain.ErrInvalidDomain, host)
 	}
 	return nil
 }

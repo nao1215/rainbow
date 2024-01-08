@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/wire"
+	"github.com/nao1215/rainbow/app/domain"
 	"github.com/nao1215/rainbow/app/domain/service"
 	"github.com/nao1215/rainbow/utils/errfmt"
 )
@@ -42,7 +43,7 @@ func (s *S3BucketPublicAccessBlocker) BlockS3BucketPublicAccess(ctx context.Cont
 			RestrictPublicBuckets: aws.Bool(true),
 		},
 	}); err != nil {
-		return nil, errfmt.Wrap(service.ErrBucketPublicAccessBlock, err.Error())
+		return nil, errfmt.Wrap(domain.ErrBucketPublicAccessBlock, err.Error())
 	}
 	return &service.S3BucketPublicAccessBlockerOutput{}, nil
 }
@@ -78,7 +79,7 @@ func (s *S3BucketPolicySetter) SetS3BucketPolicy(ctx context.Context, input *ser
 		Bucket: aws.String(input.Bucket.String()),
 		Policy: aws.String(policy),
 	}); err != nil {
-		return nil, errfmt.Wrap(service.ErrBucketPolicySet, err.Error())
+		return nil, errfmt.Wrap(domain.ErrBucketPolicySet, err.Error())
 	}
 	return &service.S3BucketPolicySetterOutput{}, nil
 }

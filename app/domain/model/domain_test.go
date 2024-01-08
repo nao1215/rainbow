@@ -3,6 +3,8 @@ package model
 import (
 	"errors"
 	"testing"
+
+	"github.com/nao1215/rainbow/app/domain"
 )
 
 const (
@@ -53,7 +55,7 @@ func TestDomainValidate(t *testing.T) {
 		{
 			name:    "failure. protocol is included",
 			d:       exampleComWithProtocol,
-			wantErr: ErrInvalidDomain,
+			wantErr: domain.ErrInvalidDomain,
 		},
 		{
 			name:    "success. domain is empty",
