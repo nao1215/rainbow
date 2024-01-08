@@ -3,8 +3,6 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 ![Coverage](https://raw.githubusercontent.com/nao1215/octocovs-central-repo/main/badges/nao1215/rainbow/coverage.svg)
 [![LinuxUnitTest](https://github.com/nao1215/rainbow/actions/workflows/linux_test.yml/badge.svg)](https://github.com/nao1215/rainbow/actions/workflows/linux_test.yml)
-[![WindowsUnitTest](https://github.com/nao1215/rainbow/actions/workflows/windows_test.yml/badge.svg)](https://github.com/nao1215/rainbow/actions/workflows/windows_test.yml)
-[![MacUnitTest](https://github.com/nao1215/rainbow/actions/workflows/mac_test.yml/badge.svg)](https://github.com/nao1215/rainbow/actions/workflows/mac_test.yml)
 [![reviewdog](https://github.com/nao1215/rainbow/actions/workflows/reviewdog.yml/badge.svg)](https://github.com/nao1215/rainbow/actions/workflows/reviewdog.yml)
 [![Gosec](https://github.com/nao1215/rainbow/actions/workflows/security.yml/badge.svg)](https://github.com/nao1215/rainbow/actions/workflows/security.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nao1215/rainbow)](https://goreportcard.com/report/github.com/nao1215/rainbow)
