@@ -98,6 +98,15 @@ curl -s "http://127.0.0.1:4566/health" | jq .
 }
 ```
 
+### Run unit test
+```shell
+$ export AWS_PROFILE=localstack
+$ export LOCALSTACK_AUTH_TOKEN=YOUR_AUTH_TOKEN
+
+$ make docker
+$ make test
+```
+
 ### Generate CHANGELOG
 ```shell
 make changelog
