@@ -11,16 +11,19 @@
 > [!IMPORTANT]  
 > This project is under development. Do not use it in production environments.
 
-The rainbow project is a toolset for managing AWS resources. This project consists of multiple CLI and CloudFormation templates. This project adopts README-Driven Development. Therefore, while there may be a README, there might not be any code yet. If you have any feedback regarding the README, please write down in the Issues.
+The rainbow project is a toolset for managing AWS resources. This project consists of multiple CLI and CloudFormation templates. **I plan to implement TUI mode (Interactive mode) for all CLI commands.**  
+  
+This project adopts README-Driven Development. Therefore, while there may be a README, there might not be any code yet. If you have any feedback regarding the README, please write down in the Issues.
 
 ## Supported OS & Go version
 - Linux
-- Mac
-- Windows
 - Go 1.19 or later
+  
+I plan to support Mac. Until certain features are added, it has been excluded from the scope of unit testing.  
+
+Windows is not supported because the tools used in unit testing do not run in a Windows environment. However, it is expected that some features will function in a Windows environment to some extent.
 
 ## CLI List
-[WIP]
 |Name|README|implementation|Description|
 |:--|:--|:--|:--|
 |[s3hub](./doc/s3hub/README.md)|✅|60%|User-friendly s3 management tool|
@@ -28,18 +31,8 @@ The rainbow project is a toolset for managing AWS resources. This project consis
 |[cfn](./doc/cfn/README.md)|✅|0%|List up or delete CloudFormation stacks|
 
 ### s3hub example
-#### Create a bucket(s)
-![create_bucket](./doc/img/s3hub-mb.gif)
-
-#### List buckets
-![ls_bucket](./doc/img/s3hub-ls.gif)
-
-#### Remove a bucket with all objects
-![rm_bucket](./doc/img/s3hub-rm-all.gif)
-
 #### Interactive mode
 ![interactive_mode](./doc/img/s3hub-interactive.gif)
-
 
 
 ## Template List
