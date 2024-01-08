@@ -24,3 +24,4 @@ data
 localstack
 /s3hub
 /spare
+.envrc
