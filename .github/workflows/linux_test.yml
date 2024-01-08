@@ -26,7 +26,11 @@ jobs:
           check-latest: true
 
       - name: Setup localstack
-        run: docker compose up
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+        run: |
+          docker compose up
 
       - name: Download dependencies
         run: go mod download
