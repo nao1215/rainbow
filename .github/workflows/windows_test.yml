@@ -39,18 +39,11 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
-      - name: Set up AWS credentials
+      - name: Set up AWS config and AWS credentials
         run: |
-          echo "[default]" > "$HOME/.aws/credentials"
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> "$HOME/.aws/credentials"
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> "$HOME/.aws/credentials"
-
-      - name: Set up AWS config
-        run: |
-          echo "[default]" > "$HOME/.aws/config"
-          echo "region=us-east-1" >> "$HOME/.aws/config"
-          echo "output=json" >> "$HOME/.aws/config"
-          echo "endpoint_url=http://localhost:4566" >> "$HOME/.aws/config"
+          mkdir -p "$HOME/.aws"
+          echo -e "[default]\naws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}\naws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" > "$HOME/.aws/credentials"
+          echo -e  "[default]\nregion=us-east-1\noutput=json\nendpoint_url=http://localhost:4566" > "$HOME/.aws/config"
 
       - name: Run unit test
         run: |
