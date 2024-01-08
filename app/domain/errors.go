@@ -1,3 +1,4 @@
+// Package domain implements the domain layer. This package is used only for application domain.
 package domain
 
 import "errors"
