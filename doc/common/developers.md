@@ -42,6 +42,12 @@ aws_secret_access_key=test
 > [!NOTE]  
 > Alternatively, you can also set the AWS_PROFILE=localstack environment variable, in which case the --profile localstack parameter can be omitted in the commands above.
 
+### localstack subscriptions
+Please access the official website of [localstack](https://www.localstack.cloud/) and obtain a Hobby Subscription. Then, you can get the authentication token from the localstack dashboard. Finally, set the LOCALSTACK_AUTH_TOKEN environment variable. You must not upload the LOCALSTACK_AUTH_TOKEN to the remote repository.
+```shell
+export LOCALSTACK_AUTH_TOKEN=YOUR_AUTH_TOKEN
+```
+
 ### Run localstack
 Run the following command to start localstack:
 ```shell
