@@ -9,7 +9,7 @@ services:
       - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN- }
       - DEBUG=${DEBUG-}
       - DOCKER_HOST=unix:///var/run/docker.sock
-      - DNS_LOCAL_NAME_PATTERNS='.*cloudfront\.net'
+      - DNS_NAME_PATTERNS_TO_RESOLVE_UPSTREAM='.*cloudfront\.net'
       - CLOUDFRONT_STATIC_PORTS= 1
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./localstack}:/var/lib/localstack"
