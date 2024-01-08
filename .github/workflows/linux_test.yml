@@ -42,7 +42,7 @@ jobs:
       - name: Set up AWS config and AWS credentials
         run: |
           mkdir -p "$HOME/.aws"
-          echo -e "[default]\naws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}\naws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" > "$HOME/.aws/credentials"
+          echo -e "[default]\naws_access_key_id=test\naws_secret_access_key=test" > "$HOME/.aws/credentials"
           echo -e  "[default]\nregion=us-east-1\noutput=json\nendpoint_url=http://localhost:4566" > "$HOME/.aws/config"
 
       - uses: nao1215/actions-hottest@v1
