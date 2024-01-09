@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fatih/color"
 	"github.com/muesli/reflow/indent"
 	"github.com/nao1215/rainbow/app/di"
 	"github.com/nao1215/rainbow/app/domain/model"
@@ -108,7 +109,12 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				return model, nil
 			case s3hubTopListChoice:
-				return &s3hubListBucketModel{}, nil
+				model, err := newS3HubListBucketModel()
+				if err != nil {
+					m.err = err
+					return m, tea.Quit
+				}
+				return model, nil
 			case s3hubTopCopyChoice:
 				return &s3hubCopyModel{}, nil
 			case s3hubTopDeleteContentsChoice:
@@ -164,6 +170,7 @@ type s3hubCreateBucketModel struct {
 	choice int
 	// app is the S3 application service.
 	app *di.S3App
+	// ctx is the context.
 	ctx context.Context
 }
 
@@ -233,10 +240,12 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.region = m.region.Next()
 			}
 		case "enter":
+			if m.state == s3hubCreateBucketStateCreated {
+				return &s3hubRootModel{}, nil
+			}
 			if m.bucketNameInput.Value() == "" || len(m.bucketNameInput.Value()) < model.MinBucketNameLength {
 				return m, nil
 			}
-
 			app, err := di.NewS3App(m.ctx, m.awsProfile, m.region)
 			if err != nil {
 				m.err = err
@@ -253,7 +262,7 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case createMsg:
 		m.state = s3hubCreateBucketStateCreated
-		return m, tea.Quit
+		return m, nil
 	}
 
 	if m.choice == s3hubCreateBucketBucketNameChoice {
@@ -282,15 +291,13 @@ func (m *s3hubCreateBucketModel) View() string {
 	}
 
 	if m.state == s3hubCreateBucketStateCreated {
-		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   S3 Name   ]%s\n\n%s\n\n%s\n%s\n\n%s%s\n",
+		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   S3 Name   ]%s\n\n%s\n\nCreated S3 bucket: %s\n%s\n",
 			m.awsProfile.String(),
 			m.region.String(),
 			m.bucketNameWithColor(),
 			m.bucketNameLengthString(),
-			subtle("<esc>, <Ctrl-C>: quit  | up/down: select"),
-			subtle("<enter>: create bucket"),
-			"Created S3 bucket: ",
-			yellow(m.bucket.String()))
+			yellow(m.bucket.String()),
+			subtle("<enter>: return to the top"))
 	}
 
 	if m.state == s3hubCreateBucketStateCreating {
@@ -376,8 +383,74 @@ func (m *s3hubCreateBucketModel) createS3BucketCmd() tea.Cmd {
 }
 
 type s3hubListBucketModel struct {
-	// quitting is true when the user has quit the application.
-	quitting bool
+	// err is the error that occurred during the operation.
+	err error
+	// awsConfig is the AWS configuration.
+	awsConfig *model.AWSConfig
+	// awsProfile is the AWS profile.
+	awsProfile model.AWSProfile
+	// region is the AWS region that the user wants to create the S3 bucket.
+	region model.Region
+	// choice is the currently selected menu item.
+	choice int
+	// app is the S3 application service.
+	app *di.S3App
+	// ctx is the context.
+	ctx context.Context
+	// bucketSets is the list of the S3 buckets.
+	bucketSets model.BucketSets
+	// status is the status of the list bucket operation.
+	status s3hubListBucketStatus
+}
+
+// s3hubListBucketStatus is the status of the list bucket operation.
+type s3hubListBucketStatus int
+
+const (
+	// s3hubListBucketStatusNone is the status when the list bucket operation is not executed.
+	s3hubListBucketStatusNone s3hubListBucketStatus = 0
+	// s3hubListBucketStatusBucketListed is the status when the list bucket operation is executed and the bucket list is displayed.
+	s3hubListBucketStatusBucketListed s3hubListBucketStatus = 1
+	// s3hubListBucketStatusObjectListed is the status when the list bucket operation is executed and the object list is displayed.
+	s3hubListBucketStatusObjectListed s3hubListBucketStatus = 2
+	// s3hubListBucketStatusReturnToTop is the status when the user returns to the top.
+	s3hubListBucketStatusReturnToTop s3hubListBucketStatus = 3
+	// s3hubListBucketStatusQuit is the status when the user quits the application.
+	s3hubListBucketStatusQuit s3hubListBucketStatus = 4
+)
+
+func newS3HubListBucketModel() (*s3hubListBucketModel, error) {
+	ctx := context.Background()
+	profile := model.NewAWSProfile("")
+	cfg, err := model.NewAWSConfig(ctx, profile, "")
+	if err != nil {
+		return nil, err
+	}
+	region := cfg.Region()
+
+	app, err := di.NewS3App(ctx, profile, region)
+	if err != nil {
+		return nil, err
+	}
+
+	m := &s3hubListBucketModel{
+		awsConfig:  cfg,
+		awsProfile: profile,
+		region:     region,
+		app:        app,
+		status:     s3hubListBucketStatusNone,
+		ctx:        ctx,
+		bucketSets: model.BucketSets{},
+	}
+
+	output, err := app.S3BucketLister.ListS3Buckets(m.ctx, &usecase.S3BucketListerInput{})
+	if err != nil {
+		m.err = err
+		return m, err
+	}
+	m.bucketSets = output.Buckets
+
+	return m, nil
 }
 
 func (m *s3hubListBucketModel) Init() tea.Cmd {
@@ -387,19 +460,52 @@ func (m *s3hubListBucketModel) Init() tea.Cmd {
 func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
-		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.quitting = true
+		if k == "ctrl+c" {
+			m.status = s3hubListBucketStatusQuit
 			return m, tea.Quit
+		}
+		if k == "q" || k == "esc" {
+			m.status = s3hubListBucketStatusReturnToTop
+			return &s3hubRootModel{}, nil
+		}
+		if k == "enter" {
+			if m.status == s3hubListBucketStatusReturnToTop {
+				return &s3hubRootModel{}, nil
+			}
 		}
 	}
 	return m, nil
 }
 
 func (m *s3hubListBucketModel) View() string {
-	return fmt.Sprintf(
-		"%s\n%s",
-		"s3hubListBucketModel",
-		subtle("j/k, up/down: select")+" | "+subtle("enter: choose")+" | "+subtle("q, esc: quit"))
+	if m.err != nil {
+		m.status = s3hubListBucketStatusQuit
+		return fmt.Sprintf("%s", color.RedString(m.err.Error()))
+	}
+
+	if m.status == s3hubListBucketStatusQuit {
+		return "\n  See you later! (TODO: output log)\n\n" // TODO: print log.
+	}
+
+	return m.bucketListString()
+}
+
+func (m *s3hubListBucketModel) bucketListString() string {
+	if len(m.bucketSets) == 0 {
+		m.status = s3hubListBucketStatusReturnToTop
+		return fmt.Sprintf("No S3 buckets (profile=%s)\n\n%s\n",
+			m.awsProfile.String(), subtle("<enter>: return to the top"))
+	}
+
+	m.status = s3hubListBucketStatusBucketListed
+	s := fmt.Sprintf("S3 buckets (profile=%s)\n", m.awsProfile.String())
+	for _, b := range m.bucketSets {
+		s += fmt.Sprintf("%s (region=%s, updated_at=%s)\n",
+			color.GreenString("%s", b.Bucket),
+			color.YellowString("%s", b.Region),
+			b.CreationDate.Format("2006-01-02 15:04:05 MST"))
+	}
+	return s
 }
 
 type s3hubCopyModel struct {
