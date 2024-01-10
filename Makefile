@@ -2,6 +2,7 @@
 
 S3HUB       = s3hub
 SPARE       = spare
+CFN         = cfn
 VERSION     = $(shell git describe --tags --abbrev=0)
 GO          = go
 GO_BUILD    = $(GO) build
@@ -18,9 +19,10 @@ GO_LDFLAGS  = -ldflags '-X github.com/nao1215/rainbow/version.Version=${VERSION}
 build:  ## Build binary
 	env GO111MODULE=on GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_BUILD) $(GO_LDFLAGS) -o $(S3HUB) cmd/s3hub/main.go
 	env GO111MODULE=on GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_BUILD) $(GO_LDFLAGS) -o $(SPARE) cmd/spare/main.go
+	env GO111MODULE=on GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_BUILD) $(GO_LDFLAGS) -o $(CFN) cmd/cfn/main.go
 
 clean: ## Clean project
-	-rm -rf $(S3HUB) $(SPARE) cover.out cover.html
+	-rm -rf $(S3HUB) $(SPARE) $(CFN) cover.out cover.html
 
 test: ## Start unit test
 	env GOOS=$(GOOS) $(GO_TEST) -coverpkg=./... -coverprofile=cover.out.tmp -cover ./...
