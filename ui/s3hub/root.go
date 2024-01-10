@@ -71,7 +71,7 @@ func (m *s3hubRootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the application's UI.
 func (m *s3hubRootModel) View() string {
 	if m.err != nil {
-		return fmt.Sprintf("%s", m.err.Error())
+		return ui.ErrorMessage(m.err)
 	}
 
 	if m.quitting {
