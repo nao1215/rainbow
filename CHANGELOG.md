@@ -1,4 +1,4 @@
-## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2024-01-08)
+## [](https://github.com/nao1215/rainbow/compare/77bdf974281a...) (2024-01-10)
 
 * Add unit test for S3 external layer [#31](https://github.com/nao1215/rainbow/pull/31) ([nao1215](https://github.com/nao1215))
 * Introduce localstack pro into GitHub Actions(CI) [#30](https://github.com/nao1215/rainbow/pull/30) ([nao1215](https://github.com/nao1215))
