@@ -22,11 +22,12 @@ build:  ## Build binary
 	env GO111MODULE=on GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO_BUILD) $(GO_LDFLAGS) -o $(CFN) cmd/cfn/main.go
 
 clean: ## Clean project
-	-rm -rf $(S3HUB) $(SPARE) $(CFN) cover.out cover.html
+	-rm -rf $(S3HUB) $(SPARE) $(CFN) cover.out cover.html cover.out.tmp
 
 test: ## Start unit test
 	env GOOS=$(GOOS) $(GO_TEST) -coverpkg=./... -coverprofile=cover.out.tmp -cover ./...
 	cat cover.out.tmp | grep -v "_gen.go" | grep -v "main.go" > cover.out
+	rm cover.out.tmp
 	$(GO_TOOL) cover -html=cover.out -o cover.html
 
 coverage-tree: test ## Generate coverage tree
