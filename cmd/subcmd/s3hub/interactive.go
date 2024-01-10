@@ -1,8 +1,8 @@
 package s3hub
 
-import "github.com/nao1215/rainbow/ui"
+import tui "github.com/nao1215/rainbow/ui/s3hub"
 
 // interactive starts s3hub command interactive UI.
 func interactive() error {
-	return ui.RunS3hubUI()
+	return tui.RunS3hubUI()
 }
