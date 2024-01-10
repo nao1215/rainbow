@@ -21,7 +21,7 @@ func Test_version(t *testing.T) {
 
 		cmd.Run(cmd, []string{})
 
-		want := "s3hub v0.0.0 (under MIT LICENSE)\n"
+		want := "cfn v0.0.0 (under MIT LICENSE)\n"
 		got := stdout.String()
 		if got != want {
 			t.Errorf("got %s, want %s", got, want)
