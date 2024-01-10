@@ -127,7 +127,7 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *s3hubListBucketModel) View() string {
 	if m.err != nil {
 		m.status = s3hubListBucketStatusQuit
-		return fmt.Sprintf("%s", ui.ErrorMessage(m.err))
+		return ui.ErrorMessage(m.err)
 	}
 
 	if m.status == s3hubListBucketStatusQuit {
