@@ -15,8 +15,8 @@ import (
 )
 
 // NewCloudFrontClient returns a new CloudFront client.
-func NewCloudFrontClient(cfg *model.AWSConfig) (*cloudfront.Client, error) {
-	return cloudfront.NewFromConfig(*cfg.Config), nil
+func NewCloudFrontClient(cfg *model.AWSConfig) *cloudfront.Client {
+	return cloudfront.NewFromConfig(*cfg.Config)
 }
 
 // CloudFrontCreatorSet is a provider set for CloudFrontCreator.

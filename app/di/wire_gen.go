@@ -22,10 +22,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 	if err != nil {
 		return nil, err
 	}
-	client, err := external.NewS3Client(awsConfig)
-	if err != nil {
-		return nil, err
-	}
+	client := external.NewS3Client(awsConfig)
 	s3BucketCreator := external.NewS3BucketCreator(client)
 	interactorS3BucketCreator := interactor.NewS3BucketCreator(s3BucketCreator)
 	s3BucketLister := external.NewS3BucketLister(client)
@@ -53,10 +50,7 @@ func NewSpareApp(ctx context.Context, profile model.AWSProfile, region model.Reg
 	if err != nil {
 		return nil, err
 	}
-	client, err := external.NewCloudFrontClient(awsConfig)
-	if err != nil {
-		return nil, err
-	}
+	client := external.NewCloudFrontClient(awsConfig)
 	cloudFrontCreator := external.NewCloudFrontCreator(client)
 	cloudFrontOAICreator := external.NewCloudFrontOAICreator(client)
 	cloudFrontCreatorOptions := &interactor.CloudFrontCreatorOptions{
@@ -64,10 +58,7 @@ func NewSpareApp(ctx context.Context, profile model.AWSProfile, region model.Reg
 		OAICreator:        cloudFrontOAICreator,
 	}
 	interactorCloudFrontCreator := interactor.NewCloudFrontCreator(cloudFrontCreatorOptions)
-	s3Client, err := external.NewS3Client(awsConfig)
-	if err != nil {
-		return nil, err
-	}
+	s3Client := external.NewS3Client(awsConfig)
 	s3ObjectUploader := external.NewS3ObjectUploader(s3Client)
 	fileUploader := interactor.NewFileUploader(s3ObjectUploader)
 	s3BucketCreator := external.NewS3BucketCreator(s3Client)

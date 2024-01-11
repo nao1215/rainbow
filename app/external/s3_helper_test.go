@@ -17,11 +17,7 @@ func S3Client(t *testing.T) *s3.Client {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client, err := NewS3Client(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return client
+	return NewS3Client(config)
 }
 
 // CreateS3Buckets creates S3 buckets. Region is fixed to ap-northeast-1.
