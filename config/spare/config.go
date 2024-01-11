@@ -6,10 +6,10 @@ import (
 	"io"
 
 	"github.com/charmbracelet/log"
-	"github.com/k1LoW/runn/version"
 	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/config"
 	"github.com/nao1215/rainbow/utils/errfmt"
+	"github.com/nao1215/rainbow/version"
 	"github.com/nao1215/spare/utils/xrand"
 	"gopkg.in/yaml.v2"
 )
@@ -60,7 +60,7 @@ func (c *Config) DefaultS3BucketName() model.Bucket {
 	}
 
 	return model.Bucket(
-		fmt.Sprintf("%s-%s-%s", version.Name, c.Region, randomID))
+		fmt.Sprintf("%s-%s-%s", version.GetVersion(), c.Region, randomID))
 }
 
 // Write writes the Config to the io.Writer.
