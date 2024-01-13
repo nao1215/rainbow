@@ -21,10 +21,7 @@ func TestS3BucketCreator_CreateS3Bucket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
@@ -47,10 +44,7 @@ func TestS3BucketCreator_CreateS3Bucket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
@@ -74,10 +68,7 @@ func TestS3BucketCreator_CreateS3Bucket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
@@ -97,10 +88,7 @@ func TestS3BucketCreator_CreateS3Bucket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
@@ -120,10 +108,7 @@ func TestS3BucketCreator_CreateS3Bucket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
@@ -147,10 +132,7 @@ func TestS3BucketLister_ListS3Buckets(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		CreateS3Buckets(t, client, []model.Bucket{
 			model.Bucket("test-bucket-3"),
@@ -191,10 +173,7 @@ func TestS3BucketLister_ListS3Buckets(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketLister := NewS3BucketLister(client)
 		got, err := s3BucketLister.ListS3Buckets(context.Background(), &service.S3BucketListerInput{})
@@ -220,10 +199,7 @@ func TestS3BucketLocationGetter_GetS3BucketLocation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		CreateS3Buckets(t, client, []model.Bucket{
 			model.Bucket("test-bucket-1"),
@@ -253,10 +229,7 @@ func TestS3BucketLocationGetter_GetS3BucketLocation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketLocationGetter := NewS3BucketLocationGetter(client)
 		_, got := s3BucketLocationGetter.GetS3BucketLocation(context.Background(), &service.S3BucketLocationGetterInput{
@@ -274,10 +247,7 @@ func TestS3BucketLocationGetter_GetS3BucketLocation(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
 
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
@@ -327,10 +297,8 @@ func TestS3BucketDeleter_DeleteS3Bucket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		client, err := NewS3Client(config)
-		if err != nil {
-			t.Fatal(err)
-		}
+		client := NewS3Client(config)
+
 		s3BucketCreator := NewS3BucketCreator(client)
 		input := &service.S3BucketCreatorInput{
 			Bucket: model.Bucket("test-bucket"),

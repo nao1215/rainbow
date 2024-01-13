@@ -1,4 +1,4 @@
-// Package main is the entrypoint of s3hub.
+// Package main is the entrypoint of spare.
 package main
 
 import (

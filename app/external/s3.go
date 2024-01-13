@@ -19,8 +19,8 @@ import (
 
 // NewS3Client creates a new S3 service client.
 // If profile is empty, the default profile is used.
-func NewS3Client(cfg *model.AWSConfig) (*s3.Client, error) {
-	return s3.NewFromConfig(*cfg.Config), nil
+func NewS3Client(cfg *model.AWSConfig) *s3.Client {
+	return s3.NewFromConfig(*cfg.Config)
 }
 
 // S3BucketCreator implements the S3BucketCreator interface.
