@@ -39,6 +39,20 @@ func Checkbox(label string, checked bool) string {
 	return fmt.Sprintf("[ ] %s", label)
 }
 
+// ToggleWidget represents a toggle.
+func ToggleWidget(label string, now, enabled bool) string {
+	if now {
+		if enabled {
+			return ColorFg("▶ [x] "+label, "212")
+		}
+		return ColorFg("▶ [ ] "+label, "212")
+	}
+	if enabled {
+		return ColorFg("  [x] "+label, "212")
+	}
+	return fmt.Sprintf("  [ ] %s", label)
+}
+
 // Split splits a string into multiple lines.
 // Each line has a maximum length of 80 characters.
 func Split(s string) []string {
@@ -102,4 +116,33 @@ func (c *Choice) Decrement() {
 	if c.Choice < c.Min {
 		c.Choice = c.Max
 	}
+}
+
+// Toggle represents a toggle.
+type Toggle struct {
+	Enabled bool
+}
+
+// NewToggle returns a new toggle.
+func NewToggle() *Toggle {
+	return &Toggle{
+		Enabled: false,
+	}
+}
+
+// Toggle toggles the toggle.
+func (t *Toggle) Toggle() {
+	t.Enabled = !t.Enabled
+}
+
+// ToggleSets represents a set of toggles.
+type ToggleSets []*Toggle
+
+// NewToggleSets returns a new toggle sets.
+func NewToggleSets(n int) ToggleSets {
+	ts := make([]*Toggle, 0, n)
+	for i := 0; i < n; i++ {
+		ts = append(ts, NewToggle())
+	}
+	return ts
 }
