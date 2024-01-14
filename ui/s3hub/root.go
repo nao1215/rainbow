@@ -110,13 +110,20 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = err
 					return m, tea.Quit
 				}
-				return model, model.fetchS3BucketListCmd()
+				model.status = s3hubListBucketStatusBucketCreating
+				return model, fetchS3BucketListCmd(model.ctx, model.app)
 			case s3hubTopCopyChoice:
 				return &s3hubCopyModel{}, nil
 			case s3hubTopDeleteContentsChoice:
 				return &s3hubDeleteContentsModel{}, nil
 			case s3hubTopDeleteBucketChoice:
-				return &s3hubDeleteBucketModel{}, nil
+				model, err := newS3hubDeleteBucketModel()
+				if err != nil {
+					m.err = err
+					return m, tea.Quit
+				}
+				model.s3bucketListStatus = s3hubListBucketStatusBucketCreating
+				return model, fetchS3BucketListCmd(model.ctx, model.app)
 			}
 		}
 	}
@@ -126,7 +133,7 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 // choicesView returns a string containing the choices menu.
 func (m *s3hubRootModel) choicesView() string {
 	c := m.choice.Choice
-	template := "%s\n\n"
+	template := "%s\n"
 	template += ui.Subtle("j/k, up/down: select | enter: choose | q, <esc>: quit")
 
 	choices := fmt.Sprintf(

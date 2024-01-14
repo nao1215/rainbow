@@ -135,7 +135,7 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	if m.choice == s3hubCreateBucketBucketNameChoice {
+	if m.state != s3hubCreateBucketStateCreated && m.choice == s3hubCreateBucketBucketNameChoice {
 		var cmd tea.Cmd
 		m.bucketNameInput, cmd = m.bucketNameInput.Update(msg)
 		return m, cmd
