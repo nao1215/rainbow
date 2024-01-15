@@ -3,7 +3,7 @@
 The simplest way to deploy the static website is to store the content in Amazon S3 (Simple Storage Service) and distribute it using CloudFront (Content Delivery Network).
   
 This infrastructure configuration looks like the diagram below.　　
-![./s3_cloudfront.png](./s3_cloudfront.png)
+![./static-web-site-distribution.png](./static-web-site-distribution.png)
 
 The configuration is characterized by its simplicity and the following features:
 
