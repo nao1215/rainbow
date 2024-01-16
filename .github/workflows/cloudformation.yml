@@ -2,9 +2,8 @@ name: Deploy to LocalStack
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    paths:
+      - 'cloudformation/**/**/*.yml'
 
 jobs:
   deploy:
