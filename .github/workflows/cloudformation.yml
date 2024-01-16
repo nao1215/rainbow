@@ -12,11 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-    steps:
       - uses: unfor19/install-aws-cli-action@v1
         with:
-        version: 2
-        verbose: false
+          version: 2
+          verbose: false
 
       - name: Setup localstack
         env:
