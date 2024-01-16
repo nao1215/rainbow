@@ -2,8 +2,7 @@ name: Deploy to LocalStack
 
 on:
   push:
-    paths:
-      - 'cloudformation/**'
+    branches: [main]
 
 jobs:
   deploy:
@@ -28,4 +27,8 @@ jobs:
           echo "Startup complete" 
 
       - name: Deploy to LocalStack
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
+          AWS_DEFAULT_REGION: "us-east-1"
         run: make deploy
