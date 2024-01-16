@@ -1,32 +1,44 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
-  BucketName:
+  ContentBucketName:
     Type: String
     Description: "S3 Bucket Name"
   
 Resources:
-  S3Bucket:
-    Type: AWS::S3::Bucket
+  ContentBucket:
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
-      BucketName: !Sub "${BucketName}"
+      BucketName: !Ref ContentBucketName
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
-  CloudFrontDistribution:
-    Type: AWS::CloudFront::Distribution
+  ContentBucketPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
-      DistributionConfig:
-        Origins:
-          - Id: S3Origin
-            DomainName: !GetAtt S3Bucket.DomainName
-            S3OriginConfig:
-              OriginAccessIdentity: ""
-        Enabled: true
-        DefaultRootObject: index.html
-        DefaultCacheBehavior:
-          TargetOriginId: S3Origin
-          ViewerProtocolPolicy: redirect-to-https
-          ForwardedValues:
-            QueryString: false
-            Cookies:
-              Forward: none
-        PriceClass: PriceClass_100
+      Bucket: !Ref ContentBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action: "s3:*"
+            Effect: Deny
+            Resource:
+              - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}"
+              - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+            Principal: "*"

@@ -1,6 +1,6 @@
 [
     { 
-        "ParameterKey" : "BucketName", 
-        "ParameterValue" : "SampleBucketNameRainbow" 
+        "ParameterKey" : "ContentBucketName", 
+        "ParameterValue" : "ContentBucketNameRainbow" 
     }
 ]
