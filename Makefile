@@ -55,6 +55,9 @@ gif: docker ## Generate gif image
 docker:  ## Start docker (localstack)
 	docker compose up -d
 
+deploy: ## Deploy All CloudFormation Template
+	$(MAKE) -C cloudformation deploy
+
 .DEFAULT_GOAL := help
 help:  
 	@grep -E '^[0-9a-zA-Z_-]+[[:blank:]]*:.*?## .*$$' $(MAKEFILE_LIST) | sort \

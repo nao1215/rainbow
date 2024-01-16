@@ -1,0 +1,6 @@
+[
+    { 
+        "ParameterKey" : "ContentBucketName", 
+        "ParameterValue" : "ContentBucketNameRainbow" 
+    }
+]
