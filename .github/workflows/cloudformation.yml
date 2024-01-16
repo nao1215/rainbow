@@ -28,9 +28,13 @@ jobs:
           sleep 30
           echo "Startup complete" 
 
+      - name: Set up AWS config and AWS credentials
+        run: |
+          mkdir -p "$HOME/.aws"
+          echo -e "[default]\naws_access_key_id=test\naws_secret_access_key=test" > "$HOME/.aws/credentials"
+          echo -e  "[default]\nregion=us-east-1\noutput=json\nendpoint_url=http://localhost:4566" > "$HOME/.aws/config"
+
       - name: Deploy to LocalStack
         env:
-          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
-          LOCALSTACK_AUTH_TOKEN: ${{ secrets.LOCALSTACK_AUTH_TOKEN }}
           AWS_DEFAULT_REGION: "us-east-1"
         run: make deploy
