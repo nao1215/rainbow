@@ -26,7 +26,7 @@ Windows is not supported because the tools used in unit testing do not run in a 
 ## CLI List
 |Name|README|implementation|Description|
 |:--|:--|:--|:--|
-|[s3hub](./doc/s3hub/README.md)|✅|60%|User-friendly s3 management tool|
+|[s3hub](./doc/s3hub/README.md)|✅|70%|User-friendly s3 management tool|
 |[spare](./doc/spare/README.md)|✅|50%|Single Page Application Release Easily|
 |[cfn](./doc/cfn/README.md)|✅|0%|List up or delete CloudFormation stacks|
 
