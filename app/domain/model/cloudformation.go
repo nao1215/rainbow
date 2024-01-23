@@ -13,6 +13,98 @@ const (
 // StackStatus is the status of a CloudFormation stack.
 type StackStatus string
 
+// CloudFormation stack status constants
+// Ref. https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-describing-stacks.html
+const (
+	// StackStatusCreateInProgress is ongoing creation of one or more stacks.
+	StackStatusCreateInProgress StackStatus = "CREATE_IN_PROGRESS"
+	// StackStatusCreateComplete is successful creation of one or more stacks.
+	StackStatusCreateComplete StackStatus = "CREATE_COMPLETE"
+	// StackStatusCreateFailed is unsuccessful creation of one or more stacks.
+	// View the stack events to see any associated error messages. Possible reasons
+	// for a failed creation include insufficient permissions to work with all
+	// resources in the stack, parameter values rejected by an AWS service, or a
+	// timeout during resource creation.
+	StackStatusCreateFailed StackStatus = "CREATE_FAILED"
+
+	// StackStatusRollbackInProgress is ongoing removal of one or more stacks after a failed
+	// stack creation or after an explicitly canceled stack creation.
+	StackStatusRollbackInProgress StackStatus = "ROLLBACK_IN_PROGRESS"
+	// StackStatusRollbackComplete is successful removal of one or more stacks after a failed
+	// stack creation or after an explicitly canceled stack creation. The stack returns to
+	// the previous working state. Any resources that were created during the create stack
+	// operation are deleted.
+	// This status exists only after a failed stack creation. It signifies that all operations
+	// from the partially created stack have been appropriately cleaned up. When in this state,
+	// only a delete operation can be performed.
+	StackStatusRollbackComplete StackStatus = "ROLLBACK_COMPLETE"
+	// StackStatusRollbackFailed is unsuccessful removal of one or more stacks after a failed
+	// stack creation or after an explicitly canceled stack creation. Delete the stack or view
+	// the stack events to see any associated error messages.
+	StackStatusRollbackFailed StackStatus = "ROLLBACK_FAILED"
+
+	// StackStatusDeleteInProgress is ongoing removal of one or more stacks.
+	StackStatusDeleteInProgress StackStatus = "DELETE_IN_PROGRESS"
+	// StackStatusDeleteComplete is successful deletion of one or more stacks.
+	// Deleted stacks are retained and viewable for 90 days.
+	StackStatusDeleteComplete StackStatus = "DELETE_COMPLETE"
+	// StackStatusDeleteFailed is unsuccessful deletion of one or more stacks.
+	// Because the delete failed, you might have some resources that are still
+	// running; however, you can't work with or update the stack. Delete the stack
+	// again or view the stack events to see any associated error messages.
+	StackStatusDeleteFailed StackStatus = "DELETE_FAILED"
+
+	// StackStatusUpdateInProgress is ongoing creation of one or more stacks with
+	// an expected StackId but without any templates or resources.
+	// A stack with this status code counts against the maximum possible number of stacks.
+	StackStatusReviewInProgress StackStatus = "REVIEW_IN_PROGRESS"
+	// StackStatusUpdateInProgress is ongoing update of one or more stacks.
+	StackStatusUpdateInProgress StackStatus = "UPDATE_IN_PROGRESS"
+	// StackStatusUpdateCompleteCleanupInProgress is ongoing removal of old resources for
+	// one or more stacks after a successful stack update. For stack updates that require
+	// resources to be replaced, CloudFormation creates the new resources first and then
+	// deletes the old resources to help reduce any interruptions with your stack. In this
+	// state, the stack has been updated and is usable, but CloudFormation is still deleting
+	// the old resources.
+	StackStatusUpdateCompleteCleanupInProgress StackStatus = "UPDATE_COMPLETE_CLEANUP_IN_PROGRESS"
+	// StackStatusUpdateComplete is successful update of one or more stacks.
+	StackStatusUpdateComplete StackStatus = "UPDATE_COMPLETE"
+	// StackStatusUpdateFailed is unsuccessful update of one or more stacks. View the stack events
+	// to see any associated error messages.
+	StackStatusUpdateFailed StackStatus = "UPDATE_FAILED"
+	// StackStatusUpdateRollbackComplete is successful return of one or more stacks to a previous
+	// working state after a failed stack update.
+	StackStatusUpdateRollbackComplete StackStatus = "UPDATE_ROLLBACK_COMPLETE"
+	// StackStatusUpdateRollbackCompleteCleanupInProgress is ongoing removal of new resources
+	// for one or more stacks after a failed stack update. In this state, the stack has been
+	// rolled back to its previous working state and is usable, but CloudFormation is still
+	// deleting any new resources it created during the stack update.
+	StackStatusUpdateRollbackCompleteCleanupInProgress StackStatus = "UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS"
+	// StackStatusUpdateRollbackFailed is unsuccessful return of one or more stacks to a
+	// previous working state after a failed stack update. When in this state, you can
+	// delete the stack or continue rollback. You might need to fix errors before your
+	// stack can return to a working state.
+	StackStatusUpdateRollbackFailed StackStatus = "UPDATE_ROLLBACK_FAILED"
+	// StackStatusUpdateRollbackInProgress is ongoing return of one or more stacks
+	// to the previous working state after failed stack update.
+	StackStatusUpdateRollbackInProgress StackStatus = "UPDATE_ROLLBACK_IN_PROGRESS"
+
+	// StackStatusImportInProgress is the import operation is currently in progress.
+	StackStatusImportInProgress StackStatus = "IMPORT_IN_PROGRESS"
+	// StackStatusImportComplete is the import operation successfully completed for
+	// all resources in the stack that support resource import.
+	StackStatusImportComplete StackStatus = "IMPORT_COMPLETE"
+	// StackStatusImportRollbackInProgress is import will roll back to the previous
+	// template configuration.
+	StackStatusImportRollbackInProgress StackStatus = "IMPORT_ROLLBACK_IN_PROGRESS"
+	// StackStatusImportRollbackComplete is import successfully rolled back to the previous template configuration.
+	StackStatusImportRollbackComplete StackStatus = "IMPORT_ROLLBACK_COMPLETE"
+	// StackStatusImportRollbackFailed is the import rollback operation failed for at
+	// least one resource in the stack. Results will be available for the resources
+	// CloudFormation successfully imported.
+	StackStatusImportRollbackFailed StackStatus = "IMPORT_ROLLBACK_FAILED"
+)
+
 // StackDriftInformationSummary contains information about whether the stack's
 // actual configuration differs, or has drifted, from its expected configuration,
 // as defined in the stack template and any values specified as template parameters.

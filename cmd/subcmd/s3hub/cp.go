@@ -17,8 +17,9 @@ import (
 // newCpCmd return cp command.
 func newCpCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cp [flags] SOURCE_PATH DESTINATION_PATH",
-		Short: "Copy file from local(S3 bucket) to S3 bucket(local)",
+		Use:     "cp [flags] SOURCE_PATH DESTINATION_PATH",
+		Aliases: []string{"copy"},
+		Short:   "Copy file from local(S3 bucket) to S3 bucket(local)",
 		Example: `  [S3 bucket to local]
     s3hub cp -p myprofile -r us-east-1 s3://mybucket/path/to/file.txt /path/to/file.txt
 

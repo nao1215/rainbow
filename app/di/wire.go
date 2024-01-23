@@ -135,3 +135,28 @@ func newSpareApp(
 		S3BucketPolicySetter:        s3BucketPolicySetter,
 	}
 }
+
+// CFnApp is the application service for CloudFormation.
+type CFnApp struct {
+	// CFnStackLister is the usecase for listing CloudFormation stacks.
+	usecase.CFnStackLister
+}
+
+// NewCFnApp creates a new CFnApp.
+func NewCFnApp(ctx context.Context, profile model.AWSProfile, region model.Region) (*CFnApp, error) {
+	wire.Build(
+		model.NewAWSConfig,
+		external.NewCloudFormationClient,
+		external.CFnStackListerSet,
+		interactor.CFnStackListerSet,
+		newCFnApp,
+	)
+	return nil, nil
+}
+
+// newCFnApp creates a new CFnApp.
+func newCFnApp(cFnStackLister usecase.CFnStackLister) *CFnApp {
+	return &CFnApp{
+		CFnStackLister: cFnStackLister,
+	}
+}

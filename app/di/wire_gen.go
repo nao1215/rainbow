@@ -71,6 +71,19 @@ func NewSpareApp(ctx context.Context, profile model.AWSProfile, region model.Reg
 	return spareApp, nil
 }
 
+// NewCFnApp creates a new CFnApp.
+func NewCFnApp(ctx context.Context, profile model.AWSProfile, region model.Region) (*CFnApp, error) {
+	awsConfig, err := model.NewAWSConfig(ctx, profile, region)
+	if err != nil {
+		return nil, err
+	}
+	client := external.NewCloudFormationClient(awsConfig)
+	cFnStackLister := external.NewCFnStackLister(client)
+	interactorCFnStackLister := interactor.NewCFnStackLister(cFnStackLister)
+	cFnApp := newCFnApp(interactorCFnStackLister)
+	return cFnApp, nil
+}
+
 // wire.go:
 
 // S3App is the application service for S3.
@@ -156,5 +169,19 @@ func newSpareApp(
 		S3BucketCreator:             s3BucketCreator,
 		S3BucketPublicAccessBlocker: s3BucketPublicAccessBlocker,
 		S3BucketPolicySetter:        s3BucketPolicySetter,
+	}
+}
+
+// CFnApp is the application service for CloudFormation.
+type CFnApp struct {
+	usecase.
+		// CFnStackLister is the usecase for listing CloudFormation stacks.
+		CFnStackLister
+}
+
+// newCFnApp creates a new CFnApp.
+func newCFnApp(cFnStackLister usecase.CFnStackLister) *CFnApp {
+	return &CFnApp{
+		CFnStackLister: cFnStackLister,
 	}
 }

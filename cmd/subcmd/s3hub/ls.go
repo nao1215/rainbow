@@ -16,6 +16,7 @@ import (
 func newLsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "ls [flags] [BUCKET_NAME]",
+		Aliases: []string{"list"},
 		Short:   "List S3 buckets or contents of a bucket",
 		Example: `  s3hub ls -p myprofile -r us-east-1`,
 		RunE: func(cmd *cobra.Command, args []string) error {
