@@ -13,6 +13,11 @@ const (
 // StackStatus is the status of a CloudFormation stack.
 type StackStatus string
 
+// String returns the string representation of StackStatus.
+func (s StackStatus) String() string {
+	return string(s)
+}
+
 // CloudFormation stack status constants
 // Ref. https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-describing-stacks.html
 const (
