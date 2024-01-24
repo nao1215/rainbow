@@ -19,8 +19,9 @@ import (
 // newRmCmd return rm command.
 func newRmCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "rm",
-		Short: "Remove objects in S3 bucket or remove S3 bucket.",
+		Use:     "rm",
+		Aliases: []string{"remove"},
+		Short:   "Remove objects in S3 bucket or remove S3 bucket.",
 		Example: `  [Delete a object in S3 bucket]
     s3hub rm BUCKET_NAME/S3_KEY
 

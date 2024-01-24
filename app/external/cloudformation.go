@@ -47,10 +47,13 @@ func NewCFnStackLister(client *cloudformation.Client) *CFnStackLister {
 }
 
 // CFnStackLister returns a list of CloudFormation stacks.
-func (l *CFnStackLister) CFnStackLister(ctx context.Context, _ *service.CFnStackListerInput) (*service.CFnStackListerOutput, error) {
+func (l *CFnStackLister) CFnStackLister(ctx context.Context, input *service.CFnStackListerInput) (*service.CFnStackListerOutput, error) {
 	in := &cloudformation.ListStacksInput{}
-	stacks := make([]*model.Stack, 0, 100)
+	opt := func(o *cloudformation.Options) {
+		o.Region = input.Region.String()
+	}
 
+	stacks := make([]*model.Stack, 0, 100)
 	for {
 		select {
 		case <-ctx.Done():
@@ -60,7 +63,7 @@ func (l *CFnStackLister) CFnStackLister(ctx context.Context, _ *service.CFnStack
 		default:
 		}
 
-		out, err := l.client.ListStacks(ctx, in)
+		out, err := l.client.ListStacks(ctx, in, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -120,8 +123,11 @@ func (l *CFnStackResourceLister) CFnStackResourceLister(ctx context.Context, inp
 	in := &cloudformation.ListStackResourcesInput{
 		StackName: aws.String(input.StackName),
 	}
-	resources := make([]*model.StackResource, 0, 100)
+	opt := func(o *cloudformation.Options) {
+		o.Region = input.Region.String()
+	}
 
+	resources := make([]*model.StackResource, 0, 100)
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,7 +137,7 @@ func (l *CFnStackResourceLister) CFnStackResourceLister(ctx context.Context, inp
 		default:
 		}
 
-		out, err := l.client.ListStackResources(ctx, in)
+		out, err := l.client.ListStackResources(ctx, in, opt)
 		if err != nil {
 			return nil, err
 		}

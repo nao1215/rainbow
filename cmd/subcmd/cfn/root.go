@@ -26,5 +26,6 @@ func newRootCmd() *cobra.Command {
 	cmd.DisableFlagParsing = true
 
 	cmd.AddCommand(newVersionCmd())
+	cmd.AddCommand(newLsCmd())
 	return cmd
 }

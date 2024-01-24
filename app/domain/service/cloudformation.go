@@ -7,7 +7,10 @@ import (
 )
 
 // CFnStackListerInput is the input of the CFnStackLister method.
-type CFnStackListerInput struct{}
+type CFnStackListerInput struct {
+	// Region is the region of the stack.
+	Region model.Region
+}
 
 // CFnStackListerOutput is the output of the CFnStackLister method.
 type CFnStackListerOutput struct {
@@ -24,6 +27,8 @@ type CFnStackLister interface {
 type CFnStackResourceListerInput struct {
 	// StackName is the name of the stack.
 	StackName string
+	// Region is the region of the stack.
+	Region model.Region
 }
 
 // CFnStackResourceListerOutput is the output of the CFnStackResourceLister method.
