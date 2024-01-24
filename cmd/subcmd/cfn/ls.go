@@ -29,8 +29,6 @@ func newLsCmd() *cobra.Command {
 type lsCmd struct {
 	// cfn have common fields and methods for cfn commands.
 	*cfn
-	// bucket is the name of the bucket.
-	bucket model.Bucket
 }
 
 // Parse parses command line arguments.
@@ -95,6 +93,8 @@ func stackStatusString(status model.StackStatus) string {
 		return color.YellowString("UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS")
 	case model.StackStatusUpdateRollbackFailed:
 		return color.RedString("UPDATE_ROLLBACK_FAILED")
+	case model.StackStatusUpdateFailed:
+		return color.RedString("UPDATE_FAILED")
 	case model.StackStatusUpdateRollbackInProgress:
 		return color.YellowString("UPDATE_ROLLBACK_IN_PROGRESS")
 	case model.StackStatusReviewInProgress:
