@@ -110,6 +110,42 @@ func Test_newCopyPathPair(t *testing.T) {
 				Type: copyTypeUnknown,
 			},
 		},
+		{
+			name: "copyTypeUnknown: from and to are empty",
+			args: args{
+				from: "",
+				to:   "",
+			},
+			want: &copyPathPair{
+				From: "",
+				To:   "",
+				Type: copyTypeUnknown,
+			},
+		},
+		{
+			name: "copyTypeUnknown: use file:// protocol",
+			args: args{
+				from: "file:///path/to/file.txt",
+				to:   "file:///path/to/file.txt",
+			},
+			want: &copyPathPair{
+				From: "file:///path/to/file.txt",
+				To:   "file:///path/to/file.txt",
+				Type: copyTypeUnknown,
+			},
+		},
+		{
+			name: "copyTypeUnknown: use bad s3:// protocol",
+			args: args{
+				from: "s3:/mybucket/path/to/file.txt",
+				to:   "s3:/mybucket/path/to/file.txt",
+			},
+			want: &copyPathPair{
+				From: "s3:/mybucket/path/to/file.txt",
+				To:   "s3:/mybucket/path/to/file.txt",
+				Type: copyTypeUnknown,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
