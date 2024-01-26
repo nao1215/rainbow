@@ -36,17 +36,34 @@ func CreateS3Buckets(t *testing.T, client *s3.Client, buckets []model.Bucket) {
 	}
 }
 
-// DeleteAllS3BucketDelete deletes all S3 buckets.
+// DeleteAllS3BucketDelete deletes all S3 buckets and objects.
 func DeleteAllS3BucketDelete(t *testing.T, client *s3.Client) {
 	t.Helper()
+	ctx := context.Background()
 
-	buckets, err := client.ListBuckets(context.Background(), &s3.ListBucketsInput{})
+	buckets, err := client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	for _, bucket := range buckets.Buckets {
-		if _, err := client.DeleteBucket(context.Background(), &s3.DeleteBucketInput{Bucket: bucket.Name}); err != nil {
+		output, err := client.ListObjects(ctx, &s3.ListObjectsInput{
+			Bucket: bucket.Name,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		for _, object := range output.Contents {
+			if _, err := client.DeleteObject(ctx, &s3.DeleteObjectInput{
+				Bucket: bucket.Name,
+				Key:    object.Key,
+			}); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if _, err := client.DeleteBucket(ctx, &s3.DeleteBucketInput{Bucket: bucket.Name}); err != nil {
 			t.Fatal(err)
 		}
 	}

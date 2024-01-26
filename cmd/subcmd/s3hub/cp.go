@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/gogf/gf/os/gfile"
 	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/app/usecase"
 	"github.com/nao1215/rainbow/cmd/subcmd"
@@ -65,15 +66,16 @@ type copyPathPair struct {
 	From string
 	// To is a path of destination.
 	To string
-	// copyType is a type of copy.
+	// Type is represents a type of copy.
+	// Type: "from local to S3", "from S3 to local", "from S3 to S3".
 	Type copyType
 }
 
 // newCopyPathPair returns a new copyPathPair.
 func newCopyPathPair(from, to string) *copyPathPair {
 	pair := &copyPathPair{
-		From: filepath.Clean(from),
-		To:   filepath.Clean(to),
+		From: from,
+		To:   to,
 	}
 	pair.Type = pair.copyType()
 	return pair
@@ -121,22 +123,35 @@ func (c *cpCmd) Do() error {
 	case copyTypeS3ToS3:
 		return c.s3ToS3()
 	case copyTypeUnknown:
+		fallthrough
 	default:
 		return fmt.Errorf("unsupported copy type. from=%s, to=%s",
 			color.YellowString(c.pair.From), color.YellowString(c.pair.To))
 	}
-	return nil
+}
+
+// copyTargetsInLocal returns a slice of target files in local.
+func (c *cpCmd) copyTargetsInLocal() ([]string, error) {
+	if gfile.IsFile(c.pair.From) {
+		return []string{c.pair.From}, nil
+	}
+	targets, err := file.WalkDir(c.pair.From)
+	if err != nil {
+		return nil, err
+	}
+	return targets, nil
 }
 
 // localToS3 copies from local to S3.
 func (c *cpCmd) localToS3() error {
-	targets, err := file.WalkDir(c.pair.From)
+	targets, err := c.copyTargetsInLocal()
 	if err != nil {
 		return err
 	}
-	toBucket, toKey := model.NewBucketWithoutProtocol(c.pair.To).Split()
 
+	toBucket, toKey := model.NewBucketWithoutProtocol(c.pair.To).Split()
 	fileNum := len(targets)
+
 	for i, v := range targets {
 		data, err := os.ReadFile(filepath.Clean(v))
 		if err != nil {
@@ -145,7 +160,7 @@ func (c *cpCmd) localToS3() error {
 		if _, err := c.s3hub.FileUploader.UploadFile(c.ctx, &usecase.FileUploaderInput{
 			Bucket: toBucket,
 			Region: c.s3hub.region,
-			Key:    toKey,
+			Key:    model.S3Key(filepath.Join(toKey.String(), filepath.Base(v))),
 			Data:   data,
 		}); err != nil {
 			return err
