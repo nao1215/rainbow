@@ -229,7 +229,12 @@ func (b Bucket) Split() (Bucket, S3Key) {
 	if len(s) == 1 {
 		return b, ""
 	}
-	return Bucket(s[0]), S3Key(strings.Join(s[1:], "/"))
+
+	key := strings.Join(s[1:], "/")
+	if key == "" {
+		return Bucket(s[0]), S3Key("")
+	}
+	return Bucket(s[0]), S3Key(filepath.Clean(key))
 }
 
 // Validate returns true if the Bucket is valid.

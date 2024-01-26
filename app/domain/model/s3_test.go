@@ -659,11 +659,21 @@ func TestBucket_Split(t *testing.T) {
 			want:  Bucket("abc"),
 			want1: S3Key(filepath.Join("def", "ghi")),
 		},
+		{
+			name:  "If Bucket is 'abc/def/ghi/', Split() returns 'abc' and 'def/ghi/'",
+			b:     Bucket(filepath.Join("abc", "def", "ghi/")),
+			want:  Bucket("abc"),
+			want1: S3Key(filepath.Join("def", "ghi")),
+		},
+		{
+			name:  "If Bucket is 'abc/def/../ghi/jkl', Split() returns 'abc' and 'def/../ghi/jkl'",
+			b:     Bucket(filepath.Join("abc", "def", "..", "ghi", "jkl")),
+			want:  Bucket("abc"),
+			want1: S3Key(filepath.Join("ghi", "jkl")),
+		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			got, got1 := tt.b.Split()
 			if got != tt.want {
 				t.Errorf("Bucket.Split() got = %v, want %v", got, tt.want)

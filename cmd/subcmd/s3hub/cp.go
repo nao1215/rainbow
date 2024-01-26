@@ -66,8 +66,7 @@ type copyPathPair struct {
 	From string
 	// To is a path of destination.
 	To string
-	// Type is represents a type of copy.
-	// Type: "from local to S3", "from S3 to local", "from S3 to S3".
+	// Type indicates the direction of the copy operation: from local to S3, from S3 to local, or within S3.
 	Type copyType
 }
 
