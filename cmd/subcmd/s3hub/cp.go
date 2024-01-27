@@ -154,15 +154,16 @@ func (c *cpCmd) localToS3() error {
 	for i, v := range targets {
 		data, err := os.ReadFile(filepath.Clean(v))
 		if err != nil {
-			return err
+			return fmt.Errorf("can not read file %s: %w", color.YellowString(v), err)
 		}
+
 		if _, err := c.s3hub.FileUploader.UploadFile(c.ctx, &usecase.FileUploaderInput{
 			Bucket: toBucket,
 			Region: c.s3hub.region,
 			Key:    model.S3Key(filepath.Join(toKey.String(), filepath.Base(v))),
 			Data:   data,
 		}); err != nil {
-			return err
+			return fmt.Errorf("can not upload file %s: %w", color.YellowString(v), err)
 		}
 		c.printf("[%d/%d] copy %s to %s\n",
 			i+1,
@@ -177,25 +178,9 @@ func (c *cpCmd) localToS3() error {
 // s3ToLocal copies from S3 to local.
 func (c *cpCmd) s3ToLocal() error {
 	fromBucket, fromKey := model.NewBucketWithoutProtocol(c.pair.From).Split()
-	_, toKey := model.NewBucketWithoutProtocol(c.pair.To).Split()
-
-	listOutput, err := c.s3hub.ListS3Objects(c.ctx, &usecase.S3ObjectsListerInput{
-		Bucket: fromBucket,
-	})
+	targets, err := c.filterS3Objects(fromBucket, fromKey)
 	if err != nil {
 		return err
-	}
-
-	targets := make([]model.S3Key, 0, len(listOutput.Objects))
-	for _, v := range listOutput.Objects {
-		if strings.Contains(v.S3Key.String(), fromKey.String()) {
-			targets = append(targets, v.S3Key)
-		}
-	}
-
-	if len(targets) == 0 {
-		return fmt.Errorf("no objects found. bucket=%s, key=%s",
-			color.YellowString(fromBucket.String()), color.YellowString(fromKey.String()))
 	}
 
 	fileNum := len(targets)
@@ -205,16 +190,17 @@ func (c *cpCmd) s3ToLocal() error {
 			Key:    v,
 		})
 		if err != nil {
-			return err
+			return fmt.Errorf("can not download s3 object=%s: %w",
+				color.YellowString(fromBucket.Join(v).WithProtocol().String()), err)
 		}
 
-		relativePath, err := filepath.Rel(fromKey.String(), v.String())
-		if err != nil {
-			return err
+		destinationPath := filepath.Clean(filepath.Join(c.pair.To, fromKey.String()))
+		if err := os.MkdirAll(filepath.Dir(destinationPath), 0755); err != nil {
+			return fmt.Errorf("can not create directory %s: %w", color.YellowString(filepath.Dir(destinationPath)), err)
 		}
-		destinationPath := filepath.Join(toKey.String(), relativePath)
+
 		if err := downloadOutput.S3Object.ToFile(destinationPath, 0644); err != nil {
-			return err
+			return fmt.Errorf("can not write file to %s: %w", color.YellowString(destinationPath), err)
 		}
 
 		c.printf("[%d/%d] copy %s to %s\n",
@@ -225,6 +211,29 @@ func (c *cpCmd) s3ToLocal() error {
 		)
 	}
 	return nil
+}
+
+// filterS3Objects returns a slice of S3Key that matches the fromKey.
+func (c *cpCmd) filterS3Objects(fromBucket model.Bucket, fromKey model.S3Key) ([]model.S3Key, error) {
+	listOutput, err := c.s3hub.ListS3Objects(c.ctx, &usecase.S3ObjectsListerInput{
+		Bucket: fromBucket,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%w: bucket=%s", err, color.YellowString(fromBucket.String()))
+	}
+
+	targets := make([]model.S3Key, 0, len(listOutput.Objects))
+	for _, v := range listOutput.Objects {
+		if strings.Contains(filepath.Join(fromBucket.String(), v.S3Key.String()), fromKey.String()) {
+			targets = append(targets, v.S3Key)
+		}
+	}
+
+	if len(targets) == 0 {
+		return nil, fmt.Errorf("no objects found. bucket=%s, key=%s",
+			color.YellowString(fromBucket.String()), color.YellowString(fromKey.String()))
+	}
+	return targets, nil
 }
 
 // s3ToS3 copies from S3 to S3.

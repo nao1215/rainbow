@@ -368,6 +368,7 @@ func (c *S3ObjectUploader) UploadS3Object(ctx context.Context, input *service.S3
 	if err != nil {
 		return nil, err
 	}
+
 	return &service.S3ObjectUploaderOutput{
 		ContentType:   input.S3Object.ContentType(),
 		ContentLength: input.S3Object.ContentLength(),
