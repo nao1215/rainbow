@@ -261,11 +261,7 @@ func (c *cpCmd) s3ToS3() error {
 
 	fileNum := len(targets)
 	for i, v := range targets {
-		relativePath, err := filepath.Rel(fromKey.String(), v.String())
-		if err != nil {
-			return err
-		}
-		destinationKey := model.S3Key(filepath.Join(toKey.String(), relativePath))
+		destinationKey := model.S3Key(filepath.Clean(filepath.Join(toKey.String(), v.String())))
 
 		if _, err := c.s3hub.S3ObjectCopier.CopyS3Object(c.ctx, &usecase.S3ObjectCopierInput{
 			SourceBucket:      fromBucket,
