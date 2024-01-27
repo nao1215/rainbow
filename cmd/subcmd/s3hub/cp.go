@@ -195,7 +195,7 @@ func (c *cpCmd) s3ToLocal() error {
 		}
 
 		destinationPath := filepath.Clean(filepath.Join(c.pair.To, fromKey.String()))
-		if err := os.MkdirAll(filepath.Dir(destinationPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(destinationPath), 0750); err != nil {
 			return fmt.Errorf("can not create directory %s: %w", color.YellowString(filepath.Dir(destinationPath)), err)
 		}
 
