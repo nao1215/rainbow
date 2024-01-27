@@ -274,6 +274,7 @@ func (u *FileUploader) UploadFile(ctx context.Context, input *usecase.FileUpload
 	if err != nil {
 		return nil, err
 	}
+
 	return &usecase.FileUploaderOutput{
 		ContentType:   output.ContentType,
 		ContentLength: output.ContentLength,
