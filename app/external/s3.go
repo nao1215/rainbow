@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/wire"
@@ -358,14 +359,18 @@ func NewS3ObjectUploader(client *s3.Client) *S3ObjectUploader {
 
 // UploadS3Object puts the object in the bucket.
 func (c *S3ObjectUploader) UploadS3Object(ctx context.Context, input *service.S3ObjectUploaderInput) (*service.S3ObjectUploaderOutput, error) {
-	_, err := c.client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:        aws.String(input.Bucket.String()),
-		Key:           aws.String(input.S3Key.String()),
-		Body:          input.S3Object,
-		ContentType:   aws.String(input.S3Object.ContentType()),
-		ContentLength: aws.Int64(input.S3Object.ContentLength()),
-	})
-	if err != nil {
+	if _, err := c.client.PutObject(
+		ctx,
+		&s3.PutObjectInput{
+			Bucket:        aws.String(input.Bucket.String()),
+			Key:           aws.String(input.S3Key.String()),
+			Body:          input.S3Object,
+			ContentType:   aws.String(input.S3Object.ContentType()),
+			ContentLength: aws.Int64(input.S3Object.ContentLength()),
+		},
+		s3.WithAPIOptions(
+			v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
+		)); err != nil {
 		return nil, err
 	}
 

@@ -34,6 +34,32 @@ func fetchS3BucketListCmd(ctx context.Context, app *di.S3App) tea.Cmd {
 	})
 }
 
+// fetchS3Keys is the message that is sent when the user wants to fetch the list of the S3 bucket objects.
+type fetchS3Keys struct {
+	keys []model.S3Key
+}
+
+// fetchS3KeysCmd fetches the list of the S3 bucket objects.
+func fetchS3KeysCmd(ctx context.Context, app *di.S3App, bucket model.Bucket) tea.Cmd {
+	return tea.Cmd(func() tea.Msg {
+		output, err := app.S3ObjectsLister.ListS3Objects(ctx, &usecase.S3ObjectsListerInput{
+			Bucket: bucket,
+		})
+		if err != nil {
+			return ui.ErrMsg(err)
+		}
+
+		keys := make([]model.S3Key, 0, len(output.Objects))
+		for _, o := range output.Objects {
+			keys = append(keys, o.S3Key)
+		}
+		return fetchS3Keys{
+			keys: keys,
+		}
+	})
+}
+
+// deleteS3BucketMsg is the message that is sent when the user wants to delete the S3 bucket.
 type deleteS3BucketMsg struct {
 	deletedBucket model.Bucket
 }

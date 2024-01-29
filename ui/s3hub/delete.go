@@ -208,7 +208,7 @@ func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 	case fetchS3BucketMsg:
-		m.s3bucketListStatus = s3hubListBucketStatusBucketCreated
+		m.s3bucketListStatus = s3hubListBucketStatusBucketFetched
 		m.bucketSets = msg.buckets
 		m.choice = ui.NewChoice(0, m.bucketSets.Len()-1)
 		m.toggles = ui.NewToggleSets(m.bucketSets.Len())
@@ -274,13 +274,13 @@ func (m *s3hubDeleteBucketModel) View() string {
 		return spin + info + gap + prog + bucketCount
 	}
 
-	if m.s3bucketListStatus == s3hubListBucketStatusNone || m.s3bucketListStatus == s3hubListBucketStatusBucketCreating {
+	if m.s3bucketListStatus == s3hubListBucketStatusNone || m.s3bucketListStatus == s3hubListBucketStatusBucketFetching {
 		return fmt.Sprintf(
 			"fetching the list of the S3 buckets (profile=%s)\n",
 			m.awsProfile.String())
 	}
 
-	if m.s3bucketListStatus == s3hubListBucketStatusBucketCreated {
+	if m.s3bucketListStatus == s3hubListBucketStatusBucketFetched {
 		return m.bucketListString()
 	}
 	return m.bucketListString() // TODO: implement
