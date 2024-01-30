@@ -71,15 +71,7 @@ type downloadS3BucketMsg struct {
 
 // downloadS3BucketCmd downloads the S3 bucket.
 func downloadS3BucketCmd(ctx context.Context, app *di.S3App, bucket []model.Bucket) tea.Cmd {
-	d, err := rand.Int(rand.Reader, big.NewInt(500))
-	if err != nil {
-		return func() tea.Msg {
-			return ui.ErrMsg(fmt.Errorf("failed to start deleting s3 bucket: %w", err))
-		}
-	}
-	delay := time.Millisecond * time.Duration(d.Int64())
-
-	return tea.Tick(delay, func(t time.Time) tea.Msg {
+	return tea.Cmd(func() tea.Msg {
 		for _, b := range bucket {
 			output, err := app.S3ObjectsLister.ListS3Objects(ctx, &usecase.S3ObjectsListerInput{
 				Bucket: b,
