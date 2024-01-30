@@ -120,6 +120,41 @@ func downloadS3BucketCmd(ctx context.Context, app *di.S3App, bucket []model.Buck
 	})
 }
 
+// downloadS3ObjectsMsg is the message that is sent when the user wants to download the S3 bucket objects.
+type downloadS3ObjectsMsg struct {
+	downloadedS3Key []model.S3Key
+}
+
+// downloadS3ObjectsCmd downloads the S3 bucket objects.
+func downloadS3ObjectsCmd(ctx context.Context, app *di.S3App, bucket model.Bucket, keys []model.S3Key) tea.Cmd {
+	return tea.Cmd(func() tea.Msg {
+		for _, v := range keys {
+			downloadOutput, err := app.S3ObjectDownloader.DownloadS3Object(ctx, &usecase.S3ObjectDownloaderInput{
+				Bucket: bucket,
+				Key:    v,
+			})
+			if err != nil {
+				return ui.ErrMsg(err)
+			}
+
+			destinationPath := filepath.Clean(filepath.Join(s3hub.DefaultDownloadDirPath, bucket.String(), v.String()))
+			dir := filepath.Dir(destinationPath)
+			if !gfile.IsDir(dir) {
+				if err := os.MkdirAll(dir, 0750); err != nil {
+					return ui.ErrMsg(fmt.Errorf("can not create directory %s: %w", color.YellowString(dir), err))
+				}
+			}
+
+			if err := downloadOutput.S3Object.ToFile(destinationPath, 0644); err != nil {
+				return ui.ErrMsg(fmt.Errorf("can not write file to %s: %w", color.YellowString(destinationPath), err))
+			}
+		}
+		return downloadS3ObjectsMsg{
+			downloadedS3Key: keys,
+		}
+	})
+}
+
 // deleteS3BucketMsg is the message that is sent when the user wants to delete the S3 bucket.
 type deleteS3BucketMsg struct {
 	deletedBucket model.Bucket

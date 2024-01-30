@@ -141,7 +141,7 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = err
 					return m, tea.Quit
 				}
-				model.status = s3hubListS3ObjectStatusFetching
+				model.s3hubListS3ObjectStatus = s3hubListS3ObjectStatusFetching
 				model.bucket = m.bucketSets[m.choice.Choice].Bucket
 				return model, fetchS3KeysCmd(m.ctx, m.app, model.bucket)
 			}
@@ -271,8 +271,6 @@ const (
 type s3hubListS3ObjectModel struct {
 	// err is the error that occurred during the operation.
 	err error
-	// status is the status of the list s3 objects operation.
-	status s3hubListS3ObjectStatus
 	// awsConfig is the AWS configuration.
 	awsConfig *model.AWSConfig
 	// awsProfile is the AWS profile.
@@ -289,6 +287,12 @@ type s3hubListS3ObjectModel struct {
 	bucket model.Bucket
 	// s3Keys is the list of the S3 bucket objects.
 	s3Keys []model.S3Key
+	// s3hubListS3ObjectStatus is the s3hubListS3ObjectStatus of the list s3 objects operation.
+	s3hubListS3ObjectStatus s3hubListS3ObjectStatus
+	// s3hubDownloadStatus is the s3hubDownloadStatus of the download operation.
+	s3hubDownloadStatus s3hubDownloadStatus
+	// toggle is the currently selected menu item.
+	toggles ui.ToggleSets
 }
 
 // newS3HubListS3ObjectModel returns a new s3hubListS3ObjectModel.
@@ -313,6 +317,7 @@ func newS3HubListS3ObjectModel() (*s3hubListS3ObjectModel, error) {
 		app:        app,
 		choice:     ui.NewChoice(0, 0),
 		ctx:        ctx,
+		toggles:    ui.NewToggleSets(0),
 	}, nil
 }
 
@@ -344,16 +349,38 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			model.s3BucketListBucketStatus = s3hubListBucketStatusBucketFetching
 			return model, fetchS3BucketListCmd(model.ctx, model.app)
+		case "d":
+			if m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusListed && m.s3hubDownloadStatus == s3hubDownloadStatusNone {
+				m.s3hubDownloadStatus = s3hubDownloadStatusDownloading
+				keys := make([]model.S3Key, 0, len(m.s3Keys))
+				for i, k := range m.s3Keys {
+					if m.toggles[i].Enabled {
+						keys = append(keys, k)
+					}
+				}
+				return m, downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, keys)
+			}
+		case "enter":
+			if m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusReturnToTop || m.s3hubDownloadStatus == s3hubDownloadStatusDownloaded {
+				return newRootModel(), nil
+			}
+		case " ":
+			if m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusListed && m.s3hubDownloadStatus == s3hubDownloadStatusNone {
+				m.toggles[m.choice.Choice].Toggle()
+			}
 		}
-
 	case fetchS3Keys:
-		m.status = s3hubListS3ObjectStatusFetched
+		m.s3hubListS3ObjectStatus = s3hubListS3ObjectStatusFetched
 		m.s3Keys = msg.keys
 		m.choice = ui.NewChoice(0, len(m.s3Keys)-1)
+		m.toggles = ui.NewToggleSets(len(m.s3Keys))
+		return m, nil
+	case downloadS3BucketMsg:
+		m.s3hubDownloadStatus = s3hubDownloadStatusDownloaded
 		return m, nil
 	case ui.ErrMsg:
 		m.err = msg
-		m.status = s3hubListS3ObjectStatusQuit
+		m.s3hubListS3ObjectStatus = s3hubListS3ObjectStatusQuit
 		return m, tea.Quit
 	default:
 		return m, nil
@@ -364,22 +391,26 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the application's UI.
 func (m *s3hubListS3ObjectModel) View() string {
 	if m.err != nil {
-		m.status = s3hubListS3ObjectStatusQuit
+		m.s3hubListS3ObjectStatus = s3hubListS3ObjectStatusQuit
 		return ui.ErrorMessage(m.err)
 	}
 
-	if m.status == s3hubListS3ObjectStatusQuit {
+	if m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusQuit {
 		return ui.GoodByeMessage()
 	}
 
-	if m.status == s3hubListS3ObjectStatusNone || m.status == s3hubListS3ObjectStatusFetching {
+	if m.s3hubDownloadStatus == s3hubDownloadStatusDownloaded {
+		return doneStyle.Render("All S3 objects downloaded. Press <enter> to return to the top.")
+	}
+
+	if m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusNone || m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusFetching {
 		return fmt.Sprintf(
 			"fetching the list of the S3 objects (profile=%s, bucket=%s)\n",
 			m.awsProfile.String(),
 			m.bucket.String())
 	}
 
-	if m.status == s3hubListS3ObjectStatusFetched {
+	if m.s3hubListS3ObjectStatus == s3hubListS3ObjectStatusFetched {
 		return m.s3ObjectListString()
 	}
 	return m.s3ObjectListString()
@@ -411,19 +442,20 @@ func (m *s3hubListS3ObjectModel) s3ObjectListStrWithCheckbox() string {
 		endIndex = windowHeight
 	}
 
-	m.status = s3hubListS3ObjectStatusListed
+	m.s3hubListS3ObjectStatus = s3hubListS3ObjectStatusListed
 	s := fmt.Sprintf("S3 objects %d/%d (profile=%s)\n\n", m.choice.Choice+1, len(m.s3Keys), m.awsProfile.String())
 	for i := startIndex; i < endIndex; i++ {
-		s += fmt.Sprintf("%s\n", ui.Checkbox(color.GreenString("%s", m.bucket.Join(m.s3Keys[i])), m.choice.Choice == i))
+		s += fmt.Sprintf("%s\n",
+			ui.ToggleWidget(color.GreenString("%s", m.bucket.Join(m.s3Keys[i])), m.choice.Choice == i, m.toggles[i].Enabled))
 	}
 	s += ui.Subtle("\n<esc>: return | <Ctrl-C>: quit | up/down: select\n")
-	s += ui.Subtle("<enter>, <space>: choose bucket\n\n")
+	s += ui.Subtle("<space>: choose s3 object to download | d: download s3 object\n\n")
 	return s
 }
 
 // emptyS3ObjectListString returns the string representation when there are no S3 objects.
 func (m *s3hubListS3ObjectModel) emptyS3ObjectListString() string {
-	m.status = s3hubListS3ObjectStatusReturnToTop
+	m.s3hubListS3ObjectStatus = s3hubListS3ObjectStatusReturnToTop
 	return fmt.Sprintf("No S3 objects (profile=%s, bucket=%s)\n\n%s\n",
 		m.awsProfile.String(),
 		m.bucket.String(),
