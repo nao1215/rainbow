@@ -39,7 +39,7 @@ type fetchS3Keys struct {
 	keys []model.S3Key
 }
 
-// fetchS3KeysCmd fetches the list of the S3 bucket objects.
+// fetchS3KeysCmd creates a command to fetch the keys of objects stored in a specified S3 bucket.
 func fetchS3KeysCmd(ctx context.Context, app *di.S3App, bucket model.Bucket) tea.Cmd {
 	return tea.Cmd(func() tea.Msg {
 		output, err := app.S3ObjectsLister.ListS3Objects(ctx, &usecase.S3ObjectsListerInput{

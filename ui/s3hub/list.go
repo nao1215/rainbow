@@ -367,21 +367,14 @@ func (m *s3hubListS3ObjectModel) s3ObjectListStrWithCheckbox() string {
 			startIndex = len(m.s3Keys) - windowHeight
 			endIndex = len(m.s3Keys)
 		}
-	} else {
-		if len(m.s3Keys) > windowHeight {
-			endIndex = windowHeight
-		}
+	} else if len(m.s3Keys) > windowHeight {
+		endIndex = windowHeight
 	}
 
 	m.status = s3hubListS3ObjectStatusListed
 	s := fmt.Sprintf("S3 objects %d/%d (profile=%s)\n\n", m.choice.Choice+1, len(m.s3Keys), m.awsProfile.String())
 	for i := startIndex; i < endIndex; i++ {
-		s += fmt.Sprintf("%s\n",
-			ui.Checkbox(
-				fmt.Sprintf(
-					"%s",
-					color.GreenString("%s", m.bucket.Join(m.s3Keys[i]))),
-				m.choice.Choice == i))
+		s += fmt.Sprintf("%s\n", ui.Checkbox(color.GreenString("%s", m.bucket.Join(m.s3Keys[i])), m.choice.Choice == i))
 	}
 	s += ui.Subtle("\n<esc>: return | <Ctrl-C>: quit | up/down: select\n")
 	s += ui.Subtle("<enter>, <space>: choose bucket\n\n")

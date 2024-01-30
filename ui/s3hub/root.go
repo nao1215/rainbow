@@ -135,7 +135,7 @@ func (m *s3hubRootModel) choicesView() string {
 	choices := fmt.Sprintf(
 		"%s\n%s\n%s\n%s\n",
 		ui.Checkbox("Create the S3 bucket", c == s3hubTopMinChoice),
-		ui.Checkbox("List S3 buckets (Download S3 Objects)", c == 1),
+		ui.Checkbox("List and download S3 objects", c == 1),
 		ui.Checkbox("Delete contents from the S3 bucket", c == 2),
 		ui.Checkbox("Delete the S3 bucket", c == s3hubTopMaxChoice),
 	)
