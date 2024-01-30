@@ -28,8 +28,12 @@ type s3hubListBucketModel struct {
 	ctx context.Context
 	// bucketSets is the list of the S3 buckets.
 	bucketSets model.BucketSets
-	// status is the status of the list bucket operation.
-	status s3hubListBucketStatus
+	// s3BucketListBucketStatus is the s3BucketListBucketStatus of the list bucket operation.
+	s3BucketListBucketStatus s3hubListBucketStatus
+	// s3hubDownloadStatus is the s3hubDownloadStatus of the download operation.
+	s3hubDownloadStatus s3hubDownloadStatus
+	// toggle is the currently selected menu item.
+	toggles ui.ToggleSets
 }
 
 // s3hubListBucketStatus is the status of the list bucket operation.
@@ -48,6 +52,18 @@ const (
 	s3hubListBucketStatusReturnToTop
 	// s3hubListBucketStatusQuit is the status when the user quits the application.
 	s3hubListBucketStatusQuit
+)
+
+// s3hubDownloadStatus is the status of the download operation.
+type s3hubDownloadStatus int
+
+const (
+	// s3hubDownloadStatusNone is the status when the download operation is not executed.
+	s3hubDownloadStatusNone s3hubDownloadStatus = iota
+	// s3hubDownloadStatusDownloading is the status when the download operation is executed.
+	s3hubDownloadStatusDownloading
+	// s3hubDownloadStatusDownloaded is the status when the download operation is executed and the file is downloaded.
+	s3hubDownloadStatusDownloaded
 )
 
 const (
@@ -69,14 +85,15 @@ func newS3HubListBucketModel() (*s3hubListBucketModel, error) {
 	}
 
 	return &s3hubListBucketModel{
-		awsConfig:  cfg,
-		awsProfile: profile,
-		region:     region,
-		app:        app,
-		choice:     ui.NewChoice(0, 0),
-		status:     s3hubListBucketStatusNone,
-		ctx:        ctx,
-		bucketSets: model.BucketSets{},
+		awsConfig:                cfg,
+		awsProfile:               profile,
+		region:                   region,
+		app:                      app,
+		choice:                   ui.NewChoice(0, 0),
+		s3BucketListBucketStatus: s3hubListBucketStatusNone,
+		ctx:                      ctx,
+		bucketSets:               model.BucketSets{},
+		toggles:                  ui.NewToggleSets(0),
 	}, nil
 }
 
@@ -97,16 +114,28 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "k", "up":
 			m.choice.Decrement()
 		case "ctrl+c":
-			m.status = s3hubListBucketStatusQuit
+			m.s3BucketListBucketStatus = s3hubListBucketStatusQuit
 			return m, tea.Quit
 		case "q", "esc":
-			m.status = s3hubListBucketStatusReturnToTop
+			m.s3BucketListBucketStatus = s3hubListBucketStatusReturnToTop
 			return newRootModel(), nil
+		case "d":
+			if m.s3BucketListBucketStatus == s3hubListBucketStatusBucketListed && m.s3hubDownloadStatus == s3hubDownloadStatusNone {
+				m.s3hubDownloadStatus = s3hubDownloadStatusDownloading
+
+				buckets := make([]model.Bucket, 0, len(m.bucketSets))
+				for i, b := range m.bucketSets {
+					if m.toggles[i].Enabled {
+						buckets = append(buckets, b.Bucket)
+					}
+				}
+				return m, downloadS3BucketCmd(m.ctx, m.app, buckets)
+			}
 		case "enter":
-			if m.status == s3hubListBucketStatusReturnToTop {
+			if m.s3BucketListBucketStatus == s3hubListBucketStatusReturnToTop || m.s3hubDownloadStatus == s3hubDownloadStatusDownloaded {
 				return newRootModel(), nil
 			}
-			if m.status == s3hubListBucketStatusBucketListed {
+			if m.s3BucketListBucketStatus == s3hubListBucketStatusBucketListed {
 				model, err := newS3HubListS3ObjectModel()
 				if err != nil {
 					m.err = err
@@ -116,17 +145,23 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				model.bucket = m.bucketSets[m.choice.Choice].Bucket
 				return model, fetchS3KeysCmd(m.ctx, m.app, model.bucket)
 			}
-		case "space":
-			// TODO: implement
+		case " ":
+			if m.s3BucketListBucketStatus == s3hubListBucketStatusBucketListed && m.s3hubDownloadStatus == s3hubDownloadStatusNone {
+				m.toggles[m.choice.Choice].Toggle()
+			}
 		}
 	case fetchS3BucketMsg:
-		m.status = s3hubListBucketStatusBucketFetched
+		m.s3BucketListBucketStatus = s3hubListBucketStatusBucketFetched
 		m.bucketSets = msg.buckets
 		m.choice = ui.NewChoice(0, m.bucketSets.Len()-1)
+		m.toggles = ui.NewToggleSets(m.bucketSets.Len())
+		return m, nil
+	case downloadS3BucketMsg:
+		m.s3hubDownloadStatus = s3hubDownloadStatusDownloaded
 		return m, nil
 	case ui.ErrMsg:
 		m.err = msg
-		m.status = s3hubListBucketStatusQuit
+		m.s3BucketListBucketStatus = s3hubListBucketStatusQuit
 		return m, tea.Quit
 	default:
 		return m, nil
@@ -136,21 +171,25 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *s3hubListBucketModel) View() string {
 	if m.err != nil {
-		m.status = s3hubListBucketStatusQuit
+		m.s3BucketListBucketStatus = s3hubListBucketStatusQuit
 		return ui.ErrorMessage(m.err)
 	}
 
-	if m.status == s3hubListBucketStatusQuit {
+	if m.s3BucketListBucketStatus == s3hubListBucketStatusQuit {
 		return ui.GoodByeMessage()
 	}
 
-	if m.status == s3hubListBucketStatusNone || m.status == s3hubListBucketStatusBucketFetching {
+	if m.s3hubDownloadStatus == s3hubDownloadStatusDownloaded {
+		return doneStyle.Render("All S3 buckets downloaded. Press <enter> to return to the top.")
+	}
+
+	if m.s3BucketListBucketStatus == s3hubListBucketStatusNone || m.s3BucketListBucketStatus == s3hubListBucketStatusBucketFetching {
 		return fmt.Sprintf(
 			"fetching the list of the S3 buckets (profile=%s)\n",
 			m.awsProfile.String())
 	}
 
-	if m.status == s3hubListBucketStatusBucketFetched {
+	if m.s3BucketListBucketStatus == s3hubListBucketStatusBucketFetched {
 		return m.bucketListString()
 	}
 	return m.bucketListString() // TODO: implement
@@ -184,27 +223,28 @@ func (m *s3hubListBucketModel) bucketListStrWithCheckbox() string {
 		}
 	}
 
-	m.status = s3hubListBucketStatusBucketListed
+	m.s3BucketListBucketStatus = s3hubListBucketStatusBucketListed
 	s := fmt.Sprintf("S3 buckets %d/%d (profile=%s)\n\n", m.choice.Choice+1, m.bucketSets.Len(), m.awsProfile.String())
 	for i := startIndex; i < endIndex; i++ {
 		b := m.bucketSets[i]
 		s += fmt.Sprintf("%s\n",
-			ui.Checkbox(
+			ui.ToggleWidget(
 				fmt.Sprintf(
 					"%s (region=%s, updated_at=%s)",
 					color.GreenString("%s", b.Bucket),
 					color.YellowString("%s", b.Region),
 					b.CreationDate.Format("2006-01-02 15:04:05 MST")),
-				m.choice.Choice == i))
+				m.choice.Choice == i, m.toggles[i].Enabled))
 	}
 	s += ui.Subtle("\n<esc>: return to the top | <Ctrl-C>: quit | up/down: select\n")
-	s += ui.Subtle("<enter>, <space>: choose bucket\n\n")
+	s += ui.Subtle("<space>: choose bucket to download | d: download buckets\n")
+	s += ui.Subtle("<enter>: list up s3 objects in bucket\n\n")
 	return s
 }
 
 // emptyBucketListString returns the string representation when there are no S3 buckets.
 func (m *s3hubListBucketModel) emptyBucketListString() string {
-	m.status = s3hubListBucketStatusReturnToTop
+	m.s3BucketListBucketStatus = s3hubListBucketStatusReturnToTop
 	return fmt.Sprintf("No S3 buckets (profile=%s)\n\n%s\n",
 		m.awsProfile.String(),
 		ui.Subtle("<enter>: return to the top"))
@@ -302,7 +342,7 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.err = err
 				return m, tea.Quit
 			}
-			model.status = s3hubListBucketStatusBucketFetching
+			model.s3BucketListBucketStatus = s3hubListBucketStatusBucketFetching
 			return model, fetchS3BucketListCmd(model.ctx, model.app)
 		}
 

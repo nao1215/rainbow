@@ -108,7 +108,7 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = err
 					return m, tea.Quit
 				}
-				model.status = s3hubListBucketStatusBucketFetching
+				model.s3BucketListBucketStatus = s3hubListBucketStatusBucketFetching
 				return model, fetchS3BucketListCmd(model.ctx, model.app)
 			case s3hubTopDeleteContentsChoice:
 				return &s3hubDeleteContentsModel{}, nil

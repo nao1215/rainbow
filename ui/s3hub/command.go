@@ -5,12 +5,17 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"os"
+	"path/filepath"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/fatih/color"
+	"github.com/gogf/gf/os/gfile"
 	"github.com/nao1215/rainbow/app/di"
 	"github.com/nao1215/rainbow/app/domain/model"
 	"github.com/nao1215/rainbow/app/usecase"
+	"github.com/nao1215/rainbow/config/s3hub"
 	"github.com/nao1215/rainbow/ui"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -55,6 +60,62 @@ func fetchS3KeysCmd(ctx context.Context, app *di.S3App, bucket model.Bucket) tea
 		}
 		return fetchS3Keys{
 			keys: keys,
+		}
+	})
+}
+
+// downloadS3BucketMsg is the message that is sent when the user wants to download the S3 bucket.
+type downloadS3BucketMsg struct {
+	downloadedBuckets []model.Bucket
+}
+
+// downloadS3BucketCmd downloads the S3 bucket.
+func downloadS3BucketCmd(ctx context.Context, app *di.S3App, bucket []model.Bucket) tea.Cmd {
+	d, err := rand.Int(rand.Reader, big.NewInt(500))
+	if err != nil {
+		return func() tea.Msg {
+			return ui.ErrMsg(fmt.Errorf("failed to start deleting s3 bucket: %w", err))
+		}
+	}
+	delay := time.Millisecond * time.Duration(d.Int64())
+
+	return tea.Tick(delay, func(t time.Time) tea.Msg {
+		for _, b := range bucket {
+			output, err := app.S3ObjectsLister.ListS3Objects(ctx, &usecase.S3ObjectsListerInput{
+				Bucket: b,
+			})
+			if err != nil {
+				return ui.ErrMsg(err)
+			}
+
+			if len(output.Objects) == 0 {
+				continue
+			}
+
+			for _, v := range output.Objects {
+				downloadOutput, err := app.S3ObjectDownloader.DownloadS3Object(ctx, &usecase.S3ObjectDownloaderInput{
+					Bucket: b,
+					Key:    v.S3Key,
+				})
+				if err != nil {
+					return ui.ErrMsg(err)
+				}
+
+				destinationPath := filepath.Clean(filepath.Join(s3hub.DefaultDownloadDirPath, b.String(), v.S3Key.String()))
+				dir := filepath.Dir(destinationPath)
+				if !gfile.IsDir(dir) {
+					if err := os.MkdirAll(dir, 0750); err != nil {
+						return ui.ErrMsg(fmt.Errorf("can not create directory %s: %w", color.YellowString(dir), err))
+					}
+				}
+
+				if err := downloadOutput.S3Object.ToFile(destinationPath, 0644); err != nil {
+					return ui.ErrMsg(fmt.Errorf("can not write file to %s: %w", color.YellowString(destinationPath), err))
+				}
+			}
+		}
+		return downloadS3BucketMsg{
+			downloadedBuckets: bucket,
 		}
 	})
 }
