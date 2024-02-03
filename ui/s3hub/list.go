@@ -3,8 +3,12 @@ package s3hub
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/charmbracelet/bubbles/progress"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
 	"github.com/nao1215/rainbow/app/di"
 	"github.com/nao1215/rainbow/app/domain/model"
@@ -29,10 +33,20 @@ type s3hubListBucketModel struct {
 	ctx context.Context
 	// bucketSets is the list of the S3 buckets.
 	bucketSets model.BucketSets
+	// targetBuckets is the list of the S3 buckets that the user wants to delete or download.
+	targetBuckets []model.Bucket
 	// status is the status of the list bucket operation.
 	status status
 	// toggle is the currently selected menu item.
 	toggles ui.ToggleSets
+	// width is the width of the terminal.
+	window *ui.Window
+
+	// TODO: refactor
+	index    int
+	sum      int
+	spinner  spinner.Model
+	progress progress.Model
 }
 
 const (
@@ -54,6 +68,14 @@ func newS3HubListBucketModel() (*s3hubListBucketModel, error) {
 		return nil, err
 	}
 
+	p := progress.New(
+		progress.WithDefaultGradient(),
+		progress.WithWidth(40),
+		progress.WithoutPercentage(),
+	)
+	s := spinner.New()
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+
 	return &s3hubListBucketModel{
 		awsConfig:  cfg,
 		awsProfile: profile,
@@ -64,6 +86,10 @@ func newS3HubListBucketModel() (*s3hubListBucketModel, error) {
 		ctx:        ctx,
 		bucketSets: model.BucketSets{},
 		toggles:    ui.NewToggleSets(0),
+		spinner:    s,
+		progress:   p,
+		index:      1,
+		window:     ui.NewWindow(0, 0),
 	}, nil
 }
 
@@ -93,18 +119,26 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return newRootModel(), nil
 		case "d":
 			if m.status == statusBucketListed {
-				m.status = statusDownloading
-
-				buckets := make([]model.Bucket, 0, len(m.bucketSets))
-				for i, b := range m.bucketSets {
-					if m.toggles[i].Enabled {
-						buckets = append(buckets, b.Bucket)
-					}
+				m.targetBuckets = m.getTargetBuckets()
+				if len(m.targetBuckets) == 0 {
+					return m, nil
 				}
-				return m, downloadS3BucketCmd(m.ctx, m.app, buckets)
+				m.sum = len(m.targetBuckets) + 1
+				m.status = statusDownloading
+				return m, tea.Batch(m.spinner.Tick, downloadS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
+			}
+		case "D":
+			if m.status == statusBucketListed {
+				m.targetBuckets = m.getTargetBuckets()
+				if len(m.targetBuckets) == 0 {
+					return m, nil
+				}
+				m.sum = len(m.targetBuckets) + 1
+				m.status = statusBucketDeleting
+				return m, tea.Batch(m.spinner.Tick, deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 			}
 		case "enter":
-			if m.status == statusReturnToTop || m.status == statusDownloaded {
+			if m.status == statusReturnToTop || m.status == statusDownloaded || m.status == statusBucketDeleted {
 				return newRootModel(), nil
 			}
 			if m.status == statusBucketListed {
@@ -122,6 +156,8 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.toggles[m.choice.Choice].Toggle()
 			}
 		}
+	case tea.WindowSizeMsg:
+		m.window.Width, m.window.Height = msg.Width, msg.Height
 	case fetchS3BucketMsg:
 		m.status = statusBucketFetched
 		m.bucketSets = msg.buckets
@@ -129,8 +165,39 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.toggles = ui.NewToggleSets(m.bucketSets.Len())
 		return m, nil
 	case downloadS3BucketMsg:
-		m.status = statusDownloaded
-		return m, nil
+		m.targetBuckets = m.targetBuckets[1:]
+		if len(m.targetBuckets) == 0 {
+			m.status = statusDownloaded
+			return m, nil
+		}
+		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+		m.index++
+		return m, tea.Batch(
+			progressCmd,
+			tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+			downloadS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
+	case deleteS3BucketMsg:
+		m.targetBuckets = m.targetBuckets[1:]
+		if len(m.targetBuckets) == 0 {
+			m.status = statusBucketDeleted
+			return m, nil
+		}
+		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+		m.index++
+		return m, tea.Batch(
+			progressCmd,
+			tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+			deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	case progress.FrameMsg:
+		newModel, cmd := m.progress.Update(msg)
+		if newModel, ok := newModel.(progress.Model); ok {
+			m.progress = newModel
+		}
+		return m, cmd
 	case ui.ErrMsg:
 		m.err = msg
 		m.status = statusQuit
@@ -148,20 +215,46 @@ func (m *s3hubListBucketModel) View() string {
 		return ui.ErrorMessage(m.err)
 	}
 
-	if m.status == statusQuit {
+	switch m.status {
+	case statusQuit:
 		return ui.GoodByeMessage()
-	}
-
-	if m.status == statusDownloaded {
+	case statusDownloaded:
 		return doneStyle.Render("All S3 buckets downloaded. Press <enter> to return to the top.")
-	}
+	case statusDownloading:
+		w := lipgloss.Width(fmt.Sprintf("%d", m.sum))
+		bucketCount := fmt.Sprintf(" %*d/%*d", w, m.index, w, m.sum-1)
+		spin := m.spinner.View() + " "
+		prog := m.progress.View()
+		cellsAvail := max(0, m.window.Width-lipgloss.Width(spin+prog+bucketCount))
 
-	if m.status == statusNone || m.status == statusBucketFetching {
+		bucketName := currentNameStyle.Render(m.targetBuckets[0].String())
+		info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Downloading " + bucketName)
+		cellsRemaining := max(0, m.window.Width-lipgloss.Width(spin+info+prog+bucketCount))
+		gap := strings.Repeat(" ", cellsRemaining)
+		return spin + info + gap + prog + bucketCount
+	case statusBucketDeleted:
+		return doneStyle.Render("All S3 buckets deleted. Press <enter> to return to the top.\n")
+	case statusBucketDeleting:
+		w := lipgloss.Width(fmt.Sprintf("%d", m.sum))
+		bucketCount := fmt.Sprintf(" %*d/%*d", w, m.index, w, m.sum-1)
+		spin := m.spinner.View() + " "
+		prog := m.progress.View()
+		cellsAvail := max(0, m.window.Width-lipgloss.Width(spin+prog+bucketCount))
+
+		bucketName := currentNameStyle.Render(m.targetBuckets[0].String())
+		info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Deleting " + bucketName)
+		cellsRemaining := max(0, m.window.Width-lipgloss.Width(spin+info+prog+bucketCount))
+		gap := strings.Repeat(" ", cellsRemaining)
+		return spin + info + gap + prog + bucketCount
+	case statusNone, statusBucketFetching:
 		return fmt.Sprintf(
 			"fetching the list of the S3 buckets (profile=%s)\n",
 			m.awsProfile.String())
+	case statusBucketFetched:
+		return m.bucketListString()
+	default:
+		return m.bucketListString()
 	}
-	return m.bucketListString() // TODO: implement
 }
 
 // bucketListString returns the string representation of the bucket list.
@@ -206,8 +299,8 @@ func (m *s3hubListBucketModel) bucketListStrWithCheckbox() string {
 				m.choice.Choice == i, m.toggles[i].Enabled))
 	}
 	s += ui.Subtle("\n<esc>: return to the top | <Ctrl-C>: quit | up/down: select\n")
-	s += ui.Subtle("<space>: choose bucket to download | d: download buckets\n")
-	s += ui.Subtle("<enter>: list up s3 objects in bucket\n\n")
+	s += ui.Subtle("<space>: choose bucket to download or delete | <enter>: list up s3 objects in bucket\n")
+	s += ui.Subtle("d: download buckets      | D: delete buckets\n\n")
 	return s
 }
 
@@ -217,6 +310,17 @@ func (m *s3hubListBucketModel) emptyBucketListString() string {
 	return fmt.Sprintf("No S3 buckets (profile=%s)\n\n%s\n",
 		m.awsProfile.String(),
 		ui.Subtle("<enter>: return to the top"))
+}
+
+// getTargetBuckets returns the list of the S3 buckets that the user wants to delete or download
+func (m *s3hubListBucketModel) getTargetBuckets() []model.Bucket {
+	targetBuckets := make([]model.Bucket, 0, len(m.toggles))
+	for i, t := range m.toggles {
+		if t.Enabled {
+			targetBuckets = append(targetBuckets, m.bucketSets[i].Bucket)
+		}
+	}
+	return targetBuckets
 }
 
 type s3hubListS3ObjectModel struct {
@@ -238,10 +342,20 @@ type s3hubListS3ObjectModel struct {
 	bucket model.Bucket
 	// s3Keys is the list of the S3 bucket objects.
 	s3Keys []model.S3Key
+	// targetS3Keys is the list of the S3 bucket objects that the user wants to download.
+	targetS3Keys []model.S3Key
 	// status is the status of the list S3 object operation.
 	status status
 	// toggle is the currently selected menu item.
 	toggles ui.ToggleSets
+	// width is the width of the terminal.
+	window *ui.Window
+
+	// TODO: refactor
+	index    int
+	sum      int
+	spinner  spinner.Model
+	progress progress.Model
 }
 
 // newS3HubListS3ObjectModel returns a new s3hubListS3ObjectModel.
@@ -259,6 +373,14 @@ func newS3HubListS3ObjectModel() (*s3hubListS3ObjectModel, error) {
 		return nil, err
 	}
 
+	p := progress.New(
+		progress.WithDefaultGradient(),
+		progress.WithWidth(40),
+		progress.WithoutPercentage(),
+	)
+	s := spinner.New()
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
+
 	return &s3hubListS3ObjectModel{
 		awsConfig:  cfg,
 		awsProfile: profile,
@@ -267,6 +389,10 @@ func newS3HubListS3ObjectModel() (*s3hubListS3ObjectModel, error) {
 		choice:     ui.NewChoice(0, 0),
 		ctx:        ctx,
 		toggles:    ui.NewToggleSets(0),
+		spinner:    s,
+		progress:   p,
+		index:      1,
+		window:     ui.NewWindow(0, 0),
 	}, nil
 }
 
@@ -300,17 +426,26 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return model, fetchS3BucketListCmd(model.ctx, model.app)
 		case "d":
 			if m.status == statusS3ObjectListed {
-				m.status = statusDownloading
-				keys := make([]model.S3Key, 0, len(m.s3Keys))
-				for i, k := range m.s3Keys {
-					if m.toggles[i].Enabled {
-						keys = append(keys, k)
-					}
+				m.targetS3Keys = m.getTargetS3Keys()
+				if len(m.targetS3Keys) == 0 {
+					return m, nil
 				}
-				return m, downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, keys)
+				m.sum = len(m.targetS3Keys) + 1
+				m.status = statusDownloading
+				return m, tea.Batch(m.spinner.Tick, downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
+			}
+		case "D":
+			if m.status == statusS3ObjectListed {
+				m.targetS3Keys = m.getTargetS3Keys()
+				if len(m.targetS3Keys) == 0 {
+					return m, nil
+				}
+				m.sum = len(m.targetS3Keys) + 1
+				m.status = statusS3ObjectDeleting
+				return m, tea.Batch(m.spinner.Tick, deleteS3ObjectCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 			}
 		case "enter":
-			if m.status == statusReturnToTop || m.status == statusDownloaded {
+			if m.status == statusReturnToTop || m.status == statusDownloaded || m.status == statusS3ObjectDeleted {
 				return newRootModel(), nil
 			}
 		case " ":
@@ -318,15 +453,48 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.toggles[m.choice.Choice].Toggle()
 			}
 		}
+	case tea.WindowSizeMsg:
+		m.window.Width, m.window.Height = msg.Width, msg.Height
 	case fetchS3Keys:
 		m.status = statusS3ObjectFetched
 		m.s3Keys = msg.keys
 		m.choice = ui.NewChoice(0, len(m.s3Keys)-1)
 		m.toggles = ui.NewToggleSets(len(m.s3Keys))
 		return m, nil
-	case downloadS3BucketMsg:
-		m.status = statusDownloaded
-		return m, nil
+	case downloadS3ObjectsMsg:
+		m.targetS3Keys = m.targetS3Keys[1:]
+		if len(m.targetS3Keys) == 0 {
+			m.status = statusDownloaded
+			return m, nil
+		}
+		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+		m.index++
+		return m, tea.Batch(
+			progressCmd,
+			tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
+			downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
+	case deleteS3ObjectMsg:
+		m.targetS3Keys = m.targetS3Keys[1:]
+		if len(m.targetS3Keys) == 0 {
+			m.status = statusS3ObjectDeleted
+			return m, nil
+		}
+		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+		m.index++
+		return m, tea.Batch(
+			progressCmd,
+			tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
+			deleteS3ObjectCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	case progress.FrameMsg:
+		newModel, cmd := m.progress.Update(msg)
+		if newModel, ok := newModel.(progress.Model); ok {
+			m.progress = newModel
+		}
+		return m, cmd
 	case ui.ErrMsg:
 		m.err = msg
 		m.status = statusQuit
@@ -344,24 +512,47 @@ func (m *s3hubListS3ObjectModel) View() string {
 		return ui.ErrorMessage(m.err)
 	}
 
-	if m.status == statusQuit {
+	switch m.status {
+	case statusQuit:
 		return ui.GoodByeMessage()
-	}
-
-	if m.status == statusDownloaded {
+	case statusDownloaded:
 		return doneStyle.Render("All S3 objects downloaded. Press <enter> to return to the top.")
-	}
+	case statusDownloading:
+		w := lipgloss.Width(fmt.Sprintf("%d", m.sum))
+		s3keyCount := fmt.Sprintf(" %*d/%*d", w, m.index, w, m.sum-1)
+		spin := m.spinner.View() + " "
+		prog := m.progress.View()
+		cellsAvail := max(0, m.window.Width-lipgloss.Width(spin+prog+s3keyCount))
 
-	if m.status == statusNone || m.status == statusS3ObjectFetching {
+		s3keyName := currentNameStyle.Render(m.targetS3Keys[0].String())
+		info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Downloading " + s3keyName)
+		cellsRemaining := max(0, m.window.Width-lipgloss.Width(spin+info+prog+s3keyCount))
+		gap := strings.Repeat(" ", cellsRemaining)
+		return spin + info + gap + prog + s3keyCount
+	case statusS3ObjectDeleted:
+		return doneStyle.Render("All S3 objects deleted. Press <enter> to return to the top.\n")
+	case statusS3ObjectDeleting:
+		w := lipgloss.Width(fmt.Sprintf("%d", m.sum))
+		s3keyCount := fmt.Sprintf(" %*d/%*d", w, m.index, w, m.sum-1)
+		spin := m.spinner.View() + " "
+		prog := m.progress.View()
+		cellsAvail := max(0, m.window.Width-lipgloss.Width(spin+prog+s3keyCount))
+
+		s3keyName := currentNameStyle.Render(m.targetS3Keys[0].String())
+		info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Deleting " + s3keyName)
+		cellsRemaining := max(0, m.window.Width-lipgloss.Width(spin+info+prog+s3keyCount))
+		gap := strings.Repeat(" ", cellsRemaining)
+		return spin + info + gap + prog + s3keyCount
+	case statusNone, statusS3ObjectFetching:
 		return fmt.Sprintf(
 			"fetching the list of the S3 objects (profile=%s, bucket=%s)\n",
 			m.awsProfile.String(),
 			m.bucket.String())
-	}
-	if m.status == statusS3ObjectFetched {
+	case statusS3ObjectFetched:
+		return m.s3ObjectListString()
+	default:
 		return m.s3ObjectListString()
 	}
-	return m.s3ObjectListString()
 }
 
 // s3ObjectListString returns the string representation of the S3 object list.
@@ -372,6 +563,17 @@ func (m *s3hubListS3ObjectModel) s3ObjectListString() string {
 	default:
 		return m.s3ObjectListStrWithCheckbox()
 	}
+}
+
+// getTargetS3Keys returns the list of the S3 bucket objects that the user wants to download
+func (m *s3hubListS3ObjectModel) getTargetS3Keys() []model.S3Key {
+	targetS3Keys := make([]model.S3Key, 0, len(m.toggles))
+	for i, t := range m.toggles {
+		if t.Enabled {
+			targetS3Keys = append(targetS3Keys, m.s3Keys[i])
+		}
+	}
+	return targetS3Keys
 }
 
 // s3ObjectListStrWithCheckbox generates the string representation of the S3 object list.
@@ -397,7 +599,8 @@ func (m *s3hubListS3ObjectModel) s3ObjectListStrWithCheckbox() string {
 			ui.ToggleWidget(color.GreenString("%s", m.bucket.Join(m.s3Keys[i])), m.choice.Choice == i, m.toggles[i].Enabled))
 	}
 	s += ui.Subtle("\n<esc>: return | <Ctrl-C>: quit | up/down: select\n")
-	s += ui.Subtle("<space>: choose s3 object to download | d: download s3 object\n\n")
+	s += ui.Subtle("<space>: choose s3 object to download\n")
+	s += ui.Subtle("d: download s3 objects | D: delete s3 objects\n\n")
 	return s
 }
 

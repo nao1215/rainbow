@@ -88,70 +88,37 @@ func fetchS3KeysCmd(ctx context.Context, app *di.S3App, bucket model.Bucket) tea
 
 // downloadS3BucketMsg is the message that is sent when the user wants to download the S3 bucket.
 type downloadS3BucketMsg struct {
-	downloadedBuckets []model.Bucket
+	downloadedBuckets model.Bucket
 }
 
 // downloadS3BucketCmd downloads the S3 bucket.
-func downloadS3BucketCmd(ctx context.Context, app *di.S3App, bucket []model.Bucket) tea.Cmd {
-	return tea.Cmd(func() tea.Msg {
-		for _, b := range bucket {
-			output, err := app.S3ObjectsLister.ListS3Objects(ctx, &usecase.S3ObjectsListerInput{
-				Bucket: b,
-			})
-			if err != nil {
-				return ui.ErrMsg(err)
-			}
-
-			if len(output.Objects) == 0 {
-				continue
-			}
-
-			for _, v := range output.Objects {
-				downloadOutput, err := app.S3ObjectDownloader.DownloadS3Object(ctx, &usecase.S3ObjectDownloaderInput{
-					Bucket: b,
-					Key:    v.S3Key,
-				})
-				if err != nil {
-					return ui.ErrMsg(err)
-				}
-
-				destinationPath := filepath.Clean(filepath.Join(s3hub.DefaultDownloadDirPath, b.String(), v.S3Key.String()))
-				dir := filepath.Dir(destinationPath)
-				if !gfile.IsDir(dir) {
-					if err := os.MkdirAll(dir, 0750); err != nil {
-						return ui.ErrMsg(fmt.Errorf("can not create directory %s: %w", color.YellowString(dir), err))
-					}
-				}
-
-				if err := downloadOutput.S3Object.ToFile(destinationPath, 0644); err != nil {
-					return ui.ErrMsg(fmt.Errorf("can not write file to %s: %w", color.YellowString(destinationPath), err))
-				}
-			}
+func downloadS3BucketCmd(ctx context.Context, app *di.S3App, bucket model.Bucket) tea.Cmd {
+	d, err := rand.Int(rand.Reader, big.NewInt(500))
+	if err != nil {
+		return func() tea.Msg {
+			return ui.ErrMsg(fmt.Errorf("failed to start download s3 bucket: %w", err))
 		}
-		return downloadS3BucketMsg{
-			downloadedBuckets: bucket,
+	}
+	delay := time.Millisecond * time.Duration(d.Int64())
+
+	return tea.Tick(delay, func(t time.Time) tea.Msg {
+		output, err := app.S3ObjectsLister.ListS3Objects(ctx, &usecase.S3ObjectsListerInput{
+			Bucket: bucket,
+		})
+		if err != nil {
+			return ui.ErrMsg(err)
 		}
-	})
-}
 
-// downloadS3ObjectsMsg is the message that is sent when the user wants to download the S3 bucket objects.
-type downloadS3ObjectsMsg struct {
-	downloadedS3Key []model.S3Key
-}
-
-// downloadS3ObjectsCmd downloads the S3 bucket objects.
-func downloadS3ObjectsCmd(ctx context.Context, app *di.S3App, bucket model.Bucket, keys []model.S3Key) tea.Cmd {
-	return tea.Cmd(func() tea.Msg {
-		for _, v := range keys {
+		for _, v := range output.Objects {
 			downloadOutput, err := app.S3ObjectDownloader.DownloadS3Object(ctx, &usecase.S3ObjectDownloaderInput{
 				Bucket: bucket,
-				Key:    v,
+				Key:    v.S3Key,
 			})
 			if err != nil {
 				return ui.ErrMsg(err)
 			}
 
-			destinationPath := filepath.Clean(filepath.Join(s3hub.DefaultDownloadDirPath, bucket.String(), v.String()))
+			destinationPath := filepath.Clean(filepath.Join(s3hub.DefaultDownloadDirPath, bucket.String(), v.S3Key.String()))
 			dir := filepath.Dir(destinationPath)
 			if !gfile.IsDir(dir) {
 				if err := os.MkdirAll(dir, 0750); err != nil {
@@ -163,8 +130,50 @@ func downloadS3ObjectsCmd(ctx context.Context, app *di.S3App, bucket model.Bucke
 				return ui.ErrMsg(fmt.Errorf("can not write file to %s: %w", color.YellowString(destinationPath), err))
 			}
 		}
+		return downloadS3BucketMsg{
+			downloadedBuckets: bucket,
+		}
+	})
+}
+
+// downloadS3ObjectsMsg is the message that is sent when the user wants to download the S3 bucket objects.
+type downloadS3ObjectsMsg struct {
+	downloadedS3Key model.S3Key
+}
+
+// downloadS3ObjectsCmd downloads the S3 bucket objects.
+func downloadS3ObjectsCmd(ctx context.Context, app *di.S3App, bucket model.Bucket, key model.S3Key) tea.Cmd {
+	d, err := rand.Int(rand.Reader, big.NewInt(500))
+	if err != nil {
+		return func() tea.Msg {
+			return ui.ErrMsg(fmt.Errorf("failed to start download s3 object: %w", err))
+		}
+	}
+	delay := time.Millisecond * time.Duration(d.Int64())
+
+	return tea.Tick(delay, func(t time.Time) tea.Msg {
+		downloadOutput, err := app.S3ObjectDownloader.DownloadS3Object(ctx, &usecase.S3ObjectDownloaderInput{
+			Bucket: bucket,
+			Key:    key,
+		})
+		if err != nil {
+			return ui.ErrMsg(err)
+		}
+
+		destinationPath := filepath.Clean(filepath.Join(s3hub.DefaultDownloadDirPath, bucket.String(), key.String()))
+		dir := filepath.Dir(destinationPath)
+		if !gfile.IsDir(dir) {
+			if err := os.MkdirAll(dir, 0750); err != nil {
+				return ui.ErrMsg(fmt.Errorf("can not create directory %s: %w", color.YellowString(dir), err))
+			}
+		}
+
+		if err := downloadOutput.S3Object.ToFile(destinationPath, 0644); err != nil {
+			return ui.ErrMsg(fmt.Errorf("can not write file to %s: %w", color.YellowString(destinationPath), err))
+		}
+
 		return downloadS3ObjectsMsg{
-			downloadedS3Key: keys,
+			downloadedS3Key: key,
 		}
 	})
 }
@@ -246,4 +255,37 @@ func divideIntoChunks(slice []model.S3ObjectIdentifier, chunkSize int) [][]model
 		chunks = append(chunks, slice[i:end])
 	}
 	return chunks
+}
+
+// deleteS3ObjectMsg is the message that is sent when the user wants to delete the S3 object.
+type deleteS3ObjectMsg struct {
+	deletedS3Key model.S3Key
+}
+
+// deleteS3ObjectCmd deletes the S3 object.
+func deleteS3ObjectCmd(ctx context.Context, app *di.S3App, bucket model.Bucket, key model.S3Key) tea.Cmd {
+	d, err := rand.Int(rand.Reader, big.NewInt(500))
+	if err != nil {
+		return func() tea.Msg {
+			return ui.ErrMsg(fmt.Errorf("failed to start deleting s3 bucket: %w", err))
+		}
+	}
+	delay := time.Millisecond * time.Duration(d.Int64())
+
+	return tea.Tick(delay, func(t time.Time) tea.Msg {
+		_, err := app.S3ObjectsDeleter.DeleteS3Objects(ctx, &usecase.S3ObjectsDeleterInput{
+			Bucket: bucket,
+			S3ObjectSets: []model.S3ObjectIdentifier{
+				{
+					S3Key: key,
+				},
+			},
+		})
+		if err != nil {
+			return ui.ErrMsg(err)
+		}
+		return deleteS3ObjectMsg{
+			deletedS3Key: key,
+		}
+	})
 }

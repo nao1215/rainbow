@@ -148,18 +148,8 @@ func (m *s3hubCreateBucketModel) View() string {
 		message += ui.ErrorMessage(m.err)
 		return message
 	}
-
-	if m.status == statusBucketCreated {
-		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   S3 Name   ]%s\n\n%s\n\nCreated S3 bucket: %s\n%s\n",
-			m.awsProfile.String(),
-			m.region.String(),
-			m.bucketNameWithColor(),
-			m.bucketNameLengthString(),
-			ui.Yellow(m.bucket.String()),
-			ui.Subtle("<enter>: return to the top"))
-	}
-
-	if m.status == statusBucketCreating {
+	switch m.status {
+	case statusBucketCreating:
 		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   %s   ]%s\n\n%s\n\n%s\n%s\n\n%s\n",
 			m.awsProfile.String(),
 			m.region.String(),
@@ -170,31 +160,38 @@ func (m *s3hubCreateBucketModel) View() string {
 			ui.Subtle("<enter>: create bucket"),
 			"Creating S3 bucket...",
 		)
-	}
-
-	if m.choice == s3hubCreateBucketRegionChoice {
-		return fmt.Sprintf(
-			"[ AWS Profile ] %s\n[ ◀︎  %s ▶︎ ] %s\n[   S3 Name   ]%s\n\n%s\n\n%s\n%s\n",
+	case statusBucketCreated:
+		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   S3 Name   ]%s\n\n%s\n\nCreated S3 bucket: %s\n%s\n",
 			m.awsProfile.String(),
-			ui.Yellow("Region"),
-			ui.Green(m.region.String()),
+			m.region.String(),
+			m.bucketNameWithColor(),
+			m.bucketNameLengthString(),
+			ui.Yellow(m.bucket.String()),
+			ui.Subtle("<enter>: return to the top"))
+	default:
+		if m.choice == s3hubCreateBucketRegionChoice {
+			return fmt.Sprintf(
+				"[ AWS Profile ] %s\n[ ◀︎  %s ▶︎ ] %s\n[   S3 Name   ]%s\n\n%s\n\n%s\n%s\n",
+				m.awsProfile.String(),
+				ui.Yellow("Region"),
+				ui.Green(m.region.String()),
+				m.bucketNameWithColor(),
+				m.bucketNameLengthString(),
+				ui.Subtle("<esc>: return to the top | <Ctrl-C>: quit | up/down: select"),
+				ui.Subtle("<enter>: create bucket   | h/l, left/right: select region"),
+			)
+		}
+		return fmt.Sprintf(
+			"[ AWS Profile ] %s\n[    Region   ] %s\n[   %s   ]%s\n\n%s\n\n%s\n%s\n",
+			m.awsProfile.String(),
+			m.region.String(),
+			ui.Yellow("S3 Name"),
 			m.bucketNameWithColor(),
 			m.bucketNameLengthString(),
 			ui.Subtle("<esc>: return to the top | <Ctrl-C>: quit | up/down: select"),
-			ui.Subtle("<enter>: create bucket   | h/l, left/right: select region"),
+			ui.Subtle("<enter>: create bucket"),
 		)
 	}
-
-	return fmt.Sprintf(
-		"[ AWS Profile ] %s\n[    Region   ] %s\n[   %s   ]%s\n\n%s\n\n%s\n%s\n",
-		m.awsProfile.String(),
-		m.region.String(),
-		ui.Yellow("S3 Name"),
-		m.bucketNameWithColor(),
-		m.bucketNameLengthString(),
-		ui.Subtle("<esc>: return to the top | <Ctrl-C>: quit | up/down: select"),
-		ui.Subtle("<enter>: create bucket"),
-	)
 }
 
 // bucketNameWithColor returns the bucket name with color.

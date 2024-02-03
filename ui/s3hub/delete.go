@@ -16,9 +16,9 @@ import (
 )
 
 var (
-	currentBucketNameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("211"))
-	doneStyle              = lipgloss.NewStyle().Margin(2, 1, 1)
-	checkMark              = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).SetString("✓")
+	currentNameStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("211"))
+	doneStyle        = lipgloss.NewStyle().Margin(2, 1, 1)
+	checkMark        = lipgloss.NewStyle().Foreground(lipgloss.Color("42")).SetString("✓")
 )
 
 type s3hubDeleteBucketModel struct {
@@ -92,10 +92,12 @@ func newS3hubDeleteBucketModel() (*s3hubDeleteBucketModel, error) {
 	}, nil
 }
 
+// Init initializes the model.
 func (m *s3hubDeleteBucketModel) Init() tea.Cmd {
 	return nil // Not called this method
 }
 
+// Update updates the model based on messages.
 func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.err != nil {
 		return m, tea.Quit
@@ -184,15 +186,12 @@ func (m *s3hubDeleteBucketModel) View() string {
 		return ui.ErrorMessage(m.err)
 	}
 
-	if m.status == statusQuit {
+	switch m.status {
+	case statusQuit:
 		return ui.GoodByeMessage()
-	}
-
-	if m.status == statusBucketDeleted {
+	case statusBucketDeleted:
 		return doneStyle.Render("All S3 buckets deleted. Press <enter> to return to the top.\n")
-	}
-
-	if m.status == statusBucketDeleting {
+	case statusBucketDeleting:
 		w := lipgloss.Width(fmt.Sprintf("%d", m.sum))
 		bucketCount := fmt.Sprintf(" %*d/%*d", w, m.index, w, m.sum-1)
 
@@ -200,23 +199,20 @@ func (m *s3hubDeleteBucketModel) View() string {
 		prog := m.progress.View()
 		cellsAvail := max(0, m.window.Width-lipgloss.Width(spin+prog+bucketCount))
 
-		bucketName := currentBucketNameStyle.Render(m.targetBuckets[0].String())
+		bucketName := currentNameStyle.Render(m.targetBuckets[0].String())
 		info := lipgloss.NewStyle().MaxWidth(cellsAvail).Render("Deleting " + bucketName)
 		cellsRemaining := max(0, m.window.Width-lipgloss.Width(spin+info+prog+bucketCount))
 		gap := strings.Repeat(" ", cellsRemaining)
 		return spin + info + gap + prog + bucketCount
-	}
-
-	if m.status == statusBucketFetching || m.status == statusNone {
+	case statusBucketFetching, statusNone:
 		return fmt.Sprintf(
 			"fetching the list of the S3 buckets (profile=%s)\n",
 			m.awsProfile.String())
-	}
-
-	if m.status == statusBucketFetched {
+	case statusBucketFetched:
 		return m.bucketListString()
+	default:
+		return m.bucketListString() // TODO: implement
 	}
-	return m.bucketListString() // TODO: implement
 }
 
 // bucketListString returns the string representation of the bucket list.
