@@ -446,7 +446,11 @@ func (s *S3Object) ToFile(path string, perm fs.FileMode) error {
 // ContentType returns the content type of the S3Object.
 // If the content type cannot be detected, it returns "plain/text".
 func (s *S3Object) ContentType() string {
-	mtype, err := mimetype.DetectReader(s.Buffer)
+	// Create a copy of the buffer.
+	bufferCopy := make([]byte, s.Len())
+	copy(bufferCopy, s.Bytes())
+
+	mtype, err := mimetype.DetectReader(bytes.NewReader(bufferCopy))
 	if err != nil {
 		return "plain/text"
 	}

@@ -114,6 +114,9 @@ func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.status = statusQuit
 			return m, tea.Quit
 		case "q", "esc":
+			if m.status == statusBucketDeleted {
+				return m, nil
+			}
 			m.status = statusReturnToTop
 			return newRootModel(), nil
 		case "enter":
@@ -133,13 +136,12 @@ func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusBucketDeleting
-				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
+				m.index = 1
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 
 				return m, tea.Batch(
 					m.spinner.Tick,
 					progressCmd,
-					tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
 					deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 			}
 		case " ":
@@ -156,16 +158,17 @@ func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.toggles = ui.NewToggleSets(m.bucketSets.Len())
 		return m, nil
 	case deleteS3BucketMsg:
+		deletedTarget := m.targetBuckets[0]
 		m.targetBuckets = m.targetBuckets[1:]
 		if len(m.targetBuckets) == 0 {
 			m.status = statusBucketDeleted
-			return m, nil
+			return m, tea.Printf("%s %s", checkMark, deletedTarget)
 		}
 		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 		m.index++
 		return m, tea.Batch(
 			progressCmd,
-			tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+			tea.Printf("%s %s", checkMark, deletedTarget),
 			deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -274,5 +277,5 @@ func (m *s3hubDeleteBucketModel) emptyBucketListString() string {
 	m.status = statusReturnToTop
 	return fmt.Sprintf("No S3 buckets (profile=%s)\n\n%s\n",
 		m.awsProfile.String(),
-		ui.Subtle("<enter>, <esc>, q: return to the top"))
+		ui.Subtle("<enter>: return to the top"))
 }

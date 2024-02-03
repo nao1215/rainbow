@@ -72,8 +72,8 @@ type S3BucketDeleter interface {
 type S3ObjectsDeleterInput struct {
 	// Bucket is the name of the bucket that you want to delete.
 	Bucket model.Bucket
-	// S3ObjectSets is the list of the objects to delete.
-	S3ObjectSets model.S3ObjectIdentifiers
+	// S3ObjectIdentifiers is the list of the objects to delete.
+	S3ObjectIdentifiers model.S3ObjectIdentifiers
 }
 
 // S3ObjectsDeleterOutput is the output of the DeleteObjects method.

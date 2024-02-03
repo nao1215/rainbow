@@ -115,6 +115,9 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.status = statusQuit
 			return m, tea.Quit
 		case "q", "esc":
+			if m.status == statusBucketDeleted || m.status == statusDownloaded {
+				return m, nil
+			}
 			m.status = statusReturnToTop
 			return newRootModel(), nil
 		case "d":
@@ -125,13 +128,12 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusDownloading
-				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
+				m.index = 1
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 
 				return m, tea.Batch(
 					m.spinner.Tick,
 					progressCmd,
-					tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
 					downloadS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 			}
 		case "D":
@@ -142,12 +144,11 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusBucketDeleting
-				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
+				m.index = 1
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 
 				return m, tea.Batch(m.spinner.Tick,
 					progressCmd,
-					tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
 					deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 			}
 		case "enter":
@@ -178,28 +179,30 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.toggles = ui.NewToggleSets(m.bucketSets.Len())
 		return m, nil
 	case downloadS3BucketMsg:
+		downloadedTarget := m.targetBuckets[0]
 		m.targetBuckets = m.targetBuckets[1:]
 		if len(m.targetBuckets) == 0 {
 			m.status = statusDownloaded
-			return m, nil
+			return m, tea.Printf("%s %s", checkMark, downloadedTarget)
 		}
 		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 		m.index++
 		return m, tea.Batch(
 			progressCmd,
-			tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+			tea.Printf("%s %s", checkMark, downloadedTarget),
 			downloadS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 	case deleteS3BucketMsg:
+		deletedTarget := m.targetBuckets[0]
 		m.targetBuckets = m.targetBuckets[1:]
 		if len(m.targetBuckets) == 0 {
 			m.status = statusBucketDeleted
-			return m, nil
+			return m, tea.Printf("%s %s", checkMark, deletedTarget)
 		}
 		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 		m.index++
 		return m, tea.Batch(
 			progressCmd,
-			tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+			tea.Printf("%s %s", checkMark, deletedTarget),
 			deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -430,6 +433,9 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "q", "esc":
+			if m.status == statusS3ObjectDeleted || m.status == statusDownloaded {
+				return m, nil
+			}
 			model, err := newS3HubListBucketModel()
 			if err != nil {
 				m.err = err
@@ -445,12 +451,11 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetS3Keys) + 1
 				m.status = statusDownloading
-				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
+				m.index = 1
 
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 				return m, tea.Batch(m.spinner.Tick,
 					progressCmd,
-					tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
 					downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 			}
 		case "D":
@@ -461,12 +466,11 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetS3Keys) + 1
 				m.status = statusS3ObjectDeleting
-				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
+				m.index = 1
 
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 				return m, tea.Batch(m.spinner.Tick,
 					progressCmd,
-					tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
 					deleteS3ObjectCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 			}
 		case "enter":
@@ -487,28 +491,30 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.toggles = ui.NewToggleSets(len(m.s3Keys))
 		return m, nil
 	case downloadS3ObjectsMsg:
+		downloadedTarget := m.targetS3Keys[0]
 		m.targetS3Keys = m.targetS3Keys[1:]
 		if len(m.targetS3Keys) == 0 {
 			m.status = statusDownloaded
-			return m, nil
+			return m, tea.Printf("%s %s", checkMark, downloadedTarget)
 		}
 		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 		m.index++
 		return m, tea.Batch(
 			progressCmd,
-			tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
+			tea.Printf("%s %s", checkMark, downloadedTarget),
 			downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 	case deleteS3ObjectMsg:
+		deletedTarget := m.targetS3Keys[0]
 		m.targetS3Keys = m.targetS3Keys[1:]
 		if len(m.targetS3Keys) == 0 {
 			m.status = statusS3ObjectDeleted
-			return m, nil
+			return m, tea.Printf("%s %s", checkMark, deletedTarget)
 		}
 		progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 		m.index++
 		return m, tea.Batch(
 			progressCmd,
-			tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
+			tea.Printf("%s %s", checkMark, deletedTarget),
 			deleteS3ObjectCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -635,5 +641,5 @@ func (m *s3hubListS3ObjectModel) emptyS3ObjectListString() string {
 	return fmt.Sprintf("No S3 objects (profile=%s, bucket=%s)\n\n%s\n",
 		m.awsProfile.String(),
 		m.bucket.String(),
-		ui.Subtle("<enter>, <esc>, q: return to the top"))
+		ui.Subtle("<enter>: return to the top"))
 }

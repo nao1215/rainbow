@@ -217,8 +217,8 @@ func deleteS3BucketCmd(ctx context.Context, app *di.S3App, bucket model.Bucket) 
 				eg.Go(func() error {
 					defer sem.Release(1)
 					if _, err := app.S3ObjectsDeleter.DeleteS3Objects(ctx, &usecase.S3ObjectsDeleterInput{
-						Bucket:       bucket,
-						S3ObjectSets: chunk,
+						Bucket:              bucket,
+						S3ObjectIdentifiers: chunk,
 					}); err != nil {
 						return err
 					}
@@ -275,7 +275,7 @@ func deleteS3ObjectCmd(ctx context.Context, app *di.S3App, bucket model.Bucket, 
 	return tea.Tick(delay, func(t time.Time) tea.Msg {
 		_, err := app.S3ObjectsDeleter.DeleteS3Objects(ctx, &usecase.S3ObjectsDeleterInput{
 			Bucket: bucket,
-			S3ObjectSets: []model.S3ObjectIdentifier{
+			S3ObjectIdentifiers: []model.S3ObjectIdentifier{
 				{
 					S3Key: key,
 				},
