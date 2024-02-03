@@ -21,6 +21,28 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+// createMsg is the message that is sent when the user wants to create the S3 bucket.
+type createMsg struct{}
+
+// createS3BucketCmd creates the S3 bucket command.
+func (m *s3hubCreateBucketModel) createS3BucketCmd() tea.Cmd {
+	return tea.Cmd(func() tea.Msg {
+		if m.app == nil {
+			return ui.ErrMsg(fmt.Errorf("not initialized s3 application. please restart the application"))
+		}
+		input := &usecase.S3BucketCreatorInput{
+			Bucket: m.bucket,
+			Region: m.region,
+		}
+		m.status = statusBucketCreating
+
+		if _, err := m.app.S3BucketCreator.CreateS3Bucket(m.ctx, input); err != nil {
+			return ui.ErrMsg(err)
+		}
+		return createMsg{}
+	})
+}
+
 // fetchS3BucketMsg is the message that is sent when the user wants to fetch the list of the S3 buckets.
 type fetchS3BucketMsg struct {
 	buckets model.BucketSets

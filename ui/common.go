@@ -86,9 +86,12 @@ func ErrorMessage(err error) string {
 
 // Choice represents a choice.
 type Choice struct {
+	// Choice is the currently selected menu item.
 	Choice int
-	Max    int
-	Min    int
+	// Max is the maximum choice number.
+	Max int
+	// Min is the minimum choice number.
+	Min int
 }
 
 // NewChoice returns a new choice.
@@ -145,4 +148,20 @@ func NewToggleSets(n int) ToggleSets {
 		ts = append(ts, NewToggle())
 	}
 	return ts
+}
+
+// Window represents the window size.
+type Window struct {
+	// Width is the window width.
+	Width int
+	// Height is the window height.
+	Height int
+}
+
+// NewWindow returns a new window.
+func NewWindow(width, height int) *Window {
+	return &Window{
+		Width:  width,
+		Height: height,
+	}
 }

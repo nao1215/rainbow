@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/nao1215/rainbow/app/di"
 	"github.com/nao1215/rainbow/app/domain/model"
-	"github.com/nao1215/rainbow/app/usecase"
 	"github.com/nao1215/rainbow/ui"
 )
 
@@ -26,8 +25,8 @@ type s3hubCreateBucketModel struct {
 	err error
 	// bucket is the name of the S3 bucket that the user wants to create.
 	bucket model.Bucket
-	// state is the state of the create bucket operation.
-	state s3hubCreateBucketState
+	// state is the status of the create bucket operation.
+	status status
 	// awsConfig is the AWS configuration.
 	awsConfig *model.AWSConfig
 	// awsProfile is the AWS profile.
@@ -42,17 +41,7 @@ type s3hubCreateBucketModel struct {
 	ctx context.Context
 }
 
-// createMsg is the message that is sent when the user wants to create the S3 bucket.
-type createMsg struct{}
-
-type s3hubCreateBucketState int
-
-const (
-	s3hubCreateBucketStateNone     s3hubCreateBucketState = 0
-	s3hubCreateBucketStateCreating s3hubCreateBucketState = 1
-	s3hubCreateBucketStateCreated  s3hubCreateBucketState = 2
-)
-
+// newS3hubCreateBucketModel creates a new s3hubCreateBucketModel.
 func newS3hubCreateBucketModel() (*s3hubCreateBucketModel, error) {
 	ti := textinput.New()
 	ti.Placeholder = fmt.Sprintf("Write the S3 bucket name here (min: %d, max: %d)", model.MinBucketNameLength, model.MaxBucketNameLength)
@@ -77,10 +66,12 @@ func newS3hubCreateBucketModel() (*s3hubCreateBucketModel, error) {
 	}, nil
 }
 
+// Init initializes the model.
 func (m *s3hubCreateBucketModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update updates the model.
 func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.err != nil {
 		return m, tea.Quit
@@ -108,7 +99,7 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.region = m.region.Next()
 			}
 		case "enter":
-			if m.state == s3hubCreateBucketStateCreated {
+			if m.status == statusBucketCreated {
 				return newRootModel(), nil
 			}
 			if m.bucketNameInput.Value() == "" || len(m.bucketNameInput.Value()) < model.MinBucketNameLength {
@@ -131,11 +122,11 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.err = msg
 		return m, nil
 	case createMsg:
-		m.state = s3hubCreateBucketStateCreated
+		m.status = statusBucketCreated
 		return m, nil
 	}
 
-	if m.state != s3hubCreateBucketStateCreated && m.choice == s3hubCreateBucketBucketNameChoice {
+	if m.status != statusBucketCreated && m.choice == s3hubCreateBucketBucketNameChoice {
 		var cmd tea.Cmd
 		m.bucketNameInput, cmd = m.bucketNameInput.Update(msg)
 		return m, cmd
@@ -143,6 +134,7 @@ func (m *s3hubCreateBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View renders the application's UI.
 func (m *s3hubCreateBucketModel) View() string {
 	if m.err != nil {
 		message := fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   S3 Name   ]%s\n\n%s\n\n%s\n%s\n\n",
@@ -157,7 +149,7 @@ func (m *s3hubCreateBucketModel) View() string {
 		return message
 	}
 
-	if m.state == s3hubCreateBucketStateCreated {
+	if m.status == statusBucketCreated {
 		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   S3 Name   ]%s\n\n%s\n\nCreated S3 bucket: %s\n%s\n",
 			m.awsProfile.String(),
 			m.region.String(),
@@ -167,7 +159,7 @@ func (m *s3hubCreateBucketModel) View() string {
 			ui.Subtle("<enter>: return to the top"))
 	}
 
-	if m.state == s3hubCreateBucketStateCreating {
+	if m.status == statusBucketCreating {
 		return fmt.Sprintf("[ AWS Profile ] %s\n[    Region   ] %s\n[   %s   ]%s\n\n%s\n\n%s\n%s\n\n%s\n",
 			m.awsProfile.String(),
 			m.region.String(),
@@ -207,7 +199,7 @@ func (m *s3hubCreateBucketModel) View() string {
 
 // bucketNameWithColor returns the bucket name with color.
 func (m *s3hubCreateBucketModel) bucketNameWithColor() string {
-	if m.state == s3hubCreateBucketStateCreating || m.state == s3hubCreateBucketStateCreated {
+	if m.status == statusBucketCreating || m.status == statusBucketCreated {
 		return m.bucketNameInput.View()
 	}
 
@@ -229,22 +221,4 @@ func (m *s3hubCreateBucketModel) bucketNameLengthString() string {
 		lengthStr += " (min: 3)"
 	}
 	return lengthStr
-}
-
-func (m *s3hubCreateBucketModel) createS3BucketCmd() tea.Cmd {
-	return tea.Cmd(func() tea.Msg {
-		if m.app == nil {
-			return ui.ErrMsg(fmt.Errorf("not initialized s3 application. please restart the application"))
-		}
-		input := &usecase.S3BucketCreatorInput{
-			Bucket: m.bucket,
-			Region: m.region,
-		}
-		m.state = s3hubCreateBucketStateCreating
-
-		if _, err := m.app.S3BucketCreator.CreateS3Bucket(m.ctx, input); err != nil {
-			return ui.ErrMsg(err)
-		}
-		return createMsg{}
-	})
 }

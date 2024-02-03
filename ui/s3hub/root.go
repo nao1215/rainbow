@@ -13,15 +13,13 @@ const (
 	// s3hubTopMinChoice is the minimum choice number.
 	s3hubTopMinChoice = 0
 	// s3hubTopMaxChoice is the maximum choice number.
-	s3hubTopMaxChoice = 3
+	s3hubTopMaxChoice = 2
 	// s3hubTopCreateChoice is the choice number for creating the S3 bucket.
 	s3hubTopCreateChoice = 0
 	// s3hubTopListChoice is the choice number for listing S3 buckets.
 	s3hubTopListChoice = 1
-	// s3hubTopDeleteContentsChoice is the choice number for deleting contents from the S3 bucket.
-	s3hubTopDeleteContentsChoice = 2
 	// s3hubTopDeleteBucketChoice is the choice number for deleting the S3 bucket.
-	s3hubTopDeleteBucketChoice = 3
+	s3hubTopDeleteBucketChoice = 2
 )
 
 // s3hubRootModel is the top-level model for the application.
@@ -108,17 +106,15 @@ func (m *s3hubRootModel) updateChoices(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.err = err
 					return m, tea.Quit
 				}
-				model.s3BucketListBucketStatus = s3hubListBucketStatusBucketFetching
+				model.status = statusBucketFetching
 				return model, fetchS3BucketListCmd(model.ctx, model.app)
-			case s3hubTopDeleteContentsChoice:
-				return &s3hubDeleteContentsModel{}, nil
 			case s3hubTopDeleteBucketChoice:
 				model, err := newS3hubDeleteBucketModel()
 				if err != nil {
 					m.err = err
 					return m, tea.Quit
 				}
-				model.s3bucketListStatus = s3hubListBucketStatusBucketFetching
+				model.status = statusBucketFetching
 				return model, fetchS3BucketListCmd(model.ctx, model.app)
 			}
 		}
@@ -133,10 +129,9 @@ func (m *s3hubRootModel) choicesView() string {
 	template += ui.Subtle("j/k, up/down: select | enter: choose | q, <esc>: quit")
 
 	choices := fmt.Sprintf(
-		"%s\n%s\n%s\n%s\n",
+		"%s\n%s\n%s\n",
 		ui.Checkbox("Create the S3 bucket", c == s3hubTopMinChoice),
 		ui.Checkbox("List and download S3 objects", c == 1),
-		ui.Checkbox("Delete contents from the S3 bucket", c == 2),
 		ui.Checkbox("Delete the S3 bucket", c == s3hubTopMaxChoice),
 	)
 	return fmt.Sprintf(template, choices)
