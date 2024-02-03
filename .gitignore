@@ -27,3 +27,4 @@ localstack
 /cfn
 .envrc
 /t-rec*
+/s3hub-download
