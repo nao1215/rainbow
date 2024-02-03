@@ -376,7 +376,7 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 		s3ObjectsDeleter := NewS3ObjectsDeleter(s3ObjectsDeleterMock, s3BucketLocationGetter)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: model.Bucket("bucket-name"),
-			S3ObjectSets: model.S3ObjectIdentifiers{
+			S3ObjectIdentifiers: model.S3ObjectIdentifiers{
 				{
 					S3Key:     model.S3Key("object-key-A"),
 					VersionID: model.VersionID("version-id-A"),
@@ -416,7 +416,7 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 		s3ObjectsDeleter := NewS3ObjectsDeleter(s3ObjectsDeleterMock, s3BucketLocationGetter)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: model.Bucket("bucket-name"),
-			S3ObjectSets: model.S3ObjectIdentifiers{
+			S3ObjectIdentifiers: model.S3ObjectIdentifiers{
 				{
 					S3Key:     model.S3Key("object-key-A"),
 					VersionID: model.VersionID("version-id-A"),
@@ -445,7 +445,7 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 		s3ObjectsDeleter := NewS3ObjectsDeleter(nil, s3BucketLocationGetter)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: model.Bucket("bucket-name"),
-			S3ObjectSets: model.S3ObjectIdentifiers{
+			S3ObjectIdentifiers: model.S3ObjectIdentifiers{
 				{
 					S3Key:     model.S3Key("object-key-A"),
 					VersionID: model.VersionID("version-id-A"),

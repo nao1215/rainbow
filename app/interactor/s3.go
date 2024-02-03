@@ -177,7 +177,7 @@ func (s *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *usecase.S
 	_, err = s.S3ObjectsDeleter.DeleteS3Objects(ctx, &service.S3ObjectsDeleterInput{
 		Bucket:       input.Bucket,
 		Region:       location.Region,
-		S3ObjectSets: input.S3ObjectSets,
+		S3ObjectSets: input.S3ObjectIdentifiers,
 	})
 	if err != nil {
 		return nil, err

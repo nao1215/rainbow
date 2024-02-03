@@ -214,6 +214,7 @@ func NewS3ObjectsDeleter(client *s3.Client) *S3ObjectsDeleter {
 }
 
 // DeleteS3Objects deletes the objects in the bucket.
+// If the bucket has versioning enabled, all versions of the specified objects are deleted.
 func (c *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *service.S3ObjectsDeleterInput) (*service.S3ObjectsDeleterOutput, error) {
 	optFn := func(o *s3.Options) {
 		o.Retryer = NewRetryer(func(err error) bool {

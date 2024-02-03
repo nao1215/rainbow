@@ -136,7 +136,7 @@ func (r *rmCmd) remove(bucket model.Bucket, key model.S3Key) error {
 func (r *rmCmd) removeObject(bucket model.Bucket, key model.S3Key) error {
 	if _, err := r.S3App.S3ObjectsDeleter.DeleteS3Objects(r.ctx, &usecase.S3ObjectsDeleterInput{
 		Bucket: bucket,
-		S3ObjectSets: model.S3ObjectIdentifiers{
+		S3ObjectIdentifiers: model.S3ObjectIdentifiers{
 			model.S3ObjectIdentifier{
 				S3Key: key,
 			},
@@ -175,8 +175,8 @@ func (r *rmCmd) removeObjects(bucket model.Bucket) error {
 		eg.Go(func() error {
 			defer sem.Release(1)
 			if _, err := r.S3App.S3ObjectsDeleter.DeleteS3Objects(ctx, &usecase.S3ObjectsDeleterInput{
-				Bucket:       bucket,
-				S3ObjectSets: chunk,
+				Bucket:              bucket,
+				S3ObjectIdentifiers: chunk,
 			}); err != nil {
 				return err
 			}
