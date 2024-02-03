@@ -125,7 +125,13 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusDownloading
-				return m, tea.Batch(m.spinner.Tick, downloadS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
+				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+
+				return m, tea.Batch(
+					m.spinner.Tick,
+					progressCmd,
+					tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+					downloadS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 			}
 		case "D":
 			if m.status == statusBucketListed {
@@ -135,7 +141,12 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusBucketDeleting
-				return m, tea.Batch(m.spinner.Tick, deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
+				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+
+				return m, tea.Batch(m.spinner.Tick,
+					progressCmd,
+					tea.Printf("%s %s", checkMark, m.targetBuckets[0]),
+					deleteS3BucketCmd(m.ctx, m.app, m.targetBuckets[0]))
 			}
 		case "enter":
 			if m.status == statusReturnToTop || m.status == statusDownloaded || m.status == statusBucketDeleted {
@@ -432,7 +443,12 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetS3Keys) + 1
 				m.status = statusDownloading
-				return m, tea.Batch(m.spinner.Tick, downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
+
+				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+				return m, tea.Batch(m.spinner.Tick,
+					progressCmd,
+					tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
+					downloadS3ObjectsCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 			}
 		case "D":
 			if m.status == statusS3ObjectListed {
@@ -442,7 +458,12 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetS3Keys) + 1
 				m.status = statusS3ObjectDeleting
-				return m, tea.Batch(m.spinner.Tick, deleteS3ObjectCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
+
+				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
+				return m, tea.Batch(m.spinner.Tick,
+					progressCmd,
+					tea.Printf("%s %s", checkMark, m.targetS3Keys[0]),
+					deleteS3ObjectCmd(m.ctx, m.app, m.bucket, m.targetS3Keys[0]))
 			}
 		case "enter":
 			if m.status == statusReturnToTop || m.status == statusDownloaded || m.status == statusS3ObjectDeleted {
