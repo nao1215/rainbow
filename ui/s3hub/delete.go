@@ -133,6 +133,7 @@ func (m *s3hubDeleteBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusBucketDeleting
+				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 
 				return m, tea.Batch(

@@ -125,6 +125,7 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusDownloading
+				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 
 				return m, tea.Batch(
@@ -141,6 +142,7 @@ func (m *s3hubListBucketModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetBuckets) + 1
 				m.status = statusBucketDeleting
+				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 
 				return m, tea.Batch(m.spinner.Tick,
@@ -443,6 +445,7 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetS3Keys) + 1
 				m.status = statusDownloading
+				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
 
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 				return m, tea.Batch(m.spinner.Tick,
@@ -458,6 +461,7 @@ func (m *s3hubListS3ObjectModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.sum = len(m.targetS3Keys) + 1
 				m.status = statusS3ObjectDeleting
+				m.index = 0 // Initialize index to 0 to accurately represent the starting state of progress.
 
 				progressCmd := m.progress.SetPercent(float64(m.index) / float64(m.sum-1))
 				return m, tea.Batch(m.spinner.Tick,
