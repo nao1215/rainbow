@@ -413,3 +413,59 @@ func (c *S3ObjectCopier) CopyS3Object(ctx context.Context, input *service.S3Obje
 	}
 	return &service.S3ObjectCopierOutput{}, nil
 }
+
+// S3ObjectVersionsLister implements the S3ObjectVersionsLister interface.
+type S3ObjectVersionsLister struct {
+	client *s3.Client
+}
+
+// S3ObjectVersionsListerSet is a provider set for S3ObjectVersionsLister.
+//
+//nolint:gochecknoglobals
+var S3ObjectVersionsListerSet = wire.NewSet(
+	NewS3ObjectVersionsLister,
+	wire.Bind(new(service.S3ObjectVersionsLister), new(*S3ObjectVersionsLister)),
+)
+
+var _ service.S3ObjectVersionsLister = (*S3ObjectVersionsLister)(nil)
+
+// NewS3ObjectVersionsLister creates a new S3ObjectVersionsLister.
+func NewS3ObjectVersionsLister(client *s3.Client) *S3ObjectVersionsLister {
+	return &S3ObjectVersionsLister{client: client}
+}
+
+// ListS3ObjectVersions lists the object versions in the bucket.
+func (c *S3ObjectVersionsLister) ListS3ObjectVersions(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error) {
+	var objects model.S3ObjectIdentifiers
+	listObjectVersionsInput := &s3.ListObjectVersionsInput{
+		Bucket:  aws.String(input.Bucket.String()),
+		MaxKeys: aws.Int32(model.MaxS3Keys),
+	}
+
+	for {
+		listObjectVersionsOutput, err := c.client.ListObjectVersions(ctx, listObjectVersionsInput)
+		if err != nil {
+			return nil, err
+		}
+		for _, version := range listObjectVersionsOutput.Versions {
+			objects = append(objects, model.S3ObjectIdentifier{
+				S3Key:     model.S3Key(*version.Key),
+				VersionID: model.VersionID(*version.VersionId),
+			})
+		}
+		for _, deleteMarker := range listObjectVersionsOutput.DeleteMarkers {
+			objects = append(objects, model.S3ObjectIdentifier{
+				S3Key:     model.S3Key(*deleteMarker.Key),
+				VersionID: model.VersionID(*deleteMarker.VersionId),
+			})
+		}
+
+		if !*listObjectVersionsOutput.IsTruncated {
+			break
+		}
+
+		listObjectVersionsInput.KeyMarker = listObjectVersionsOutput.NextKeyMarker
+		listObjectVersionsInput.VersionIdMarker = listObjectVersionsOutput.NextVersionIdMarker
+	}
+	return &service.S3ObjectVersionsListerOutput{Objects: objects}, nil
+}

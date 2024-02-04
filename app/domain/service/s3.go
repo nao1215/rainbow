@@ -175,3 +175,20 @@ type S3ObjectCopierOutput struct{}
 type S3ObjectCopier interface {
 	CopyS3Object(ctx context.Context, input *S3ObjectCopierInput) (*S3ObjectCopierOutput, error)
 }
+
+// S3ObjectVersionsListerInput is the input of the ListBucketObjectVersions method.
+type S3ObjectVersionsListerInput struct {
+	// Bucket is the name of the bucket to list.
+	Bucket model.Bucket
+}
+
+// S3ObjectVersionsListerOutput is the output of the ListBucketObjectVersions method.
+type S3ObjectVersionsListerOutput struct {
+	// Objects is the list of the objects.
+	Objects model.S3ObjectIdentifiers
+}
+
+// S3ObjectVersionsLister is the interface that wraps the basic ListBucketObjectVersions method.
+type S3ObjectVersionsLister interface {
+	ListS3ObjectVersions(ctx context.Context, input *S3ObjectVersionsListerInput) (*S3ObjectVersionsListerOutput, error)
+}

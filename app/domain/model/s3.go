@@ -403,6 +403,7 @@ func (k S3Key) IsAll() bool {
 	return k == "*"
 }
 
+// Join returns the S3Key with the key.
 func (k S3Key) Join(key S3Key) S3Key {
 	if key.Empty() {
 		return k
