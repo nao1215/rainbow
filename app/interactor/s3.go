@@ -141,6 +141,7 @@ func (s *S3ObjectsLister) ListS3Objects(ctx context.Context, input *usecase.S3Ob
 type S3ObjectsDeleter struct {
 	service.S3ObjectsDeleter
 	service.S3BucketLocationGetter
+	service.S3ObjectVersionsLister
 }
 
 // S3ObjectsDeleterSet is a provider set for S3ObjectsDeleter.
@@ -154,10 +155,15 @@ var S3ObjectsDeleterSet = wire.NewSet(
 var _ usecase.S3ObjectsDeleter = (*S3ObjectsDeleter)(nil)
 
 // NewS3ObjectsDeleter creates a new S3ObjectsDeleter.
-func NewS3ObjectsDeleter(d service.S3ObjectsDeleter, l service.S3BucketLocationGetter) *S3ObjectsDeleter {
+func NewS3ObjectsDeleter(
+	d service.S3ObjectsDeleter,
+	g service.S3BucketLocationGetter,
+	l service.S3ObjectVersionsLister,
+) *S3ObjectsDeleter {
 	return &S3ObjectsDeleter{
 		S3ObjectsDeleter:       d,
-		S3BucketLocationGetter: l,
+		S3BucketLocationGetter: g,
+		S3ObjectVersionsLister: l,
 	}
 }
 
@@ -174,14 +180,41 @@ func (s *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *usecase.S
 		return nil, err
 	}
 
-	_, err = s.S3ObjectsDeleter.DeleteS3Objects(ctx, &service.S3ObjectsDeleterInput{
-		Bucket:       input.Bucket,
-		Region:       location.Region,
-		S3ObjectSets: input.S3ObjectIdentifiers,
+	versions, err := s.S3ObjectVersionsLister.ListS3ObjectVersions(ctx, &service.S3ObjectVersionsListerInput{
+		Bucket: input.Bucket,
 	})
 	if err != nil {
 		return nil, err
 	}
+	if len(versions.Objects) == 0 {
+		return &usecase.S3ObjectsDeleterOutput{}, nil // no objects to delete
+	}
+
+	targets := make(model.S3ObjectIdentifiers, 0, len(versions.Objects))
+	versionMap := make(map[model.S3Key][]model.VersionID)
+	for _, version := range versions.Objects {
+		versionMap[version.S3Key] = append(versionMap[version.S3Key], version.VersionID)
+	}
+
+	for _, inputIdentifier := range input.S3ObjectIdentifiers {
+		if versionIDs, ok := versionMap[inputIdentifier.S3Key]; ok {
+			for _, versionID := range versionIDs {
+				targets = append(targets, model.S3ObjectIdentifier{
+					S3Key:     inputIdentifier.S3Key,
+					VersionID: versionID,
+				})
+			}
+		}
+	}
+
+	if _, err = s.S3ObjectsDeleter.DeleteS3Objects(ctx, &service.S3ObjectsDeleterInput{
+		Bucket:       input.Bucket,
+		Region:       location.Region,
+		S3ObjectSets: targets,
+	}); err != nil {
+		return nil, err
+	}
+
 	return &usecase.S3ObjectsDeleterOutput{}, nil
 }
 

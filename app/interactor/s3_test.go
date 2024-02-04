@@ -373,7 +373,26 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 			return &service.S3ObjectsDeleterOutput{}, nil
 		})
 
-		s3ObjectsDeleter := NewS3ObjectsDeleter(s3ObjectsDeleterMock, s3BucketLocationGetter)
+		s3ObjectVersionLister := mock.S3ObjectVersionsLister(func(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error) {
+			return &service.S3ObjectVersionsListerOutput{
+				Objects: model.S3ObjectIdentifiers{
+					{
+						S3Key:     model.S3Key("object-key-A"),
+						VersionID: model.VersionID("version-id-A"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-B"),
+						VersionID: model.VersionID("version-id-B"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-C"),
+						VersionID: model.VersionID("version-id-C"),
+					},
+				},
+			}, nil
+		})
+
+		s3ObjectsDeleter := NewS3ObjectsDeleter(s3ObjectsDeleterMock, s3BucketLocationGetter, s3ObjectVersionLister)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: model.Bucket("bucket-name"),
 			S3ObjectIdentifiers: model.S3ObjectIdentifiers{
@@ -413,7 +432,26 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 			return nil, errors.New("some error")
 		})
 
-		s3ObjectsDeleter := NewS3ObjectsDeleter(s3ObjectsDeleterMock, s3BucketLocationGetter)
+		s3ObjectVersionLister := mock.S3ObjectVersionsLister(func(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error) {
+			return &service.S3ObjectVersionsListerOutput{
+				Objects: model.S3ObjectIdentifiers{
+					{
+						S3Key:     model.S3Key("object-key-A"),
+						VersionID: model.VersionID("version-id-A"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-B"),
+						VersionID: model.VersionID("version-id-B"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-C"),
+						VersionID: model.VersionID("version-id-C"),
+					},
+				},
+			}, nil
+		})
+
+		s3ObjectsDeleter := NewS3ObjectsDeleter(s3ObjectsDeleterMock, s3BucketLocationGetter, s3ObjectVersionLister)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: model.Bucket("bucket-name"),
 			S3ObjectIdentifiers: model.S3ObjectIdentifiers{
@@ -442,7 +480,7 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 			return nil, errors.New("some error")
 		})
 
-		s3ObjectsDeleter := NewS3ObjectsDeleter(nil, s3BucketLocationGetter)
+		s3ObjectsDeleter := NewS3ObjectsDeleter(nil, s3BucketLocationGetter, nil)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: model.Bucket("bucket-name"),
 			S3ObjectIdentifiers: model.S3ObjectIdentifiers{
@@ -467,7 +505,7 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 	t.Run("If bucket name is too short, failed to delete objects", func(t *testing.T) {
 		t.Parallel()
 
-		s3ObjectsDeleter := NewS3ObjectsDeleter(nil, nil)
+		s3ObjectsDeleter := NewS3ObjectsDeleter(nil, nil, nil)
 		if _, err := s3ObjectsDeleter.DeleteS3Objects(context.Background(), &usecase.S3ObjectsDeleterInput{
 			Bucket: "b", // too short
 		}); err == nil {

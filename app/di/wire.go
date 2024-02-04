@@ -48,6 +48,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 		external.S3ObjectDownloaderSet,
 		external.S3ObjectUploaderSet,
 		external.S3ObjectCopierSet,
+		external.S3ObjectVersionsListerSet,
 		interactor.S3BucketCreatorSet,
 		interactor.S3BucketListerSet,
 		interactor.S3BucketDeleterSet,

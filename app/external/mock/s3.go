@@ -93,3 +93,11 @@ type S3ObjectCopier func(ctx context.Context, input *service.S3ObjectCopierInput
 func (m S3ObjectCopier) CopyS3Object(ctx context.Context, input *service.S3ObjectCopierInput) (*service.S3ObjectCopierOutput, error) {
 	return m(ctx, input)
 }
+
+// S3ObjectVersionsLister is a mock of the S3ObjectVersionsLister interface.
+type S3ObjectVersionsLister func(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error)
+
+// ListS3ObjectVersions calls the ListS3ObjectVersionsFunc.
+func (m S3ObjectVersionsLister) ListS3ObjectVersions(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error) {
+	return m(ctx, input)
+}
