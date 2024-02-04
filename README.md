@@ -26,14 +26,22 @@ Windows is not supported because the tools used in unit testing do not run in a 
 ## CLI List
 |Name|README|implementation|Description|
 |:--|:--|:--|:--|
-|[s3hub](./doc/s3hub/README.md)|✅|70%|User-friendly s3 management tool|
+|[s3hub](./doc/s3hub/README.md)|✅|100%|User-friendly s3 management tool|
 |[spare](./doc/spare/README.md)|✅|50%|Single Page Application Release Easily|
 |[cfn](./doc/cfn/README.md)|✅|0%|List up or delete CloudFormation stacks|
 
 ### s3hub example
-#### Interactive mode
+The s3hub command provides following features:
+- [x] Create a S3 bucket
+- [x] List S3 buckets
+- [x] List S3 objects in the S3 bucket
+- [x] Copy files to S3 bucket
+- [x] Delete contents from the S3 bucket
+- [x] Delete the S3 bucket
+- [x] Interactive mode
+  
+  
 ![interactive_mode](./doc/img/s3hub-interactive.gif)
-
 
 ## Template List
 [WIP]
