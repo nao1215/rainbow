@@ -375,7 +375,20 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 
 		s3ObjectVersionLister := mock.S3ObjectVersionsLister(func(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error) {
 			return &service.S3ObjectVersionsListerOutput{
-				Objects: model.S3ObjectIdentifiers{},
+				Objects: model.S3ObjectIdentifiers{
+					{
+						S3Key:     model.S3Key("object-key-A"),
+						VersionID: model.VersionID("version-id-A"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-B"),
+						VersionID: model.VersionID("version-id-B"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-C"),
+						VersionID: model.VersionID("version-id-C"),
+					},
+				},
 			}, nil
 		})
 
@@ -421,7 +434,20 @@ func TestS3ObjectsDeleter_DeleteS3Objects(t *testing.T) {
 
 		s3ObjectVersionLister := mock.S3ObjectVersionsLister(func(ctx context.Context, input *service.S3ObjectVersionsListerInput) (*service.S3ObjectVersionsListerOutput, error) {
 			return &service.S3ObjectVersionsListerOutput{
-				Objects: model.S3ObjectIdentifiers{},
+				Objects: model.S3ObjectIdentifiers{
+					{
+						S3Key:     model.S3Key("object-key-A"),
+						VersionID: model.VersionID("version-id-A"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-B"),
+						VersionID: model.VersionID("version-id-B"),
+					},
+					{
+						S3Key:     model.S3Key("object-key-C"),
+						VersionID: model.VersionID("version-id-C"),
+					},
+				},
 			}, nil
 		})
 
