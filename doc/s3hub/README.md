@@ -17,12 +17,10 @@ go install github.com/nao1215/rainbow/cmd/s3hub@latest
 The s3hub command allows you to specify a profile as an option, but it is more user-friendly to use the `AWS_PROFILE` environment variable. S3hub operates without requiring the 's3://' protocol to be added to the bucket name.
 
 ### Interactive mode
+Interactive mode provides a user-friendly interface for managing S3 resources without the need for command-line arguments. 
 You can use the interactive mode by omitting the arguments.
 ```shell
 s3hub
-```
-
-![interactive_mode](../img/s3hub-interactive.gif)
 
 
 ### Create a bucket(s)
