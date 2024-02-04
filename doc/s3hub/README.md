@@ -3,10 +3,10 @@ The s3hub command provides following features:
 - [x] Create a S3 bucket
 - [x] List S3 buckets
 - [x] List S3 objects in the S3 bucket
-- [ ] Copy files to S3 bucket
+- [x] Copy files to S3 bucket
 - [x] Delete contents from the S3 bucket
 - [x] Delete the S3 bucket
-- [ ] Interactive mode
+- [x] Interactive mode
   
 ## How to install
 ```shell
@@ -15,6 +15,13 @@ go install github.com/nao1215/rainbow/cmd/s3hub@latest
 
 ## How to use
 The s3hub command allows you to specify a profile as an option, but it is more user-friendly to use the `AWS_PROFILE` environment variable. S3hub operates without requiring the 's3://' protocol to be added to the bucket name.
+
+### Interactive mode
+Interactive mode provides a user-friendly interface for managing S3 resources without the need for command-line arguments. 
+You can use the interactive mode by omitting the arguments.
+```shell
+s3hub
+
 
 ### Create a bucket(s)
 
@@ -51,9 +58,6 @@ From S3 to local:
 s3hub cp ${YOUR_BUCKET_NAME} ${YOUR_FILE_PATH}
 ```
 
-> [!IMPORTANT]  
-> Not implemented yet.
-
 ### Delete a object from a bucket
 If you want to delete a specific object, use the following command:
 ```shell
@@ -72,15 +76,3 @@ s3hub rm --recursive ${YOUR_BUCKET_NAME}
 ```
 
 ![delete_bucket](../img/s3hub-rm-all.gif)
-
-
-### Interactive mode
-You can use the interactive mode by omitting the arguments.
-```shell
-s3hub
-```
-
-![interactive_mode](../img/s3hub-interactive.gif)
-
-> [!IMPORTANT]  
-> Not implemented yet.
