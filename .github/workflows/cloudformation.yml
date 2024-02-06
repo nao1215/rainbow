@@ -12,6 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
       - uses: unfor19/install-aws-cli-action@v1
         with:
           version: 2
