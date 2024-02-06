@@ -6,4 +6,4 @@ help: ## Show this help
 
 deploy: ## Deploy CloudFormation Template
 	cd static-web-site-distribution && ./deploy.sh
-	cd lambda-batch && make deploy
+	cd lambda-batch && make test-deploy

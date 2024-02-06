@@ -20,3 +20,6 @@ build:  ## Build binary
 
 deploy: dependency_check build ## Deploy CloudFormation Template
 	sam deploy --stack-name $(AWS_STACK_NAME) --template-file $(TEMPLATE_FILE) --capabilities CAPABILITY_IAM --resolve-s3 --region ap-northeast-1
+
+test-deploy: build ## Deploy CloudFormation Template for test
+	samlocal deploy --stack-name $(AWS_STACK_NAME) --template-file $(TEMPLATE_FILE) --capabilities CAPABILITY_IAM --resolve-s3 --region ap-northeast-1
