@@ -16,10 +16,13 @@ dependency_check:  ## Check dependencies
 	@command -v sam > /dev/null 2>&1 || { echo "Error: sam is not installed. See https://github.com/aws/aws-sam-cli"; exit 1; }
 
 build:  ## Build binary
+	@echo "Building for Lambda execution environment (Linux/ARM64)"
 	GOOS=linux GOARCH=arm64 go build -o $(BINARY_NAME) main.go
 
 deploy: dependency_check build ## Deploy CloudFormation Template
-	sam deploy --stack-name $(AWS_STACK_NAME) --template-file $(TEMPLATE_FILE) --capabilities CAPABILITY_IAM --resolve-s3 --region ap-northeast-1
+	sam deploy --stack-name $(AWS_STACK_NAME) --template-file $(TEMPLATE_FILE) \
+	--capabilities CAPABILITY_IAM --resolve-s3 --region ap-northeast-1  || { echo "SAM deployment failed"; exit 1; }
 
 test-deploy: build ## Deploy CloudFormation Template for test
-	samlocal deploy --stack-name $(AWS_STACK_NAME) --template-file $(TEMPLATE_FILE) --capabilities CAPABILITY_IAM --resolve-s3 --region ap-northeast-1
+	samlocal deploy --stack-name $(AWS_STACK_NAME) --template-file $(TEMPLATE_FILE) \
+	--capabilities CAPABILITY_IAM --resolve-s3 --region ap-northeast-1 || { echo "SAM deployment failed"; exit 1; }

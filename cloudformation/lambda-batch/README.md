@@ -13,6 +13,9 @@ The architecture of this infrastructure configuration is as follows:
 ![lambda-batch](./lambda-batch-with-event-bridge.svg)
 
 ### How to deploy
+> [!NOTE]
+> Before running `make deploy`, ensure you have configured AWS credentials and set the correct region. Otherwise, you use single sign-on (SSO).
+
 ```shell
 $ make deploy
 ```
