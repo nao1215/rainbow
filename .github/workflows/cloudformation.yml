@@ -12,6 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
       - uses: unfor19/install-aws-cli-action@v1
         with:
           version: 2
@@ -33,6 +38,10 @@ jobs:
           mkdir -p "$HOME/.aws"
           echo -e "[default]\naws_access_key_id=test\naws_secret_access_key=test" > "$HOME/.aws/credentials"
           echo -e  "[default]\nregion=us-east-1\noutput=json\nendpoint_url=http://localhost:4566" > "$HOME/.aws/config"
+
+      - name: Setup samlocal
+        run: |
+          pip install aws-sam-cli-local
 
       - name: Deploy to LocalStack
         env:

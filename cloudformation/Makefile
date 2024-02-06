@@ -5,4 +5,5 @@ help: ## Show this help
 	| awk 'BEGIN {FS = ":.*?## "}; {printf "\033[1;32m%-15s\033[0m %s\n", $$1, $$2}'
 
 deploy: ## Deploy CloudFormation Template
-	cd static-web-site-distribution && ./deploy.sh
+	cd static-web-site-distribution && ./deploy.sh || { echo "Deployment of static-web-site-distribution failed"; exit 1; }
+	cd lambda-batch && make deploy || { echo "Deployment of lambda-batch failed"; exit 1; }

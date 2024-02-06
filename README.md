@@ -40,11 +40,13 @@ The s3hub command provides following features:
 - [x] Delete the S3 bucket
 - [x] Interactive mode
   
-  
 ![interactive_mode](./doc/img/s3hub-interactive.gif)
 
 ## Template List
-[WIP]
+|Name|README|implementation|
+|:--|:--|:--|
+|[Lambda batch with EventBridge (CloudWatch Events)](./cloudformation/lambda-batch/README.md)|✅|100%|
+
 
 ## LICENSE
 This project is licensed under the terms of the MIT license. See the [LICENSE](./LICENSE) file.
