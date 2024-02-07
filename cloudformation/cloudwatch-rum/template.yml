@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Setup Cloudwatch RUM using Cognito IdentityPool"
+
+Parameters:
+  ApplicationName:
+    Type: String
+    Description: "The name of the application"
+    MinLength: 1
+    MaxLength: 255
+    Default: "CWRumApp"
+  ApplicationDomain:
+    Type: String
+    Description: "The domain of the application"
+    MinLength: 1
+    MaxLength: 255
+    Default: "example.com"
+
+Resources:
+  CWRumIdentityPool:
+    # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypool.html
+    Type: AWS::Cognito::IdentityPool
+    Properties: 
+      IdentityPoolName: "CWRumIdentityPool"
+      AllowUnauthenticatedIdentities: true
+
+  CWRumIdentityPoolRoles:
+    # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/aws-resource-cognito-identitypoolroleattachment.html
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref CWRumIdentityPool
+      Roles:
+        unauthenticated: !GetAtt CWRumClientRole.Arn
+
+  CWRumClientRole:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated:
+                - cognito-identity.amazonaws.com
+            Action:
+              - sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref CWRumIdentityPool
+              ForAnyValue:StringLike: 
+                cognito-identity.amazonaws.com:amr: unauthenticated
+      Description: Unauthenticated Role for AWS RUM Clients
+      Path: /
+      Policies:
+        - PolicyName: AWSRumClientPut
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "rum:PutRumEvents"
+                  - "log:CreateLogGroup"
+                  - "log:CreateLogStream"
+                  - "log:PutLogEvents"
+                  - "logs:PutResourcePolicy"
+                Resource: !Sub arn:aws:rum:${AWS::Region}:${AWS::AccountId}:appmonitor/${ApplicationName}
+      # https://docs.aws.amazon.com/ja_jp/aws-managed-policy/latest/reference/AmazonCloudWatchRUMFullAccess.html
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonCloudWatchRUMFullAccess
+
+  CWRumAppMonitor:
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rum-appmonitor.html
+    Type: AWS::RUM::AppMonitor
+    Properties:
+      AppMonitorConfiguration:
+        AllowCookies: false
+        EnableXRay: false
+        IdentityPoolId: !Ref CWRumIdentityPool
+        GuestRoleArn: !GetAtt CWRumClientRole.Arn
+        SessionSampleRate: 1
+        Telemetries:
+          - errors
+          - performance
+          - http
+      Domain: !Ref ApplicationDomain
+      Name: !Ref ApplicationName
+
+Outputs:
+  CWRumAppMonitor:
+    Description: The Cloud Watch RUM App Monitor Name
+    Value: !Ref CWRumAppMonitor
