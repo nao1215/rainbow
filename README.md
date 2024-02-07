@@ -46,6 +46,7 @@ The s3hub command provides following features:
 |Name|README|implementation|
 |:--|:--|:--|
 |[Lambda batch with EventBridge (CloudWatch Events)](./cloudformation/lambda-batch/README.md)|✅|100%|
+|[CloudWatch Real User Monitoring (RUM)](./cloudformation/cloudwatch-rum/README.md)|✅|100%|
 
 
 ## LICENSE
