@@ -54,13 +54,11 @@ Resources:
           - Sid: AllowSSLRequestsOnly
             Action: "s3:*"
             Effect: Deny
-            Resource:
-              - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}"
-              - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}/*"
+            Principal: "*"
+            Resource: "*"
             Condition:
               Bool:
-                "aws:SecureTransport": true
-            Principal: "*"
+                "aws:SecureTransport": false
 
   ContentBucketReplicationRole:
     Type: AWS::IAM::Role
@@ -123,10 +121,8 @@ Resources:
           - Sid: AllowSSLRequestsOnly
             Action: "s3:*"
             Effect: Deny
-            Resource:
-              - !Sub "arn:${AWS::Partition}:s3:::${ContentS3BucketReplica}"
-              - !Sub "arn:${AWS::Partition}:s3:::${ContentS3BucketReplica}/*"
+            Principal: "*"
+            Resource: "*"
             Condition:
               Bool:
-                "aws:SecureTransport": true
-            Principal: "*"
+                "aws:SecureTransport": false
