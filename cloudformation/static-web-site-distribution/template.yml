@@ -59,9 +59,7 @@ Resources:
               - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}/*"
             Condition:
               Bool:
-                "aws:SecureTransport": false
-              NumericLessThan:
-                "s3:TlsVersion": "1.3"
+                "aws:SecureTransport": true
             Principal: "*"
 
   ContentBucketReplicationRole:
@@ -130,7 +128,5 @@ Resources:
               - !Sub "arn:${AWS::Partition}:s3:::${ContentS3BucketReplica}/*"
             Condition:
               Bool:
-                "aws:SecureTransport": false
-              NumericLessThan:
-                "s3:TlsVersion": "1.3"
+                "aws:SecureTransport": true
             Principal: "*"
