@@ -43,17 +43,8 @@ Resources:
             Principal:
               Service: "lambda.amazonaws.com"
             Action: "sts:AssumeRole"
-      Policies:
-        - PolicyName: "LambdaBatchPolicy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: "Allow"
-                Action:
-                  - "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource: "*"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 
   LambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
@@ -62,4 +53,13 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/${LambdaBatch}"
       RetentionInDays: 7
-        
+      KmsKeyId: !Ref LambdaLogGroupKMSKey
+
+  LambdaLogGroupKMSKey:
+    Type: AWS::KMS::Key
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      Description: "KMS key for encrypting CloudWatch Logs"
+      EnableKeyRotation: true
+  

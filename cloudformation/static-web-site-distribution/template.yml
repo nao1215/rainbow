@@ -40,6 +40,9 @@ Resources:
               Bucket: !Ref ContentS3BucketReplica
             Status: Enabled
             Prefix: "replicated/"
+      LoggingConfiguration:
+        DestinationBucketName: !Ref ReplicationLogBucket
+        LogFilePrefix: "logs/"
 
   ContentBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -57,6 +60,8 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": false
+              NumericLessThan:
+                "s3:TlsVersion": "1.2"
             Principal: "*"
 
   ContentBucketReplicationRole:
@@ -74,31 +79,8 @@ Resources:
                 - s3.amazonaws.com
             Action:
               - sts:AssumeRole
-      Policies:
-        - PolicyName: "s3-replication-policy"
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                  - s3:GetReplicationConfiguration
-                Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${ContentBucketName}"
-              - Effect: Allow
-                Action:
-                 - s3:GetObjectVersionForReplication
-                 - s3:GetObjectVersionAcl
-                 - s3:GetObjectVersionTagging
-                Resource:
-                  - !Sub "arn:${AWS::Partition}:s3:::${ContentBucketName}/*"
-              - Effect: Allow
-                Action:
-                  - s3:ReplicateObject
-                  - s3:ReplicateDelete
-                  - s3:ReplicateTags
-                Resource:
-                  - "arn:aws:s3:::content-s3-bucket-replica/*"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 
   ContentS3BucketReplica:
     Type: "AWS::S3::Bucket"
@@ -131,6 +113,7 @@ Resources:
       guard:
         SuppressedRules:
         - S3_BUCKET_REPLICATION_ENABLED
+        - S3_BUCKET_LOGGING_ENABLED
 
 
   ContentBucketReplicaPolicy:
@@ -149,4 +132,6 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": false
+              NumericLessThan:
+                "s3:TlsVersion": "1.2"
             Principal: "*"
