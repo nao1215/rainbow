@@ -68,6 +68,10 @@ Resources:
       # https://docs.aws.amazon.com/ja_jp/aws-managed-policy/latest/reference/AmazonCloudWatchRUMFullAccess.html
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonCloudWatchRUMFullAccess
+    Metadata:
+      guard:
+        SuppressedRules:
+          - IAM_NO_INLINE_POLICY_CHECK
 
   CWRumAppMonitor:
     # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-rum-appmonitor.html

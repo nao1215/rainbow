@@ -41,7 +41,7 @@ Resources:
             Status: Enabled
             Prefix: "replicated/"
       LoggingConfiguration:
-        DestinationBucketName: !Ref ReplicationLogBucket
+        DestinationBucketName: !Ref ContentS3BucketReplica
         LogFilePrefix: "logs/"
 
   ContentBucketPolicy:
@@ -61,7 +61,7 @@ Resources:
               Bool:
                 "aws:SecureTransport": false
               NumericLessThan:
-                "s3:TlsVersion": "1.2"
+                "s3:TlsVersion": "1.3"
             Principal: "*"
 
   ContentBucketReplicationRole:
@@ -115,7 +115,6 @@ Resources:
         - S3_BUCKET_REPLICATION_ENABLED
         - S3_BUCKET_LOGGING_ENABLED
 
-
   ContentBucketReplicaPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -133,5 +132,5 @@ Resources:
               Bool:
                 "aws:SecureTransport": false
               NumericLessThan:
-                "s3:TlsVersion": "1.2"
+                "s3:TlsVersion": "1.3"
             Principal: "*"
