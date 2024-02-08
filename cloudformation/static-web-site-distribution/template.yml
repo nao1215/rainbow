@@ -20,7 +20,7 @@ Resources:
           DefaultRetention:
             Days: 1
             Mode: GOVERNANCE
-      ObjectLockEnabled: True
+      ObjectLockEnabled: true
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
@@ -112,6 +112,7 @@ Resources:
           DefaultRetention:
             Days: 1
             Mode: GOVERNANCE
+      ObjectLockEnabled: true
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
