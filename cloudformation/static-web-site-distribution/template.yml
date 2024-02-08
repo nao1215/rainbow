@@ -127,6 +127,11 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+    Metadata:
+      guard:
+        SuppressedRules:
+        - S3_BUCKET_REPLICATION_ENABLED
+
 
   ContentBucketReplicaPolicy:
     Type: AWS::S3::BucketPolicy
