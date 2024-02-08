@@ -12,6 +12,15 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       BucketName: !Ref ContentBucketName
+      VersioningConfiguration:
+        Status: Enabled
+      ObjectLockConfiguration:
+        ObjectLockEnabled: Enabled
+        Rule:
+          DefaultRetention:
+            Days: 1
+            Mode: GOVERNANCE
+      ObjectLockEnabled: True
       OwnershipControls:
         Rules:
           - ObjectOwnership: BucketOwnerEnforced
@@ -24,6 +33,13 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      ReplicationConfiguration:
+        Role: !GetAtt ContentBucketReplicationRole.Arn
+        Rules:
+          - Destination:
+              Bucket: !Ref ContentS3BucketReplica
+            Status: Enabled
+            Prefix: "replicated/"
 
   ContentBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -38,6 +54,92 @@ Resources:
             Resource:
               - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}"
               - !Sub "arn:${AWS::Partition}:s3:::${ContentBucket}/*"
+            Condition:
+              Bool:
+                "aws:SecureTransport": false
+            Principal: "*"
+
+  ContentBucketReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-bucket-source-role-${AWS::Region}"
+      Description: "Role For S3"
+      Path: "/service/"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - s3.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: "s3-replication-policy"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetReplicationConfiguration
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${ContentBucketName}"
+              - Effect: Allow
+                Action:
+                 - s3:GetObjectVersionForReplication
+                 - s3:GetObjectVersionAcl
+                 - s3:GetObjectVersionTagging
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:s3:::${ContentBucketName}/*"
+              - Effect: Allow
+                Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateDelete
+                  - s3:ReplicateTags
+                Resource:
+                  - "arn:aws:s3:::content-s3-bucket-replica/*"
+
+  ContentS3BucketReplica:
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: "content-s3-bucket-replica"
+      ObjectLockConfiguration:
+        ObjectLockEnabled: Enabled
+        Rule:
+          DefaultRetention:
+            Days: 1
+            Mode: GOVERNANCE
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ContentBucketReplicaPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ContentS3BucketReplica
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Action: "s3:*"
+            Effect: Deny
+            Resource:
+              - !Sub "arn:${AWS::Partition}:s3:::${ContentS3BucketReplica}"
+              - !Sub "arn:${AWS::Partition}:s3:::${ContentS3BucketReplica}/*"
             Condition:
               Bool:
                 "aws:SecureTransport": false
