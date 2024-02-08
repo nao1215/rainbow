@@ -58,7 +58,7 @@ Resources:
             Resource: "*"
             Condition:
               Bool:
-                "aws:SecureTransport": false
+                "aws:SecureTransport": true
 
   ContentBucketReplicationRole:
     Type: AWS::IAM::Role
@@ -125,4 +125,4 @@ Resources:
             Resource: "*"
             Condition:
               Bool:
-                "aws:SecureTransport": false
+                "aws:SecureTransport": true
