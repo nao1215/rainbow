@@ -19,8 +19,8 @@ func Handler(_ context.Context) (events.APIGatewayProxyResponse, error) {
 	// Create a response
 	responseBody, err := json.Marshal(HealthResponse{Status: "healthy"})
 	if err != nil {
-		log.Printf("Error marshalling JSON response: %v", err)
-		return events.APIGatewayProxyResponse{StatusCode: 500}, err
+		log.Printf("Error marshaling JSON response: %v", err)
+		return events.APIGatewayProxyResponse{StatusCode: 500, Body: `{"error":"Internal Server Error"}`}, nil
 	}
 
 	// Return API Gateway response

@@ -53,7 +53,7 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/${LambdaBatch}"
       RetentionInDays: 7
-      KmsKeyId: !Ref LambdaLogGroupKMSKey
+      KmsKeyId: !GetAtt LambdaLogGroupKMSKey.Arn
 
   LambdaLogGroupKMSKey:
     Type: AWS::KMS::Key
@@ -62,4 +62,25 @@ Resources:
     Properties:
       Description: "KMS key for encrypting CloudWatch Logs"
       EnableKeyRotation: true
-  
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "key-default"
+        Statement:
+          - Sid: "Allow administration of the key"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+          - Sid: "Allow use of the key"
+            Effect: "Allow"
+            Principal:
+              Service: "logs.ap-northeast-1.amazonaws.com"
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
