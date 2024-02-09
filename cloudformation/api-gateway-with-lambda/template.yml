@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform:
+  - AWS::Serverless-2016-10-31
+Description: "API Gateway with Lambda"
+
+Resources:
+  LambdaFuncttion:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: lambda-function
+      Handler: "handler"
+      Runtime: provided.al2
+      Architectures: [arm64]
+      Timeout: 10
+      CodeUri: ./
+      MemorySize: 128
+      Policies:
+        - AWSLambdaBasicExecutionRole
+      Events:
+        GetApi:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: get
+            RestApiId: !Ref API
+
+  API:
+    Type: "AWS::Serverless::Api"
+    Properties:
+      Name: sam-test-get-api
+      EndpointConfiguration: REGIONAL
+      StageName: dev
+
+  LambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaFuncttion}"
+      RetentionInDays: 7
+      KmsKeyId: !GetAtt LambdaLogGroupKMSKey.Arn
+
+  LambdaLogGroupKMSKey:
+    Type: AWS::KMS::Key
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      Description: "KMS key for encrypting CloudWatch Logs"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "key-default"
+        Statement:
+          - Sid: "Allow administration of the key"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+          - Sid: "Allow use of the key"
+            Effect: "Allow"
+            Principal:
+              Service: "logs.ap-northeast-1.amazonaws.com"
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
