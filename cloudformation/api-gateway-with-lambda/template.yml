@@ -1,57 +1,42 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform:
   - AWS::Serverless-2016-10-31
-Description: "Lambda Batch"
-
-Parameters:
-  Environment:
-    Type: String
-    Description: "Runtime Environment"
-    Default: "development"
+Description: "API Gateway with Lambda"
 
 Resources:
-  LambdaBatch:
+  LambdaFuncttion:
     Type: "AWS::Serverless::Function"
     Properties:
-      Description: "Lambda Batch"
+      FunctionName: lambda-function
       Handler: "handler"
       Runtime: provided.al2
       Architectures: [arm64]
-      Role: !GetAtt LambdaBatchRole.Arn
+      Timeout: 10
       CodeUri: ./
       MemorySize: 128
-      Timeout: 5
-      Environment:
-        Variables:
-          APP_ENV: !Ref Environment
+      Policies:
+        - AWSLambdaBasicExecutionRole
       Events:
-        Schedule:
-          Type: Schedule
-          # To declare this entity in your AWS Serverless Application Model (AWS SAM) template.
-          # Ref. https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-eventsource.html
+        GetApi:
+          Type: Api
           Properties:
-            Name: sample-schedule-event
-            Schedule: rate(1 minute)
+            Path: /health
+            Method: get
+            RestApiId: !Ref API
 
-  LambdaBatchRole:
-    Type: "AWS::IAM::Role"
+  API:
+    Type: "AWS::Serverless::Api"
     Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "lambda.amazonaws.com"
-            Action: "sts:AssumeRole"
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Name: sam-test-get-api
+      EndpointConfiguration: REGIONAL
+      StageName: dev
 
   LambdaLogGroup:
     Type: "AWS::Logs::LogGroup"
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${LambdaBatch}"
+      LogGroupName: !Sub "/aws/lambda/${LambdaFuncttion}"
       RetentionInDays: 7
       KmsKeyId: !GetAtt LambdaLogGroupKMSKey.Arn
 
