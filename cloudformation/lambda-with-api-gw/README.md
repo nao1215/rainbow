@@ -1,4 +1,4 @@
-## API Gateway with Lambda
+## Lambda with API Gateway
 ### Overview
 
 Lambda and API Gateway combined infrastructure is a powerful means for realizing serverless architecture. Lambda is a service for executing code, while API Gateway creates HTTP endpoints and forwards requests to Lambda functions.

@@ -7,4 +7,5 @@ help: ## Show this help
 deploy: ## Deploy CloudFormation Template
 	cd static-web-site-distribution && make test-deploy || { echo "Deployment of static-web-site-distribution failed"; exit 1; }
 	cd lambda-batch && make test-deploy || { echo "Deployment of lambda-batch failed"; exit 1; }
+	cd lambda-with-api-gw && make test-deploy || { echo "Deployment of lambda-with-api-gw failed"; exit 1; }
 	cd cloudwatch-rum && make test-deploy || { echo "Deployment of cloudwatch-rum failed"; exit 1; }
