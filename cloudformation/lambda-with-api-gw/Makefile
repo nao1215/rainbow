@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 
 BINARY_NAME = bootstrap
-AWS_STACK_NAME = lambda-batch
+AWS_STACK_NAME = lambda-with-api-gw
 TEMPLATE_FILE = template.yml
 
 .PHONY: help clean dependency_check build deploy
