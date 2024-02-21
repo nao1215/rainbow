@@ -32,7 +32,7 @@ func NewCostGetter(c service.CostGetter) *CostGetter {
 // GetCost gets the cost.
 func (c *CostGetter) GetCost(ctx context.Context, input *usecase.CostGetterInput) (*usecase.CostGetterOutput, error) {
 	if input.End.Before(input.Start) {
-		return nil, errors.New("End date is before the start date")
+		return nil, errors.New("end date is before the start date")
 	}
 	output, err := c.CostGetter.GetCost(ctx, &service.CostGetterInput{
 		Start: input.Start,

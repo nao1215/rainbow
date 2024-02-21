@@ -1,3 +1,4 @@
+// Package mock is mock for external package.
 package mock
 
 import (

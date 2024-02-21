@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'cloudformation/**'
+      - 'cloudformation/**/**'
 
 jobs:
   cfn-guard:
