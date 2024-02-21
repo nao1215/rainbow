@@ -26,7 +26,7 @@ func NewS3Client(cfg *model.AWSConfig) *s3.Client {
 
 // S3BucketCreator implements the S3BucketCreator interface.
 type S3BucketCreator struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3BucketCreatorSet is a provider set for S3BucketCreator.
@@ -41,7 +41,7 @@ var _ service.S3BucketCreator = (*S3BucketCreator)(nil)
 
 // NewS3BucketCreator creates a new S3BucketCreator.
 func NewS3BucketCreator(client *s3.Client) *S3BucketCreator {
-	return &S3BucketCreator{client: client}
+	return &S3BucketCreator{Client: client}
 }
 
 // CreateS3Bucket creates a new S3 bucket.
@@ -56,7 +56,7 @@ func (c *S3BucketCreator) CreateS3Bucket(ctx context.Context, input *service.S3B
 		locationContstraint = nil
 	}
 
-	_, err := c.client.CreateBucket(ctx, &s3.CreateBucketInput{
+	_, err := c.CreateBucket(ctx, &s3.CreateBucketInput{
 		Bucket:                    aws.String(input.Bucket.String()),
 		CreateBucketConfiguration: locationContstraint,
 	})
@@ -76,7 +76,7 @@ func (c *S3BucketCreator) CreateS3Bucket(ctx context.Context, input *service.S3B
 
 // S3BucketLister implements the S3BucketLister interface.
 type S3BucketLister struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3BucketListerSet is a provider set for S3BucketLister.
@@ -91,12 +91,12 @@ var _ service.S3BucketLister = (*S3BucketLister)(nil)
 
 // NewS3BucketLister creates a new S3BucketLister.
 func NewS3BucketLister(client *s3.Client) *S3BucketLister {
-	return &S3BucketLister{client: client}
+	return &S3BucketLister{Client: client}
 }
 
 // ListS3Buckets lists the buckets.
 func (c *S3BucketLister) ListS3Buckets(ctx context.Context, _ *service.S3BucketListerInput) (*service.S3BucketListerOutput, error) {
-	out, err := c.client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	out, err := c.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (c *S3BucketLister) ListS3Buckets(ctx context.Context, _ *service.S3BucketL
 
 // S3BucketLocationGetter implements the S3BucketLocationGetter interface.
 type S3BucketLocationGetter struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3BucketLocationGetterSet is a provider set for S3BucketLocationGetter.
@@ -128,12 +128,12 @@ var _ service.S3BucketLocationGetter = (*S3BucketLocationGetter)(nil)
 
 // NewS3BucketLocationGetter creates a new S3BucketLocationGetter.
 func NewS3BucketLocationGetter(client *s3.Client) *S3BucketLocationGetter {
-	return &S3BucketLocationGetter{client: client}
+	return &S3BucketLocationGetter{Client: client}
 }
 
 // GetS3BucketLocation gets the location of the bucket.
 func (c *S3BucketLocationGetter) GetS3BucketLocation(ctx context.Context, input *service.S3BucketLocationGetterInput) (*service.S3BucketLocationGetterOutput, error) {
-	out, err := c.client.GetBucketLocation(ctx, &s3.GetBucketLocationInput{
+	out, err := c.GetBucketLocation(ctx, &s3.GetBucketLocationInput{
 		Bucket: aws.String(input.Bucket.String()),
 	})
 	if err != nil {
@@ -156,7 +156,7 @@ func (c *S3BucketLocationGetter) GetS3BucketLocation(ctx context.Context, input 
 
 // S3BucketDeleter implements the S3BucketDeleter interface.
 type S3BucketDeleter struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3BucketDeleterSet is a provider set for S3BucketDeleter.
@@ -171,12 +171,12 @@ var _ service.S3BucketDeleter = (*S3BucketDeleter)(nil)
 
 // NewS3BucketDeleter creates a new S3BucketDeleter.
 func NewS3BucketDeleter(client *s3.Client) *S3BucketDeleter {
-	return &S3BucketDeleter{client: client}
+	return &S3BucketDeleter{Client: client}
 }
 
 // DeleteS3Bucket deletes the bucket.
 func (c *S3BucketDeleter) DeleteS3Bucket(ctx context.Context, input *service.S3BucketDeleterInput) (*service.S3BucketDeleterOutput, error) {
-	_, err := c.client.DeleteBucket(ctx,
+	_, err := c.DeleteBucket(ctx,
 		&s3.DeleteBucketInput{
 			Bucket: aws.String(input.Bucket.String()),
 		},
@@ -195,7 +195,7 @@ func (c *S3BucketDeleter) DeleteS3Bucket(ctx context.Context, input *service.S3B
 
 // S3ObjectsDeleter implements the S3ObjectsDeleter interface.
 type S3ObjectsDeleter struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3ObjectsDeleterSet is a provider set for S3ObjectsDeleter.
@@ -210,7 +210,7 @@ var _ service.S3ObjectsDeleter = (*S3ObjectsDeleter)(nil)
 
 // NewS3ObjectsDeleter creates a new S3ObjectsDeleter.
 func NewS3ObjectsDeleter(client *s3.Client) *S3ObjectsDeleter {
-	return &S3ObjectsDeleter{client: client}
+	return &S3ObjectsDeleter{Client: client}
 }
 
 // DeleteS3Objects deletes the objects in the bucket.
@@ -223,7 +223,7 @@ func (c *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *service.S
 		o.Region = input.Region.String()
 	}
 
-	if _, err := c.client.DeleteObjects(
+	if _, err := c.DeleteObjects(
 		ctx,
 		&s3.DeleteObjectsInput{
 			Bucket: aws.String(input.Bucket.String()),
@@ -241,7 +241,7 @@ func (c *S3ObjectsDeleter) DeleteS3Objects(ctx context.Context, input *service.S
 
 // S3ObjectsLister implements the S3ObjectsLister interface.
 type S3ObjectsLister struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3ObjectsListerSet is a provider set for S3ObjectsLister.
@@ -256,7 +256,7 @@ var _ service.S3ObjectsLister = (*S3ObjectsLister)(nil)
 
 // NewS3ObjectsLister creates a new S3ObjectsLister.
 func NewS3ObjectsLister(client *s3.Client) *S3ObjectsLister {
-	return &S3ObjectsLister{client: client}
+	return &S3ObjectsLister{Client: client}
 }
 
 // ListS3Objects lists the objects in the bucket.
@@ -267,7 +267,7 @@ func (c *S3ObjectsLister) ListS3Objects(ctx context.Context, input *service.S3Ob
 		MaxKeys: aws.Int32(model.MaxS3Keys),
 	}
 	for {
-		output, err := c.client.ListObjectsV2(ctx, in)
+		output, err := c.ListObjectsV2(ctx, in)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +288,7 @@ func (c *S3ObjectsLister) ListS3Objects(ctx context.Context, input *service.S3Ob
 
 // S3ObjectDownloader implements the S3ObjectDownloader interface.
 type S3ObjectDownloader struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3ObjectDownloaderSet is a provider set for S3ObjectGetter.
@@ -303,12 +303,12 @@ var _ service.S3ObjectDownloader = (*S3ObjectDownloader)(nil)
 
 // NewS3ObjectDownloader creates a new S3ObjectGetter.
 func NewS3ObjectDownloader(client *s3.Client) *S3ObjectDownloader {
-	return &S3ObjectDownloader{client: client}
+	return &S3ObjectDownloader{Client: client}
 }
 
 // DownloadS3Object gets the object in the bucket.
 func (c *S3ObjectDownloader) DownloadS3Object(ctx context.Context, input *service.S3ObjectDownloaderInput) (*service.S3ObjectDownloaderOutput, error) {
-	out, err := c.client.GetObject(ctx, &s3.GetObjectInput{
+	out, err := c.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(input.Bucket.String()),
 		Key:    aws.String(input.Key.String()),
 	})
@@ -340,7 +340,7 @@ func (c *S3ObjectDownloader) DownloadS3Object(ctx context.Context, input *servic
 
 // S3ObjectUploader implements the S3ObjectUploader interface.
 type S3ObjectUploader struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3ObjectUploaderSet is a provider set for S3ObjectUploader.
@@ -355,12 +355,12 @@ var _ service.S3ObjectUploader = (*S3ObjectUploader)(nil)
 
 // NewS3ObjectUploader creates a new S3ObjectUploader.
 func NewS3ObjectUploader(client *s3.Client) *S3ObjectUploader {
-	return &S3ObjectUploader{client: client}
+	return &S3ObjectUploader{Client: client}
 }
 
 // UploadS3Object puts the object in the bucket.
 func (c *S3ObjectUploader) UploadS3Object(ctx context.Context, input *service.S3ObjectUploaderInput) (*service.S3ObjectUploaderOutput, error) {
-	if _, err := c.client.PutObject(
+	if _, err := c.PutObject(
 		ctx,
 		&s3.PutObjectInput{
 			Bucket:        aws.String(input.Bucket.String()),
@@ -383,7 +383,7 @@ func (c *S3ObjectUploader) UploadS3Object(ctx context.Context, input *service.S3
 
 // S3ObjectCopier implements the S3ObjectCopier interface.
 type S3ObjectCopier struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3ObjectCopierSet is a provider set for S3ObjectCopier.
@@ -398,12 +398,12 @@ var _ service.S3ObjectCopier = (*S3ObjectCopier)(nil)
 
 // NewS3ObjectCopier creates a new S3ObjectCopier.
 func NewS3ObjectCopier(client *s3.Client) *S3ObjectCopier {
-	return &S3ObjectCopier{client: client}
+	return &S3ObjectCopier{Client: client}
 }
 
 // CopyS3Object copies the object in the bucket.
 func (c *S3ObjectCopier) CopyS3Object(ctx context.Context, input *service.S3ObjectCopierInput) (*service.S3ObjectCopierOutput, error) {
-	_, err := c.client.CopyObject(ctx, &s3.CopyObjectInput{
+	_, err := c.CopyObject(ctx, &s3.CopyObjectInput{
 		Bucket:     aws.String(input.DestinationBucket.String()),
 		CopySource: aws.String(input.SourceBucket.Join(input.SourceKey).String()),
 		Key:        aws.String(input.DestinationKey.String()),
@@ -416,7 +416,7 @@ func (c *S3ObjectCopier) CopyS3Object(ctx context.Context, input *service.S3Obje
 
 // S3ObjectVersionsLister implements the S3ObjectVersionsLister interface.
 type S3ObjectVersionsLister struct {
-	client *s3.Client
+	*s3.Client
 }
 
 // S3ObjectVersionsListerSet is a provider set for S3ObjectVersionsLister.
@@ -431,7 +431,7 @@ var _ service.S3ObjectVersionsLister = (*S3ObjectVersionsLister)(nil)
 
 // NewS3ObjectVersionsLister creates a new S3ObjectVersionsLister.
 func NewS3ObjectVersionsLister(client *s3.Client) *S3ObjectVersionsLister {
-	return &S3ObjectVersionsLister{client: client}
+	return &S3ObjectVersionsLister{Client: client}
 }
 
 // ListS3ObjectVersions lists the object versions in the bucket.
@@ -443,7 +443,7 @@ func (c *S3ObjectVersionsLister) ListS3ObjectVersions(ctx context.Context, input
 	}
 
 	for {
-		listObjectVersionsOutput, err := c.client.ListObjectVersions(ctx, listObjectVersionsInput)
+		listObjectVersionsOutput, err := c.ListObjectVersions(ctx, listObjectVersionsInput)
 		if err != nil {
 			return nil, err
 		}
