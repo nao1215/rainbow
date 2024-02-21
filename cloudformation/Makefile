@@ -9,3 +9,4 @@ deploy: ## Deploy CloudFormation Template
 	cd lambda-batch && make test-deploy || { echo "Deployment of lambda-batch failed"; exit 1; }
 	cd lambda-with-api-gw && make test-deploy || { echo "Deployment of lambda-with-api-gw failed"; exit 1; }
 	cd cloudwatch-rum && make test-deploy || { echo "Deployment of cloudwatch-rum failed"; exit 1; }
+	cd daily-cost-notification && make test-deploy || { echo "Deployment of daily-cost-notification failed"; exit 1; }
