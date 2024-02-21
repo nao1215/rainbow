@@ -2,9 +2,6 @@ name: CloudFormation Guard Action
 
 on:
   push:
-    paths:
-      - 'cloudformation/**'
-      - 'cloudformation/**/**'
 
 jobs:
   cfn-guard:
