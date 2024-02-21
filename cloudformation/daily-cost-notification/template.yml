@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform:
+  - AWS::Serverless-2016-10-31
+Description: "Lambda Batch"
+
+Parameters:
+  Environment:
+    Type: String
+    Description: "Runtime Environment"
+    Default: "development"
+  EmailAddress:
+    Type: String
+    Description: "Email Address for Notification"
+    Default: "dummy@example.com"
+
+Resources:
+  DailyCostLambdaBatch:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      Description: "Daily Cost Notification Lambda Batch"
+      Handler: "handler"
+      Runtime: provided.al2
+      Architectures: [arm64]
+      Role: !GetAtt DailyCostLambdaBatchRole.Arn
+      CodeUri: ./
+      MemorySize: 128
+      Timeout: 5
+      Environment:
+        Variables:
+          APP_ENV: !Ref Environment
+          SNS_TOPIC_ARN: !Ref CostTopic
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Name: daily-cost-notification
+            Schedule: cron(0 23 ? * * *)
+
+  DailyCostLambdaBatchRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: Lambda-send-billing-policy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ce:GetCostAndUsage
+                  - sns:CreateTopic
+                  - sns:Publish
+                Resource: '*'
+
+  DailyNotifyLambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${DailyCostLambdaBatch}"
+      RetentionInDays: 7
+      KmsKeyId: !GetAtt DailyNotifyLambdaLogGroupKMSKey.Arn
+
+  DailyNotifyLambdaLogGroupKMSKey:
+    Type: AWS::KMS::Key
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Properties:
+      Description: "KMS key for encrypting CloudWatch Logs"
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id: "key-default"
+        Statement:
+          - Sid: "Allow administration of the key"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action:
+              - "kms:*"
+            Resource: "*"
+          - Sid: "Allow use of the key"
+            Effect: "Allow"
+            Principal:
+              Service: "logs.ap-northeast-1.amazonaws.com"
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
+
+  CostTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: "Daily Cost Notification"
+
+  CostTopicSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref EmailAddress
+      Protocol: email
+      TopicArn: !Ref CostTopic

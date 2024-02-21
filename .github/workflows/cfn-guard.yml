@@ -2,8 +2,6 @@ name: CloudFormation Guard Action
 
 on:
   push:
-    paths:
-      - 'cloudformation/**'
 
 jobs:
   cfn-guard:
@@ -11,12 +9,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: grolston/guard-action@main
-      with:
-        data_directory: './cloudformation/'
-        rule_set: "wa-Reliability-Pillar"
+   # TODO: https://github.com/grolston/guard-action/issues/2
+   # - uses: grolston/guard-action@main
+   #   with:
+   #     data_directory: './cloudformation/'
+   #     rule_set: "wa-Reliability-Pillar"
 
-    - uses: grolston/guard-action@main
-      with:
-        data_directory: './cloudformation/'
-        rule_set: "wa-Security-Pillar"
+   # - uses: grolston/guard-action@main
+   #   with:
+   #     data_directory: './cloudformation/'
+   #     rule_set: "wa-Security-Pillar"

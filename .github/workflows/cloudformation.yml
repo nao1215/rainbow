@@ -2,8 +2,6 @@ name: Deploy to LocalStack
 
 on:
   push:
-    paths:
-      - 'cloudformation/**'
 
 jobs:
   deploy:
