@@ -22,7 +22,7 @@ var S3BucketPublicAccessBlockerSet = wire.NewSet(
 
 // S3BucketPublicAccessBlocker is an implementation for BucketPublicAccessBlocker.
 type S3BucketPublicAccessBlocker struct {
-	client *s3.Client
+	*s3.Client
 }
 
 var _ service.S3BucketPublicAccessBlocker = &S3BucketPublicAccessBlocker{}
@@ -34,7 +34,7 @@ func NewS3BucketPublicAccessBlocker(client *s3.Client) *S3BucketPublicAccessBloc
 
 // BlockS3BucketPublicAccess blocks public access to a bucket on S3.
 func (s *S3BucketPublicAccessBlocker) BlockS3BucketPublicAccess(ctx context.Context, input *service.S3BucketPublicAccessBlockerInput) (*service.S3BucketPublicAccessBlockerOutput, error) {
-	if _, err := s.client.PutPublicAccessBlock(ctx, &s3.PutPublicAccessBlockInput{
+	if _, err := s.PutPublicAccessBlock(ctx, &s3.PutPublicAccessBlockInput{
 		Bucket: aws.String(input.Bucket.String()),
 		PublicAccessBlockConfiguration: &types.PublicAccessBlockConfiguration{
 			BlockPublicAcls:       aws.Bool(true),
@@ -58,14 +58,14 @@ var S3BucketPolicySetterSet = wire.NewSet(
 
 // S3BucketPolicySetter is an implementation for BucketPolicySetter.
 type S3BucketPolicySetter struct {
-	client *s3.Client
+	*s3.Client
 }
 
 var _ service.S3BucketPolicySetter = &S3BucketPolicySetter{}
 
 // NewS3BucketPolicySetter returns a new S3BucketPolicySetter struct.
 func NewS3BucketPolicySetter(client *s3.Client) *S3BucketPolicySetter {
-	return &S3BucketPolicySetter{client}
+	return &S3BucketPolicySetter{Client: client}
 }
 
 // SetS3BucketPolicy sets a bucket policy on S3.
@@ -75,7 +75,7 @@ func (s *S3BucketPolicySetter) SetS3BucketPolicy(ctx context.Context, input *ser
 		return nil, err
 	}
 
-	if _, err = s.client.PutBucketPolicy(ctx, &s3.PutBucketPolicyInput{
+	if _, err = s.PutBucketPolicy(ctx, &s3.PutBucketPolicyInput{
 		Bucket: aws.String(input.Bucket.String()),
 		Policy: aws.String(policy),
 	}); err != nil {
