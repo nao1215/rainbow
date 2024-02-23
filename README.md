@@ -42,7 +42,7 @@ The s3hub command provides following features:
   
 ![interactive_mode](./doc/img/s3hub-interactive.gif)
 
-## Template List
+## CloudFormation Template List
 |Name|README|implementation|
 |:--|:--|:--|
 |[Lambda batch with EventBridge (CloudWatch Events)](./cloudformation/lambda-batch/README.md)|✅|100%|
