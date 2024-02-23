@@ -49,6 +49,7 @@ The s3hub command provides following features:
 |[Lambda with API Gateway](./cloudformation/lambda-with-api-gw/README.md)|✅|100%|
 |[Daily Cost Notification](./cloudformation/daily-cost-notification/README.md)|✅|100%|
 |[CloudWatch Real User Monitoring (RUM)](./cloudformation/cloudwatch-rum/README.md)|✅|100%|
+|[Static Web Application Distribution](./cloudformation/static-web-site-distribution/README.md)|✅|100%|
 
 
 ## LICENSE

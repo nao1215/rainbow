@@ -7,10 +7,13 @@ help:  ## Show this help message
 
 test-deploy:  ## Deploy CloudFormation Template to localstack
 	@echo "Deploying S3 and CloudFront Template"
-	aws cloudformation create-stack --endpoint-url "http://localhost:4566" --stack-name "static-web-site-distribution" \
+	aws cloudformation create-stack --endpoint-url "http://localhost:4566" --stack-name "static-web-site-distribution"  --region ap-northeast-1 \
     --template-body "file://template.yml" --parameters "file://parameters.json" --capabilities CAPABILITY_NAMED_IAM
 
 deploy:  ## Deploy CloudFormation Template
 	@echo "Deploying S3 and CloudFront Template"
-	aws cloudformation create-stack --stack-name "static-web-site-distribution" \
+	aws cloudformation create-stack --stack-name "static-web-site-distribution"  --region ap-northeast-1 \
     --template-body "file://template.yml" --parameters "file://parameters.json" --capabilities CAPABILITY_NAMED_IAM
+
+upload:  ## Upload index.html
+	aws s3 cp ./index.html s3://content-bucket-rainbow-spa
