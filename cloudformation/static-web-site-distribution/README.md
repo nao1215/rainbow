@@ -1,4 +1,4 @@
-## Static Web Site Distribution With CloudFront and S3
+## Static Web Application Distribution With CloudFront and S3
 ### Overview
 The simplest way to deploy the static website is to store the content in Amazon S3 (Simple Storage Service) and distribute it using CloudFront (Content Delivery Network).
   
@@ -38,3 +38,31 @@ OAC also enhances security measures by supporting shorter credential durations a
 
 #### CloudFront Cache
 - [Understanding AWS CloudFront Caching: A Guide for Beginners](https://aws.plainenglish.io/understanding-aws-cloudfront-caching-a-guide-for-beginners-ce0169d3c724)
+
+### How to deploy
+> [!NOTE]
+> Before running `make deploy`, ensure you have configured AWS credentials and set the correct region. Otherwise, you use single sign-on (SSO).
+
+```shell
+$ make deploy
+```
+
+If you want to upload the content of the static website to S3, you can use the following command:
+
+```shell
+aws s3 cp ./static-website s3://<your-bucket-name> --recursive
+```
+
+For example, if you upload the index.html file to the S3 bucket, you can use the following command:
+
+```shell
+aws s3 cp ./index.html s3://content-bucket-rainbow-spa
+```
+
+After deployment, you can access the static website. The URL syntax for the CloudFront distribution is as follows:
+
+```
+https://<distribution-id>.cloudfront.net
+```
+
+![spa](./spa.png)

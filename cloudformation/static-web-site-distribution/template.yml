@@ -11,15 +11,9 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
-      BucketName: !Ref ContentBucketName
+      BucketName: !Sub "${ContentBucketName}"
       VersioningConfiguration:
         Status: Enabled
-      ObjectLockConfiguration:
-        ObjectLockEnabled: Enabled
-        Rule:
-          DefaultRetention:
-            Days: 1
-            Mode: GOVERNANCE
       ObjectLockEnabled: true
       OwnershipControls:
         Rules:
@@ -33,16 +27,6 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
-      ReplicationConfiguration:
-        Role: !GetAtt ContentBucketReplicationRole.Arn
-        Rules:
-          - Destination:
-              Bucket: !Ref ContentS3BucketReplica
-            Status: Enabled
-            Prefix: "replicated/"
-      LoggingConfiguration:
-        DestinationBucketName: !Ref ContentS3BucketReplica
-        LogFilePrefix: "logs/"
 
   ContentBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -51,38 +35,47 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Action: "s3:*"
+          - Sid: "DenyNonSecureConnections"
+            Action: "s3:*"
             Effect: Deny
             Principal: "*"
-            Resource: "*"
+            Resource:
+              - !Sub "arn:aws:s3:::${ContentBucketName}/*"
+              - !Sub "arn:aws:s3:::${ContentBucketName}"
             Condition:
               Bool:
                 "aws:SecureTransport": false
-
-  ContentBucketReplicationRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "${AWS::StackName}-bucket-source-role-${AWS::Region}"
-      Description: "Role For S3"
-      Path: "/service/"
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
+          - Sid: "AllowCloudFrontToGetContent"
+            Effect: Allow
             Principal:
-              Service:
-                - s3.amazonaws.com
-            Action:
-              - sts:AssumeRole
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+              Service: "cloudfront.amazonaws.com"
+            Action: 
+              - "s3:GetObject"
+              - "s3:ListBucket"
+            Resource:
+              - !Sub "arn:aws:s3:::${ContentBucketName}/*"
+              - !Sub "arn:aws:s3:::${ContentBucketName}"
+            Condition:
+              Bool:
+                "aws:SecureTransport": true
 
-  ContentS3BucketReplica:
+  LogBucket:
     Type: "AWS::S3::Bucket"
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
     Properties:
-      BucketName: "content-s3-bucket-replica"
+      BucketName: !Sub "${ContentBucketName}-log"
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       ObjectLockConfiguration:
         ObjectLockEnabled: Enabled
         Rule:
@@ -92,35 +85,82 @@ Resources:
       ObjectLockEnabled: true
       OwnershipControls:
         Rules:
-          - ObjectOwnership: BucketOwnerEnforced
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      VersioningConfiguration:
-        Status: Enabled
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-    Metadata:
-      guard:
-        SuppressedRules:
-        - S3_BUCKET_REPLICATION_ENABLED
-        - S3_BUCKET_LOGGING_ENABLED
+          - ObjectOwnership: ObjectWriter
 
-  ContentBucketReplicaPolicy:
-    Type: AWS::S3::BucketPolicy
+  CloufFrontDistribution:
+    Type: "AWS::CloudFront::Distribution"
     Properties:
-      Bucket: !Ref ContentS3BucketReplica
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Action: "s3:*"
-            Effect: Deny
-            Principal: "*"
-            Resource: "*"
-            Condition:
-              Bool:
-                "aws:SecureTransport": false
+      DistributionConfig:
+        Comment: "CloudFront Distribution"
+        Origins:
+          - DomainName: !GetAtt ContentBucket.RegionalDomainName
+            Id: "S3Origin"
+            OriginAccessControlId: !Ref CloudFrontOriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultRootObject: "index.html"
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: "S3Origin"
+          CachePolicyId: !Ref OriginCachePolicy
+          OriginRequestPolicyId: !Ref OriginRequestPolicy
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          ForwardedValues:
+            QueryString: false
+          ViewerProtocolPolicy: "redirect-to-https"
+          DefaultTTL: 1
+          MaxTTL: 1
+          MinTTL: 1
+        PriceClass: "PriceClass_100"
+        Logging:
+          Bucket: !GetAtt LogBucket.DomainName
+          IncludeCookies: false
+          Prefix: "logs/"
+        HttpVersion: "http2and3"
+        IPV6Enabled: true
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+  CloudFrontOriginAccessControl:
+    Type: "AWS::CloudFront::OriginAccessControl"
+    Properties:
+      OriginAccessControlConfig:
+        Name: "Origin Accress Control for S3 bucket"
+        OriginAccessControlOriginType:  s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  OriginRequestPolicy:
+    Type: "AWS::CloudFront::OriginRequestPolicy"
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: !Sub "${AWS::StackName}-cloudfront-request-policy"
+        Comment: "Origin Request Policy for S3 bucket"
+        CookiesConfig:
+          CookieBehavior: none
+        HeadersConfig:
+          HeaderBehavior: none
+        QueryStringsConfig:
+          QueryStringBehavior: none
+
+  OriginCachePolicy:
+    Type: "AWS::CloudFront::CachePolicy"
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${AWS::StackName}-cloudfront-cache-policy"
+        Comment: "Cache Policy for S3 bucket"
+        DefaultTTL: 1
+        MaxTTL: 1
+        MinTTL: 1
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
