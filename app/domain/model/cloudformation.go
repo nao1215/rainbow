@@ -23,6 +23,7 @@ func (s StackStatus) String() string {
 }
 
 // StringWithColor returns the string representation of StackStatus with color.
+// Colors are chosen to represent the status intuitively: green for complete, red for failed, and yellow for in-progress or pending states.
 func (s StackStatus) StringWithColor() string {
 	switch s {
 	case StackStatusCreateComplete:
