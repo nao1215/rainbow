@@ -3,10 +3,10 @@
 > Not implemented yet. This is specifiction document.
 
 The cfn command provides the following features:
-- [ ] List stacks
+- [x] List stacks
 - [ ] Delete stacks
 - [ ] Add tags to stacks
-- [ ] Interactive mode
+- [x] Interactive mode
 
 ### How to install
 ```shell
@@ -36,3 +36,4 @@ cfn tag ${STACK_NAME} ${TAG_KEY}=${TAG_VALUE}
 cfn
 ```
 
+![cfn_tui](./cfn_tui.gif)

@@ -28,7 +28,7 @@ Windows is not supported because the tools used in unit testing do not run in a 
 |:--|:--|:--|:--|
 |[s3hub](./doc/s3hub/README.md)|✅|100%|User-friendly s3 management tool|
 |[spare](./doc/spare/README.md)|✅|50%|Single Page Application Release Easily|
-|[cfn](./doc/cfn/README.md)|✅|0%|List up or delete CloudFormation stacks|
+|[cfn](./doc/cfn/README.md)|✅|10%|List up or delete CloudFormation stacks|
 
 ### s3hub example
 The s3hub command provides following features:
@@ -41,6 +41,23 @@ The s3hub command provides following features:
 - [x] Interactive mode
   
 ![interactive_mode](./doc/img/s3hub-interactive.gif)
+
+### spare example
+The 'spare' command makes easily the release of Single Page Applications. Spare constructs the infrastructure on AWS to operate the SPA, and then deploys the SPA (please note that it does not support building the SPA). Developers can inspect the infrastructure as CloudFormation before or after its construction.
+
+The infrastructure for S3 and CloudFront is configured as shown in the diagram when you run the "spare build" command.  
+
+![diagram](doc/img/s3_cloudfront.png)
+
+> [!WARNING]  
+> The spare command is deleted from the repository. At the very least, the development priority is low.
+
+### cfn example
+The cfn command provides the following features:
+- [x] List stacks
+- [ ] Delete stacks (Not implemented yet)
+
+![cfn_tui](./doc/cfn/cfn_tui.gif)
 
 ## CloudFormation Template List
 |Name|README|implementation|
