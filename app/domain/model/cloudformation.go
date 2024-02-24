@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/fatih/color"
+)
 
 const (
 	// CloudFormationRetryMaxAttempts is the maximum number of retries for CloudFormation.
@@ -16,6 +20,60 @@ type StackStatus string
 // String returns the string representation of StackStatus.
 func (s StackStatus) String() string {
 	return string(s)
+}
+
+// StringWithColor returns the string representation of StackStatus with color.
+func (s StackStatus) StringWithColor() string {
+	switch s {
+	case StackStatusCreateComplete:
+		return color.GreenString("CREATE_COMPLETE")
+	case StackStatusCreateFailed:
+		return color.RedString("CREATE_FAILED")
+	case StackStatusCreateInProgress:
+		return color.YellowString("CREATE_IN_PROGRESS")
+	case StackStatusDeleteComplete:
+		return color.GreenString("DELETE_COMPLETE")
+	case StackStatusDeleteFailed:
+		return color.RedString("DELETE_FAILED")
+	case StackStatusDeleteInProgress:
+		return color.YellowString("DELETE_IN_PROGRESS")
+	case StackStatusRollbackComplete:
+		return color.GreenString("ROLLBACK_COMPLETE")
+	case StackStatusRollbackFailed:
+		return color.RedString("ROLLBACK_FAILED")
+	case StackStatusRollbackInProgress:
+		return color.YellowString("ROLLBACK_IN_PROGRESS")
+	case StackStatusUpdateComplete:
+		return color.GreenString("UPDATE_COMPLETE")
+	case StackStatusUpdateCompleteCleanupInProgress:
+		return color.YellowString("UPDATE_COMPLETE_CLEANUP_IN_PROGRESS")
+	case StackStatusUpdateInProgress:
+		return color.YellowString("UPDATE_IN_PROGRESS")
+	case StackStatusUpdateRollbackComplete:
+		return color.GreenString("UPDATE_ROLLBACK_COMPLETE")
+	case StackStatusUpdateRollbackCompleteCleanupInProgress:
+		return color.YellowString("UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS")
+	case StackStatusUpdateRollbackFailed:
+		return color.RedString("UPDATE_ROLLBACK_FAILED")
+	case StackStatusUpdateFailed:
+		return color.RedString("UPDATE_FAILED")
+	case StackStatusUpdateRollbackInProgress:
+		return color.YellowString("UPDATE_ROLLBACK_IN_PROGRESS")
+	case StackStatusReviewInProgress:
+		return color.YellowString("REVIEW_IN_PROGRESS")
+	case StackStatusImportInProgress:
+		return color.YellowString("IMPORT_IN_PROGRESS")
+	case StackStatusImportComplete:
+		return color.GreenString("IMPORT_COMPLETE")
+	case StackStatusImportRollbackInProgress:
+		return color.YellowString("IMPORT_ROLLBACK_IN_PROGRESS")
+	case StackStatusImportRollbackFailed:
+		return color.RedString("IMPORT_ROLLBACK_FAILED")
+	case StackStatusImportRollbackComplete:
+		return color.GreenString("IMPORT_ROLLBACK_COMPLETE")
+	default:
+		return color.RedString("UNKNOWN")
+	}
 }
 
 // CloudFormation stack status constants
