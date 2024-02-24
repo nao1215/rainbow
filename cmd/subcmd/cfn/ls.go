@@ -52,64 +52,14 @@ func (l *lsCmd) Do() error {
 	}
 
 	for _, stack := range out.Stacks {
+		if stack.StackName == nil || stack.StackStatus == model.StackStatusDeleteComplete {
+			continue
+		}
+
 		l.printf("  %s (status=%s, updated_at=%s)\n",
 			color.GreenString(*stack.StackName),
-			stackStatusString(stack.StackStatus),
+			stack.StackStatus.StringWithColor(),
 			stack.LastUpdatedTime.Format("2006-01-02 15:04:05"))
 	}
 	return nil
-}
-
-// stackStatusString returns a string representation of the stack status.
-func stackStatusString(status model.StackStatus) string {
-	switch status {
-	case model.StackStatusCreateComplete:
-		return color.GreenString("CREATE_COMPLETE")
-	case model.StackStatusCreateFailed:
-		return color.RedString("CREATE_FAILED")
-	case model.StackStatusCreateInProgress:
-		return color.YellowString("CREATE_IN_PROGRESS")
-	case model.StackStatusDeleteComplete:
-		return color.GreenString("DELETE_COMPLETE")
-	case model.StackStatusDeleteFailed:
-		return color.RedString("DELETE_FAILED")
-	case model.StackStatusDeleteInProgress:
-		return color.YellowString("DELETE_IN_PROGRESS")
-	case model.StackStatusRollbackComplete:
-		return color.GreenString("ROLLBACK_COMPLETE")
-	case model.StackStatusRollbackFailed:
-		return color.RedString("ROLLBACK_FAILED")
-	case model.StackStatusRollbackInProgress:
-		return color.YellowString("ROLLBACK_IN_PROGRESS")
-	case model.StackStatusUpdateComplete:
-		return color.GreenString("UPDATE_COMPLETE")
-	case model.StackStatusUpdateCompleteCleanupInProgress:
-		return color.YellowString("UPDATE_COMPLETE_CLEANUP_IN_PROGRESS")
-	case model.StackStatusUpdateInProgress:
-		return color.YellowString("UPDATE_IN_PROGRESS")
-	case model.StackStatusUpdateRollbackComplete:
-		return color.GreenString("UPDATE_ROLLBACK_COMPLETE")
-	case model.StackStatusUpdateRollbackCompleteCleanupInProgress:
-		return color.YellowString("UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS")
-	case model.StackStatusUpdateRollbackFailed:
-		return color.RedString("UPDATE_ROLLBACK_FAILED")
-	case model.StackStatusUpdateFailed:
-		return color.RedString("UPDATE_FAILED")
-	case model.StackStatusUpdateRollbackInProgress:
-		return color.YellowString("UPDATE_ROLLBACK_IN_PROGRESS")
-	case model.StackStatusReviewInProgress:
-		return color.YellowString("REVIEW_IN_PROGRESS")
-	case model.StackStatusImportInProgress:
-		return color.YellowString("IMPORT_IN_PROGRESS")
-	case model.StackStatusImportComplete:
-		return color.GreenString("IMPORT_COMPLETE")
-	case model.StackStatusImportRollbackInProgress:
-		return color.YellowString("IMPORT_ROLLBACK_IN_PROGRESS")
-	case model.StackStatusImportRollbackFailed:
-		return color.RedString("IMPORT_ROLLBACK_FAILED")
-	case model.StackStatusImportRollbackComplete:
-		return color.GreenString("IMPORT_ROLLBACK_COMPLETE")
-	default:
-		return color.RedString("UNKNOWN")
-	}
 }

@@ -2,11 +2,16 @@
 package cfn
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
 // Execute starts the root command of cfn command.
 func Execute() error {
+	if len(os.Args) == 1 {
+		return interactive()
+	}
 	if err := newRootCmd().Execute(); err != nil {
 		return err
 	}
