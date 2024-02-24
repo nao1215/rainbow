@@ -279,12 +279,12 @@ func (m *s3hubListBucketModel) bucketListString() string {
 	case 0:
 		return m.emptyBucketListString()
 	default:
-		return m.bucketListStrWithCheckbox()
+		return m.bucketListStrWithCheckBox()
 	}
 }
 
-// bucketListStrWithCheckbox generates the string representation of the bucket list.
-func (m *s3hubListBucketModel) bucketListStrWithCheckbox() string {
+// bucketListStrWithCheckBox generates the string representation of the bucket list.
+func (m *s3hubListBucketModel) bucketListStrWithCheckBox() string {
 	startIndex := 0
 	endIndex := len(m.bucketSets)
 
