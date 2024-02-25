@@ -20,7 +20,7 @@ type CFnStackListerOutput struct {
 
 // CFnStackLister is the interface that wraps the basic CFnStackLister method.
 type CFnStackLister interface {
-	CFnStackLister(ctx context.Context, input *CFnStackListerInput) (*CFnStackListerOutput, error)
+	ListCFnStack(ctx context.Context, input *CFnStackListerInput) (*CFnStackListerOutput, error)
 }
 
 // CFnStackResourceListerInput is the input of the CFnStackResourceLister method.
@@ -39,7 +39,7 @@ type CFnStackResourceListerOutput struct {
 
 // CFnStackResourceLister is the interface that wraps the basic CFnStackResourceLister method.
 type CFnStackResourceLister interface {
-	CFnStackResourceLister(ctx context.Context, input *CFnStackResourceListerInput) (*CFnStackResourceListerOutput, error)
+	ListCFnStackResource(ctx context.Context, input *CFnStackResourceListerInput) (*CFnStackResourceListerOutput, error)
 }
 
 // CFnStackCreatorInput is the input of the CFnStackCreator method.
@@ -58,7 +58,7 @@ type CFnStackCreatorOutput struct {
 
 // CFnStackCreator is the interface that wraps the basic CFnStackCreator method.
 type CFnStackCreator interface {
-	CFnStackCreator(ctx context.Context, input *CFnStackCreatorInput) (*CFnStackCreatorOutput, error)
+	CreatCFnStack(ctx context.Context, input *CFnStackCreatorInput) (*CFnStackCreatorOutput, error)
 }
 
 // CFnStackDeleterInput is the input of the CFnStackDeleter method.
@@ -72,5 +72,23 @@ type CFnStackDeleterOutput struct{}
 
 // CFnStackDeleter is the interface that wraps the basic CFnStackDeleter method.
 type CFnStackDeleter interface {
-	CFnStackDeleter(ctx context.Context, input *CFnStackDeleterInput) (*CFnStackDeleterOutput, error)
+	DeleteCFnStack(ctx context.Context, input *CFnStackDeleterInput) (*CFnStackDeleterOutput, error)
+}
+
+// CFnStackEventsDescriberInput is the input of the CFnStackEventsDescriber method.
+type CFnStackEventsDescriberInput struct {
+	// StackName is the name of the stack.
+	StackName string
+	// Region is the region of the stack.
+	Region model.Region
+}
+
+// CFnStackEventsDescriberOutput is the output of the CFnStackEventsDescriber method.
+type CFnStackEventsDescriberOutput struct {
+	Events []*model.StackEvent
+}
+
+// CFnStackEventsDescriber is the interface that wraps the basic CFnStackEventsDescriber method.
+type CFnStackEventsDescriber interface {
+	DescribeCFnStackEvents(ctx context.Context, input *CFnStackEventsDescriberInput) (*CFnStackEventsDescriberOutput, error)
 }

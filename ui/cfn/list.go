@@ -3,6 +3,7 @@ package cfn
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
@@ -29,6 +30,8 @@ type cfnListStackModel struct {
 	ctx context.Context
 	// stacks is the list of the CloudFormation stacks.
 	stacks []*model.Stack
+	// events is the list of the CloudFormation stack events.
+	events map[string][]*model.StackEvent
 	// status is the status of the operation.
 	status status
 	// toggle is the currently selected menu item.
@@ -102,13 +105,8 @@ func (m *cfnListStackModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case fetchStacks:
 		m.status = statusStacksFetched
-		m.stacks = make([]*model.Stack, 0, len(msg.stacks))
-		for _, stack := range msg.stacks {
-			if stack.StackName == nil || stack.StackStatus == model.StackStatusDeleteComplete {
-				continue
-			}
-			m.stacks = append(m.stacks, stack)
-		}
+		m.stacks = msg.stacks
+		m.events = msg.events
 		m.choice = ui.NewChoice(0, len(m.stacks)-1)
 		m.toggles = ui.NewToggleSets(len(m.stacks))
 		return m, nil
@@ -182,16 +180,81 @@ func (m *cfnListStackModel) stacksListStrWithCheckBox() string {
 	m.status = statusStacksListed
 	s := fmt.Sprintf("CloudForamtion Stacks %d/%d (profile=%s)\n\n", m.choice.Choice+1, len(m.stacks), m.awsProfile.String())
 	for i := startIndex; i < endIndex; i++ {
-		stack := m.stacks[i]
-		s += fmt.Sprintf("%s\n",
-			ui.ToggleWidget(
-				fmt.Sprintf(
-					"  %s (status=%s, updated_at=%s)",
-					color.GreenString(*stack.StackName),
-					stack.StackStatus.StringWithColor(),
-					stack.LastUpdatedTime.Format("2006-01-02 15:04:05")),
-				m.choice.Choice == i, m.toggles[i].Enabled))
+		s += m.stackStatusString(i)
 	}
+
+	s += fmt.Sprintln("")
+	s += fmt.Sprintf("  [Status]\n%s", m.stackStatusReasonString())
 	s += ui.Subtle("\n<esc>: return to the top | <Ctrl-C>: quit | up/down: select\n")
 	return s
+}
+
+// stackStatusString returns the string of the stack status.
+func (m *cfnListStackModel) stackStatusString(index int) string {
+	stack := m.stacks[index]
+
+	lastUpdateTime := "no data"
+	if stack.LastUpdatedTime != nil {
+		lastUpdateTime = stack.LastUpdatedTime.Format("2006-01-02 15:04:05")
+	}
+
+	return fmt.Sprintf("%s\n",
+		ui.ToggleWidget(
+			fmt.Sprintf("  %s (status=%s, updated_at=%s)",
+				color.GreenString(*stack.StackName),
+				stack.StackStatus.StringWithColor(),
+				lastUpdateTime),
+			m.choice.Choice == index, m.toggles[index].Enabled))
+}
+
+// stackStatusReasonString returns the string of the stack status reason.
+func (m *cfnListStackModel) stackStatusReasonString() string {
+	stack := m.stacks[m.choice.Choice]
+
+	switch stack.StackStatus {
+	case model.StackStatusCreateComplete, model.StackStatusImportComplete, model.StackStatusUpdateComplete:
+		return "   completed\n"
+	default:
+		events, ok := m.events[*stack.StackName]
+		if !ok {
+			return "   no data\n"
+		}
+
+		reason := ""
+		for _, v := range events {
+			switch v.ResourceStatus {
+			case model.ResourceStatusCreateFailed, model.ResourceStatusDeleteFailed, model.ResourceStatusUpdateFailed,
+				model.ResourceStatusImportFailed, model.ResourceStatusImportRollbackFailed, model.ResourceStatusRollbackFailed,
+				model.ResourceStatusUpdateRollbackFailed:
+				if *v.ResourceStatusReason == model.ResouceCreationCancelled {
+					continue
+				}
+				reason += fmt.Sprintf("   %s: %s\n", v.ResourceStatus, wrapText(*v.ResourceStatusReason, 80))
+			}
+		}
+		return ui.Red(reason)
+	}
+}
+
+func wrapText(text string, width int) string {
+	var wrappedText strings.Builder
+
+	words := strings.Fields(text)
+	lineWidth := 0
+
+	for _, word := range words {
+		wordLen := len(word)
+		if lineWidth+wordLen > width {
+			wrappedText.WriteString("\n   ")
+			lineWidth = 0
+		}
+		if lineWidth > 0 {
+			wrappedText.WriteString(" ")
+			lineWidth++
+		}
+		wrappedText.WriteString(word)
+		lineWidth += wordLen
+	}
+
+	return wrappedText.String()
 }

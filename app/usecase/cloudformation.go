@@ -22,3 +22,22 @@ type CFnStackListerOutput struct {
 type CFnStackLister interface {
 	ListCFnStack(ctx context.Context, input *CFnStackListerInput) (*CFnStackListerOutput, error)
 }
+
+// CFnStackEventsDescriberInput is the input of the CFnStackEventsDescriber method.
+type CFnStackEventsDescriberInput struct {
+	// StackName is the name of the stack.
+	StackName string
+	// Region is the region of the stack.
+	Region model.Region
+}
+
+// CFnStackEventsDescriberOutput is the output of the CFnStackEventsDescriber method.
+type CFnStackEventsDescriberOutput struct {
+	// Events is a list of CloudFormation stack events.
+	Events []*model.StackEvent
+}
+
+// CFnStackEventsDescriber is the interface that wraps the basic CFnStackEventsDescriber method.
+type CFnStackEventsDescriber interface {
+	DescribeCFnStackEvents(ctx context.Context, input *CFnStackEventsDescriberInput) (*CFnStackEventsDescriberOutput, error)
+}
