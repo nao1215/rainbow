@@ -9,7 +9,7 @@ import (
 // CFnStackLister is a mock of the CFnStackLister interface.
 type CFnStackLister func(ctx context.Context, input *service.CFnStackListerInput) (*service.CFnStackListerOutput, error)
 
-// CFnStackLister calls the CFnStackListerFunc.
-func (m CFnStackLister) CFnStackLister(ctx context.Context, input *service.CFnStackListerInput) (*service.CFnStackListerOutput, error) {
+// ListCFnStack calls the CFnStackListerFunc.
+func (m CFnStackLister) ListCFnStack(ctx context.Context, input *service.CFnStackListerInput) (*service.CFnStackListerOutput, error) {
 	return m(ctx, input)
 }

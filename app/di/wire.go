@@ -62,6 +62,7 @@ func NewS3App(ctx context.Context, profile model.AWSProfile, region model.Region
 	return nil, nil
 }
 
+// newS3App creates a new S3App.
 func newS3App(
 	s3BucketCreator usecase.S3BucketCreator,
 	s3BucketLister usecase.S3BucketLister,
@@ -141,6 +142,8 @@ func newSpareApp(
 type CFnApp struct {
 	// CFnStackLister is the usecase for listing CloudFormation stacks.
 	usecase.CFnStackLister
+	// CFnStackEventsDescriber is the usecase for describing CloudFormation stack events.
+	usecase.CFnStackEventsDescriber
 }
 
 // NewCFnApp creates a new CFnApp.
@@ -149,15 +152,18 @@ func NewCFnApp(ctx context.Context, profile model.AWSProfile, region model.Regio
 		model.NewAWSConfig,
 		external.NewCloudFormationClient,
 		external.CFnStackListerSet,
+		external.CFnStackEventsDescriberSet,
 		interactor.CFnStackListerSet,
+		interactor.CFnStackEventsDescriberSet,
 		newCFnApp,
 	)
 	return nil, nil
 }
 
 // newCFnApp creates a new CFnApp.
-func newCFnApp(cFnStackLister usecase.CFnStackLister) *CFnApp {
+func newCFnApp(cFnStackLister usecase.CFnStackLister, cFnStackEventsDecriber usecase.CFnStackEventsDescriber) *CFnApp {
 	return &CFnApp{
-		CFnStackLister: cFnStackLister,
+		CFnStackLister:          cFnStackLister,
+		CFnStackEventsDescriber: cFnStackEventsDecriber,
 	}
 }

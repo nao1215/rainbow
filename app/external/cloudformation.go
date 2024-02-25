@@ -46,8 +46,8 @@ func NewCFnStackLister(client *cloudformation.Client) *CFnStackLister {
 	return &CFnStackLister{client: client}
 }
 
-// CFnStackLister returns a list of CloudFormation stacks.
-func (l *CFnStackLister) CFnStackLister(ctx context.Context, input *service.CFnStackListerInput) (*service.CFnStackListerOutput, error) {
+// ListCFnStack returns a list of CloudFormation stacks.
+func (l *CFnStackLister) ListCFnStack(ctx context.Context, input *service.CFnStackListerInput) (*service.CFnStackListerOutput, error) {
 	in := &cloudformation.ListStacksInput{}
 	opt := func(o *cloudformation.Options) {
 		o.Region = input.Region.String()
@@ -118,8 +118,8 @@ func NewCFnStackResourceLister(client *cloudformation.Client) *CFnStackResourceL
 	return &CFnStackResourceLister{client: client}
 }
 
-// CFnStackResourceLister returns a list of CloudFormation stack resources.
-func (l *CFnStackResourceLister) CFnStackResourceLister(ctx context.Context, input *service.CFnStackResourceListerInput) (*service.CFnStackResourceListerOutput, error) {
+// ListCFnStackResource returns a list of CloudFormation stack resources.
+func (l *CFnStackResourceLister) ListCFnStackResource(ctx context.Context, input *service.CFnStackResourceListerInput) (*service.CFnStackResourceListerOutput, error) {
 	in := &cloudformation.ListStackResourcesInput{
 		StackName: aws.String(input.StackName),
 	}
@@ -187,8 +187,8 @@ func NewCFnStackCreator(client *cloudformation.Client) *CFnStackCreator {
 	return &CFnStackCreator{client: client}
 }
 
-// CFnStackCreator creates a CloudFormation stack.
-func (c *CFnStackCreator) CFnStackCreator(ctx context.Context, input *service.CFnStackCreatorInput) (*service.CFnStackCreatorOutput, error) {
+// CreatCFnStack creates a CloudFormation stack.
+func (c *CFnStackCreator) CreatCFnStack(ctx context.Context, input *service.CFnStackCreatorInput) (*service.CFnStackCreatorOutput, error) {
 	in := &cloudformation.CreateStackInput{
 		StackName:    aws.String(input.StackName),
 		TemplateBody: aws.String(input.TemplateBody),
@@ -227,8 +227,8 @@ func NewCFnStackDeleter(client *cloudformation.Client, waiter *cloudformation.St
 	}
 }
 
-// CFnStackDeleter deletes a CloudFormation stack.
-func (d *CFnStackDeleter) CFnStackDeleter(ctx context.Context, input *service.CFnStackDeleterInput) (*service.CFnStackDeleterOutput, error) {
+// DeleteCFnStack deletes a CloudFormation stack.
+func (d *CFnStackDeleter) DeleteCFnStack(ctx context.Context, input *service.CFnStackDeleterInput) (*service.CFnStackDeleterOutput, error) {
 	in := &cloudformation.DeleteStackInput{
 		StackName: aws.String(input.StackName),
 	}
@@ -244,4 +244,64 @@ func (d *CFnStackDeleter) CFnStackDeleter(ctx context.Context, input *service.CF
 	}
 
 	return &service.CFnStackDeleterOutput{}, nil
+}
+
+// CFnStackEventsDescriber implements the CFnStackEventsDescriber interface.
+type CFnStackEventsDescriber struct {
+	client *cloudformation.Client
+}
+
+// CFnStackEventsDescriberSet is a set of CFnStackEventsDescriber.
+//
+//nolint:gochecknoglobals
+var CFnStackEventsDescriberSet = wire.NewSet(
+	NewCFnStackEventsDescriber,
+	wire.Bind(new(service.CFnStackEventsDescriber), new(*CFnStackEventsDescriber)),
+)
+
+var _ service.CFnStackEventsDescriber = (*CFnStackEventsDescriber)(nil)
+
+// NewCFnStackEventsDescriber returns a new CloudFormationStackEventsDescriber.
+func NewCFnStackEventsDescriber(client *cloudformation.Client) *CFnStackEventsDescriber {
+	return &CFnStackEventsDescriber{client: client}
+}
+
+// DescribeCFnStackEvents returns a list of CloudFormation stack events.
+func (d *CFnStackEventsDescriber) DescribeCFnStackEvents(ctx context.Context, input *service.CFnStackEventsDescriberInput) (*service.CFnStackEventsDescriberOutput, error) {
+	in := &cloudformation.DescribeStackEventsInput{
+		StackName: aws.String(input.StackName),
+	}
+	opt := func(o *cloudformation.Options) {
+		o.Region = input.Region.String()
+	}
+
+	out, err := d.client.DescribeStackEvents(ctx, in, opt)
+	if err != nil {
+		return nil, err
+	}
+
+	events := make([]*model.StackEvent, 0, 100)
+	for _, event := range out.StackEvents {
+		events = append(events, &model.StackEvent{
+			EventID:              event.EventId,
+			StackID:              event.StackId,
+			StackName:            event.StackName,
+			Timestamp:            event.Timestamp,
+			ClientRequestToken:   event.ClientRequestToken,
+			HookFailureMode:      model.HookFailureMode(event.HookFailureMode),
+			HookInvocationPoint:  model.HookInvocationPoint(event.HookInvocationPoint),
+			HookStatus:           model.HookStatus(event.HookStatus),
+			HookStatusReason:     event.HookStatusReason,
+			HookType:             event.HookType,
+			LogicalResourceID:    event.LogicalResourceId,
+			PhysicalResourceID:   event.PhysicalResourceId,
+			ResourceProperties:   event.ResourceProperties,
+			ResourceStatus:       model.ResourceStatus(event.ResourceStatus),
+			ResourceStatusReason: event.ResourceStatusReason,
+			ResourceType:         event.ResourceType,
+		})
+	}
+	return &service.CFnStackEventsDescriberOutput{
+		Events: events,
+	}, nil
 }

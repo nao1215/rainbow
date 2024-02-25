@@ -32,7 +32,7 @@ func NewCFnStackLister(lister service.CFnStackLister) *CFnStackLister {
 
 // ListCFnStack returns a list of CloudFormation stacks.
 func (l *CFnStackLister) ListCFnStack(ctx context.Context, input *usecase.CFnStackListerInput) (*usecase.CFnStackListerOutput, error) {
-	output, err := l.CFnStackLister.CFnStackLister(ctx, &service.CFnStackListerInput{
+	output, err := l.CFnStackLister.ListCFnStack(ctx, &service.CFnStackListerInput{
 		Region: input.Region,
 	})
 	if err != nil {
@@ -40,5 +40,41 @@ func (l *CFnStackLister) ListCFnStack(ctx context.Context, input *usecase.CFnSta
 	}
 	return &usecase.CFnStackListerOutput{
 		Stacks: output.Stacks,
+	}, nil
+}
+
+// CFnStackEventsDescriberSet is a set of CFnStackEventsDescriber.
+//
+//nolint:gochecknoglobals
+var CFnStackEventsDescriberSet = wire.NewSet(
+	NewCFnStackEventsDescriber,
+	wire.Bind(new(usecase.CFnStackEventsDescriber), new(*CFnStackEventsDescriber)),
+)
+
+var _ usecase.CFnStackEventsDescriber = (*CFnStackEventsDescriber)(nil)
+
+// CFnStackEventsDescriber is an implementation for CFnStackEventsDescriber.
+type CFnStackEventsDescriber struct {
+	service.CFnStackEventsDescriber
+}
+
+// NewCFnStackEventsDescriber returns a new CFnStackEventsDescriber struct.
+func NewCFnStackEventsDescriber(describer service.CFnStackEventsDescriber) *CFnStackEventsDescriber {
+	return &CFnStackEventsDescriber{
+		CFnStackEventsDescriber: describer,
+	}
+}
+
+// DescribeCFnStackEvents returns a list of CloudFormation stack events.
+func (d *CFnStackEventsDescriber) DescribeCFnStackEvents(ctx context.Context, input *usecase.CFnStackEventsDescriberInput) (*usecase.CFnStackEventsDescriberOutput, error) {
+	output, err := d.CFnStackEventsDescriber.DescribeCFnStackEvents(ctx, &service.CFnStackEventsDescriberInput{
+		StackName: input.StackName,
+		Region:    input.Region,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &usecase.CFnStackEventsDescriberOutput{
+		Events: output.Events,
 	}, nil
 }
