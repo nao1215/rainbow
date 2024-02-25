@@ -226,7 +226,7 @@ func (m *cfnListStackModel) stackStatusReasonString() string {
 			case model.ResourceStatusCreateFailed, model.ResourceStatusDeleteFailed, model.ResourceStatusUpdateFailed,
 				model.ResourceStatusImportFailed, model.ResourceStatusImportRollbackFailed, model.ResourceStatusRollbackFailed,
 				model.ResourceStatusUpdateRollbackFailed:
-				if *v.ResourceStatusReason == model.ResouceCreationCancelled {
+				if v.ResourceStatusReason != nil && *v.ResourceStatusReason == model.ResouceCreationCancelled {
 					continue
 				}
 				reason += fmt.Sprintf("   %s: %s\n", v.ResourceStatus, wrapText(*v.ResourceStatusReason, 80))
