@@ -30,8 +30,8 @@ github.com/aws/aws-sdk-go-v2/service/cloudformation v1.46.1 h1:CQr7NJ8H1jbKQYw5E
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.46.1/go.mod h1:xeVzlf/azrN9e9Va3T3MIPTzVH/alM4dlAJO523RMjY=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.35.1 h1:svIAj0MQHRi8tbEhLAVmzaVEVwUsfQTpKumqDaiY0BA=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.35.1/go.mod h1:m6lC61MrqoPdj7DHdlHp5NwbiEkoZOdrT8WuDPkkUv4=
-github.com/aws/aws-sdk-go-v2/service/costexplorer v1.35.1 h1:RL88yH8WXGApo9rMtNtYHRjr4ygU8Nsmffc/4Y9Mdxw=
-github.com/aws/aws-sdk-go-v2/service/costexplorer v1.35.1/go.mod h1:ER2/7oQRsWauGiNsuZHQbmSV+tOBVfzlge0hEy0RJv4=
+github.com/aws/aws-sdk-go-v2/service/costexplorer v1.36.0 h1:7Dod3+06iLZPl77+943KAKrd7cSK+qm5/ooISmzzdxg=
+github.com/aws/aws-sdk-go-v2/service/costexplorer v1.36.0/go.mod h1:ER2/7oQRsWauGiNsuZHQbmSV+tOBVfzlge0hEy0RJv4=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1 h1:EyBZibRTVAs6ECHZOw5/wlylS9OcTzwyjeQMudmREjE=
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.1/go.mod h1:JKpmtYhhPs7D97NL/ltqz7yCkERFW5dOlHyVl66ZYF8=
 github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.2 h1:zSdTXYLwuXDNPUS+V41i1SFDXG7V0ITp0D9UT9Cvl18=
