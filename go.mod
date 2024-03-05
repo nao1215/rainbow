@@ -16,7 +16,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sns v1.29.1
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
-	github.com/charmbracelet/lipgloss v0.9.1
+	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/charmbracelet/log v0.3.1
 	github.com/fatih/color v1.16.0
 	github.com/gogf/gf v1.16.9
