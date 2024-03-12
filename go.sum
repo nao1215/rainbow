@@ -26,8 +26,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 h1:hT8rVHwugYE2lEfdFE0QWVo81lF7
 github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0/go.mod h1:8tu/lYfQfFe6IGnaOdrpVgEL2IrrDOf6/m9RQum4NkY=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.3 h1:mDnFOE2sVkyphMWtTH+stv0eW3k0OTx94K63xpxHty4=
 github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.3/go.mod h1:V8MuRVcCRt5h1S+Fwu8KbC7l/gBGo3yBAyUbJM2IJOk=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.1 h1:MkQ6aU0fCIQmpQkVc9mOXrzBH5EoRJYI8MMm3a5LOyM=
-github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.1/go.mod h1:M1MzxSL622D8loHtyq/5TWqJvnYU+Oth0Wa6/U9NjNU=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.2 h1:CcIbHg7dQRdIXU4sMM1S8hy16RqTg0rq156cAhbg82c=
+github.com/aws/aws-sdk-go-v2/service/cloudformation v1.47.2/go.mod h1:M1MzxSL622D8loHtyq/5TWqJvnYU+Oth0Wa6/U9NjNU=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.35.2 h1:XZaoET4/Bdeb2e1gdYGnMh7EIqm4ufqBMz5MUMraHRA=
 github.com/aws/aws-sdk-go-v2/service/cloudfront v1.35.2/go.mod h1:jQgAtx2MeF2yr2tEAxfrugxexLbHYA+ahyHFWmpSY8Y=
 github.com/aws/aws-sdk-go-v2/service/costexplorer v1.36.1 h1:mz+PP9E2sdAtnAZmL7VSVm8+2AcKiRvEAn50zBmLabE=
