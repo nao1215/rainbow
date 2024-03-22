@@ -17,7 +17,7 @@ require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/lipgloss v0.10.0
-	github.com/charmbracelet/log v0.3.1
+	github.com/charmbracelet/log v0.4.0
 	github.com/fatih/color v1.16.0
 	github.com/gogf/gf v1.16.9
 	github.com/google/go-cmp v0.6.0
