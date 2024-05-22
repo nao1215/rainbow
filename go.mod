@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go-v2 v1.27.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.15
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.50.3
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.51.0
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.36.3
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.38.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.54.2
