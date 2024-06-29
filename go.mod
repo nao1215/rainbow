@@ -28,7 +28,7 @@ require (
 	github.com/nao1215/gorky v0.2.1
 	github.com/nao1215/spare v0.0.2
 	github.com/schollz/progressbar/v3 v3.14.4
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/wailsapp/mimetype v1.4.1
 	golang.org/x/sync v0.7.0
 	gopkg.in/yaml.v2 v2.4.0
