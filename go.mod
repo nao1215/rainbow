@@ -14,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.40.5
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.61.1
 	github.com/aws/aws-sdk-go-v2/service/sns v1.31.6
-	github.com/charmbracelet/bubbles v0.19.0
+	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.0
 	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/charmbracelet/log v0.4.0
