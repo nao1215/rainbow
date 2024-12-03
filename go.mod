@@ -12,7 +12,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.56.1
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.43.1
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.45.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.70.0
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.71.0
 	github.com/aws/aws-sdk-go-v2/service/sns v1.33.7
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
