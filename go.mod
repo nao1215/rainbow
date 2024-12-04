@@ -30,7 +30,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.15.0
 	github.com/spf13/cobra v1.8.1
 	github.com/wailsapp/mimetype v1.4.1
-	golang.org/x/sync v0.9.0
+	golang.org/x/sync v0.10.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
