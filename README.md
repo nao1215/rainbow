@@ -17,7 +17,7 @@ This project adopts README-Driven Development. Therefore, while there may be a R
 
 ## Supported OS & Go version
 - Linux
-- Go 1.19 or later
+- Go 1.21 or later
   
 I plan to support Mac. Until certain features are added, it has been excluded from the scope of unit testing.  
 
