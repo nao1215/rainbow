@@ -13,7 +13,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudfront v1.44.5
 	github.com/aws/aws-sdk-go-v2/service/costexplorer v1.46.3
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.73.2
-	github.com/aws/aws-sdk-go-v2/service/sns v1.33.13
+	github.com/aws/aws-sdk-go-v2/service/sns v1.33.14
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/lipgloss v1.0.0
