@@ -28,7 +28,7 @@ require (
 	github.com/nao1215/gorky v0.2.1
 	github.com/nao1215/spare v0.0.2
 	github.com/schollz/progressbar/v3 v3.15.0
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/wailsapp/mimetype v1.4.1
 	golang.org/x/sync v0.11.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -75,7 +75,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	go.opentelemetry.io/otel v1.0.0 // indirect
 	go.opentelemetry.io/otel/trace v1.0.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
