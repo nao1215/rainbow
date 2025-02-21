@@ -20,7 +20,7 @@ require (
 	github.com/charmbracelet/log v0.4.0
 	github.com/fatih/color v1.18.0
 	github.com/gogf/gf v1.16.9
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/muesli/reflow v0.3.0
