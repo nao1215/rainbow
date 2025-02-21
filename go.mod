@@ -24,7 +24,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/muesli/reflow v0.3.0
-	github.com/muesli/termenv v0.15.2
+	github.com/muesli/termenv v0.16.0
 	github.com/nao1215/gorky v0.2.1
 	github.com/nao1215/spare v0.0.2
 	github.com/schollz/progressbar/v3 v3.15.0
