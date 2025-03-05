@@ -1,8 +1,7 @@
 module github.com/nao1215/rainbow
 
 go 1.21.0
-
-toolchain go1.21.5
+toolchain go1.23.7
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -30,7 +29,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.15.0
 	github.com/spf13/cobra v1.8.1
 	github.com/wailsapp/mimetype v1.4.1
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
